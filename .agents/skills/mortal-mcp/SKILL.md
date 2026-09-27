@@ -6,7 +6,7 @@ description: 使用 CASH 本機 MCP 服務查詢及操作專案工具；目前�
 服務：`http://127.0.0.1:18765/mcp`，systemd user unit `mortal-mcp.service`。
 先查 `fluke_status`；health 成功不代表遊戲能玩。`fluke_open_preview` 只開試玩，不升級既有 Gateway。
 `fluke_validate` 的 scenario 為 clock、sidepot、bot-ledger、full-table；只處理自有 PLAY 測試 DB，不以局部結果宣稱全產品通過。
-`fluke_restart_preview` 尚待 Ledger revision 重啟驗證，現在回傳拒絕，不可绕過清 DB。使用者已授權本次遊戲換版，修正後不需重問。
+`fluke_restart_preview` 僅用於使用者已授權的 PLAY 換版：備份／退還已入帳籌碼／保留歷史。未完成手牌會取消；不得對真實金錢使用。空桌讀回帳務版本已通過真PG及實際換版。
 
 工具底層沿用 MORTAL_FLUKE_ROOT 指定 repo 的既有 scripts，禁止複製另一套業務邏輯。
 忙碌或失敗先查 log／實際程序，不自動重試、不直接另開一份相同任務。

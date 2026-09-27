@@ -23,7 +23,7 @@ MORTAL_FLUKE_ROOT=/absolute/Fluke/checkout uv run --frozen python server.py
 - `fluke_status`：服務 PID／健康檢查／版本。
 - `fluke_open_preview`：開啟 PLAY 試玩，沿用現有服務。
 - `fluke_validate`：隔離 clock／sidepot／bot-ledger／full-table 驗收。
-- `fluke_restart_preview`：目前明確拒絕執行，待既有帳務 revision 恢復通過驗證才開放。
+- `fluke_restart_preview`：已接回：授權後備份、退款已入帳桌上籌碼、保留歷史並換版；未完成手牌取消。
 
 Skill 位於 `.agents/skills/mortal-mcp/SKILL.md`。工具只包裝 Fluke 腳本；服務本身不呼叫 AI。
 同時操作會拒絕後來的請求，回傳完整 log 路徑及最多 1800 bytes 摘要。
@@ -41,4 +41,4 @@ SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
 
 安裝本機服務：`bash scripts/install-service.sh /absolute/Fluke/checkout`。已在執行的服務不會被安裝腳本重啟。
 
-已驗證：`smoke_test.py` 透過真 HTTP MCP 呼叫查狀態、探索四工具、拒絕錯誤參數及拒絕尚未開放的重啟；詳 `smoke-result.json`。開啟與隔離測試工具本輪未經 MCP 執行，底層腳本既有驗證不算此介面的驗證。
+已驗證：`smoke_test.py` 透過真 HTTP MCP 呼叫查狀態、探索四工具、拒絕錯誤參數及拒絕同時重複操作；詳 `smoke-result.json`。開啟與隔離測試工具本輪未經 MCP 執行，底層腳本既有驗證不算此介面的驗證。

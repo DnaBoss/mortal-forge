@@ -72,10 +72,9 @@ def fluke_open_preview() -> dict:
 
 @SERVER.tool(annotations={"destructiveHint": True, "idempotentHint": False})
 def fluke_restart_preview() -> dict:
-    """Restart is not released yet: retained Ledger revisions need restart validation first."""
-    # Keep unsafe existing restart path unavailable until persistence is verified.
-    return {"ok": False, "reason": "restart_validation_pending",
-            "next": "verify persistent Ledger revision hydration before enabling restart; do not clear DB"}
+    """Authorized PLAY upgrade: backup, refund committed stacks, preserve history, then restart preview only. Aborts unfinished hands; requires user's restart instruction."""
+    return execute(["bash", "scripts/fluke_preview.sh", "restart"], mutation=True)
+
 
 
 @SERVER.tool(annotations={"destructiveHint": True, "idempotentHint": False})

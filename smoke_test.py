@@ -1,6 +1,10 @@
 """Real MCP round-trip; read-only, no game restart or test DB created."""
 import asyncio
 import json
+import fcntl
+import os
+import tempfile
+from pathlib import Path
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
@@ -16,8 +20,10 @@ async def main():
             assert data['ok'] and 'build' in data, data
             invalid = await session.call_tool('fluke_validate', {'scenario':'not-a-scenario'})
             assert invalid.isError, invalid
-            restart = await session.call_tool('fluke_restart_preview', {})
-            assert 'restart_validation_pending' in restart.content[0].text
-            print(json.dumps({'passed': ['discovery4','live_status','invalid_scenario_rejected','unsafe_restart_rejected'], 'status': data}, ensure_ascii=False, indent=2))
+            with open(Path(tempfile.gettempdir()) / f"fluke-operations-{os.getuid()}.lock", "a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                busy = await session.call_tool('fluke_open_preview', {})
+                assert 'operation_in_progress' in busy.content[0].text
+            print(json.dumps({'passed': ['discovery4','live_status','invalid_scenario_rejected','concurrent_operation_rejected'], 'status': data}, ensure_ascii=False, indent=2))
 
 asyncio.run(main())
