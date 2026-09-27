@@ -1,0 +1,22 @@
+{
+  "passed": [
+    "discovery4",
+    "live_status",
+    "invalid_scenario_rejected",
+    "unsafe_restart_rejected"
+  ],
+  "status": {
+    "ok": true,
+    "exit_code": 0,
+    "timed_out": false,
+    "log": "/home/cash/orca/workspaces/Fluke/優化/docs/superpowers/evidence/table-visual-upgrade/mcp-operations/302259fe92f844b8b78606b05ceb018d.log",
+    "tail": "ActiveState=active\nMainPID=2112466\n\nActiveState=inactive\nMainPID=0\nok",
+    "next": "done",
+    "build": {
+      "label": "0927-1114",
+      "gateway_sha256": "55778e969186cf0feb4be5ce92a6bea80d249e1744749a61bebdd080880fd63a",
+      "source": "local uncommitted snapshot",
+      "url": "ws://127.0.0.1:18080/ws/json"
+    }
+  }
+}

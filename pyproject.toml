@@ -1,0 +1,6 @@
+[project]
+name = "mortal-mcp"
+version = "0.1.0"
+description = "MORTAL local operations MCP; adapters reuse existing project tools"
+requires-python = ">=3.11"
+dependencies = ["mcp==1.30.0"]
