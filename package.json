@@ -1,0 +1,11 @@
+{
+  "name": "mortal-dev-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared local skills, reusable tools and MORTAL MCP installer",
+  "type": "module",
+  "bin": {"mortal-tools": "bin/mortal-tools.mjs"},
+  "engines": {"node": ">=22"},
+  "files": ["bin/", ".agents/skills/", "server.py", "call.py", "pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursor/rules/", ".windsurf/rules/", ".github/copilot-instructions.md", "docs/package-plan.md"],
+  "scripts": {"test": "node --test test/*.test.mjs"}
+}

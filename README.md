@@ -18,6 +18,19 @@ MORTAL_FLUKE_ROOT=/absolute/Fluke/checkout uv run --frozen python server.py
 
 不同 AI 客戶端設定格式可能不同；本範例不代表已替所有客戶端安裝。
 
+## AI 助手入口
+
+本 repo 的規則來源是 `AGENTS.md`。目前同時提供薄入口給主流 coding assistant：
+
+- Codex／支援 AGENTS 的工具：`AGENTS.md`
+- Claude Code：`CLAUDE.md`
+- Gemini CLI：`GEMINI.md`
+- Cursor：`.cursor/rules/mortal-mcp.mdc`
+- Windsurf：`.windsurf/rules/mortal-mcp.md`
+- GitHub Copilot：`.github/copilot-instructions.md`
+
+這些入口只指向同一套規則，不複製內容；更新工程標準時改 `AGENTS.md` 即可。`mortal-tools init /path/to/repo` 也會寫入同樣入口。
+
 ## 工具
 
 - `fluke_status`：服務 PID／健康檢查／版本。
@@ -47,3 +60,27 @@ SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
 - 無動態工具掛載的session可用 `uv run python call.py fluke_status`，仍透過真MCP呼叫，沒有另一套命令實作。
 
 麻將服務驗證：`call.py fluke_validate --arguments '{"scenario":"mahjong"}'`。沿用 Fluke 固定腳本，自有隔離 PostgreSQL，含日麻與德撲回歸；不重啟試玩 Gateway／Godot。
+
+## npm 本機套件（0.1.0，尚未公開發布）
+
+沿用本 repo；名稱 `mortal-dev-tools` 暫定，private 防止誤發布。Node >=22；MCP Python 入口需 uv，`uv run --frozen` 安裝鎖定依賴。MCP 服務仍為 127.0.0.1:18765，不含 AI 推論。
+
+```sh
+npm pack --pack-destination /tmp
+npm install -g /tmp/mortal-dev-tools-0.1.0.tgz
+mortal-tools install
+mortal-tools doctor
+mortal-tools connect
+```
+
+install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，SKILL 到 `~/.agents/skills/mortal-tools`（Codex）與 `~/.claude/skills/mortal-tools`；僅追加有標記的共用規則區塊，不覆寫原規則。MORTAL_HOME 可供隔離測試；實際 AI 使用標準 home 路徑。重開 AI session 才能確認載入；npm 安裝本身不執行 postinstall、不啟服務、不修改客戶端連線。
+
+`connect` 顯示本機 CLI 支援的 Codex／Claude 註冊命令；先核對既有同名配置再執行。不能把輸出命令稱作已完成註冊。已有 systemd 服務直接沿用；其他電腦可 `mortal-tools serve`，Fluke 入口需環境變數 MORTAL_FLUKE_ROOT。工具目錄預設 `~/tools/tools.json`，可設定 MORTAL_TOOL_CATALOG；不存在則回空清單，不能宣稱其他專案已安裝。
+
+- `mortal-tools call mortal_catalog --arguments '{"query":"fluke"}'`：搜尋現有工具。`mortal_guide` 按 name 讀用法、限制與 SKILL；`mortal://skills/shared` 為 MCP SKILL resource。沒有 MCP adapter 的工具明列 existing_shell_only。
+- `mortal-tools init /path/to/repo`／`uninit`：只新增／移除該 repo 的 AGENTS.md、CLAUDE.md、GEMINI.md、Cursor rule、Windsurf rule、Copilot instructions 專屬區塊，不影響其他內容。
+- 更新：先安裝新版 npm 包，再 `mortal-tools update`；不自動上網找 latest，不自動重啟服務。
+- 解除：`mortal-tools uninstall` 移除受管 SKILL／全域規則，保留穩定程式副本、服務、連線配置和專案 init 區塊，避免仍在運作的服務失效；npm 包另用 `npm uninstall -g mortal-dev-tools` 移除。
+- 共用小程式未全面遷入本 repo；先保留原位置及唯一 tools.json。此次不把模型呼叫、DB 或 Windows 工具盲目封裝／執行。
+
+實作計畫與範圍見 docs/package-plan.md。參考：npm 官方 https://docs.npmjs.com/files/package.json/；Claude 個人 SKILL https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview；Codex／Claude MCP 指令依本機 CLI --help 查證。

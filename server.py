@@ -15,14 +15,14 @@ import uuid
 
 from mcp.server.fastmcp import FastMCP
 
-ROOT = Path(os.environ["MORTAL_FLUKE_ROOT"]).resolve()
-if not (ROOT / "scripts/fluke_preview.sh").is_file():
-    raise RuntimeError("MORTAL_FLUKE_ROOT must point to the Fluke checkout")
-EVIDENCE = ROOT / "docs/superpowers/evidence/table-visual-upgrade/mcp-operations"
+ROOT = Path(os.environ["MORTAL_FLUKE_ROOT"]).resolve() if os.environ.get("MORTAL_FLUKE_ROOT") else None
+EVIDENCE = (ROOT / "docs/superpowers/evidence/table-visual-upgrade/mcp-operations") if ROOT else Path.home() / ".local/state/mortal-mcp/evidence"
 SERVER = FastMCP("mortal-mcp", host="127.0.0.1", port=18765, stateless_http=True, json_response=True)
 
 
 def execute(argv: list[str], *, mutation: bool, timeout: int = 180) -> dict:
+    if ROOT is None or not (ROOT / "scripts/fluke_preview.sh").is_file():
+        return {"ok": False, "reason": "Fluke adapter unavailable; configure MORTAL_FLUKE_ROOT"}
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     log_path = EVIDENCE / (uuid.uuid4().hex + ".log")
     # Host-wide lock: multiple MCP clients/worktrees cannot duplicate operations.
@@ -52,6 +52,46 @@ def execute(argv: list[str], *, mutation: bool, timeout: int = 180) -> dict:
         return {"ok": code == 0 and not timed_out, "exit_code": code,
                 "timed_out": timed_out, "log": str(log_path), "tail": tail,
                 "next": "inspect retained evidence before retry" if code or timed_out else "done"}
+
+
+ROUTES = {
+    "fluke-playtest": ["fluke_status", "fluke_open_preview", "fluke_restart_preview"],
+    "fluke-isolated-godot": ["fluke_validate"],
+    "fluke-mahjong-service-tests": ["fluke_validate(scenario=mahjong)"],
+    "mortal-mcp": ["mortal_catalog", "mortal_guide"],
+    "list-tools": ["mortal_catalog", "mortal_guide"],
+}
+
+def catalog_entries() -> list[dict]:
+    location = Path(os.environ.get("MORTAL_TOOL_CATALOG", str(Path.home() / "tools/tools.json")))
+    if not location.is_file():
+        return []
+    if location.stat().st_size > 2_000_000:
+        raise ValueError("Catalog exceeds 2MB limit")
+    entries = json.loads(location.read_text())
+    if not isinstance(entries, list) or any(not isinstance(e, dict) or not isinstance(e.get("name"), str) for e in entries):
+        raise ValueError("Invalid tool catalog")
+    return entries
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def mortal_catalog(query: str = "", limit: int = 10) -> dict:
+    """Search reusable tools before writing shell workflows; returns routes, never executes catalog text."""
+    if len(query) > 200 or not 1 <= limit <= 50:
+        raise ValueError("query max 200 characters; limit 1..50")
+    entries = [e for e in catalog_entries() if query.casefold() in json.dumps(e, ensure_ascii=False).casefold()]
+    return {"ok": True, "total": len(entries), "tools": [{"name": e["name"], "purpose": e.get("purpose"), "mcp": ROUTES.get(e["name"], []), "execution": "mcp" if e["name"] in ROUTES else "existing_shell_only"} for e in entries[:limit]], "note": "Empty catalog: configure MORTAL_TOOL_CATALOG or register tools; no arbitrary execution."}
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def mortal_guide(name: str) -> dict:
+    """Read one registered tool's use, prerequisites and risks, plus shared skill. Does not execute it."""
+    for entry in catalog_entries():
+        if entry["name"] == name:
+            return {"ok": True, "tool": entry, "mcp": ROUTES.get(name, []), "skill": mortal_skill()}
+    return {"ok": False, "reason": "Unknown registered tool"}
+
+@SERVER.resource("mortal://skills/shared")
+def mortal_skill() -> str:
+    return (Path(__file__).parent / ".agents/skills/mortal-tools/SKILL.md").read_text()
 
 
 @SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
