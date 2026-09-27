@@ -78,10 +78,15 @@ def fluke_restart_preview() -> dict:
 
 
 @SERVER.tool(annotations={"destructiveHint": True, "idempotentHint": False})
-def fluke_validate(scenario: Literal["clock", "sidepot", "bot-ledger", "full-table", "ledger-restart", "bot-restart"]) -> dict:
+def fluke_validate(scenario: Literal["clock", "sidepot", "bot-ledger", "full-table", "ledger-restart", "bot-restart", "mahjong"]) -> dict:
     """Run a bounded isolated PLAY test; creates/deletes only its own test DB. Never infers full V1 completion."""
     output = EVIDENCE / ("test-" + uuid.uuid4().hex)
-    result = execute(["python3", "scripts/visual_probe/run_isolated_godot.py", "--scenario", scenario, "--output", str(output)], mutation=True)
+    if scenario == "mahjong":
+        # This shared shell entry owns the same host lock, including CLI calls.
+        # Do not acquire it twice across parent/child processes.
+        result = execute(["bash", "scripts/mahjong/validate_services.sh", "all", str(output)], mutation=False, timeout=200)
+    else:
+        result = execute(["python3", "scripts/visual_probe/run_isolated_godot.py", "--scenario", scenario, "--output", str(output)], mutation=True)
     result["evidence"] = str(output)
     return result
 

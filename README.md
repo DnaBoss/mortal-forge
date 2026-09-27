@@ -45,3 +45,5 @@ SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
 
 - `fluke_audit_continuity`：兩分鐘唯讀十桌續局／帳務檢查，不替代多人玩法验收。
 - 無動態工具掛載的session可用 `uv run python call.py fluke_status`，仍透過真MCP呼叫，沒有另一套命令實作。
+
+麻將服務驗證：`call.py fluke_validate --arguments '{"scenario":"mahjong"}'`。沿用 Fluke 固定腳本，自有隔離 PostgreSQL，含日麻與德撲回歸；不重啟試玩 Gateway／Godot。

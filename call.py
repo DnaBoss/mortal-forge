@@ -16,14 +16,14 @@ async def main():
             result = await session.call_tool(args.tool, json.loads(args.arguments))
             print(result.model_dump_json(indent=2))
             if result.isError:
-                raise SystemExit(1)
+                return 1
             if result.content and result.content[0].type == 'text':
                 try:
                     payload = json.loads(result.content[0].text)
                 except ValueError:
                     return
                 if isinstance(payload, dict) and payload.get('ok') is False:
-                    raise SystemExit(1)
+                    return 1
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()) or 0)

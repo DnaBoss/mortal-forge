@@ -1,6 +1,6 @@
 ---
 name: mortal-mcp
-description: 使用 CASH 本機 MCP 服務查詢及操作專案工具；目前提供 Fluke 試玩狀態、開啟與隔離驗收，避免重寫常用指令。
+description: 使用 MORTAL MCP 本機服務查詢及操作專案工具；目前提供 Fluke 試玩狀態、開啟與隔離驗收，避免重寫常用指令。
 ---
 
 服務：`http://127.0.0.1:18765/mcp`，systemd user unit `mortal-mcp.service`。
@@ -15,3 +15,5 @@ description: 使用 CASH 本機 MCP 服務查詢及操作專案工具；目前�
 安裝設定見 repo README；寫好設定不等於當前 AI session 已載入工具。
 
 `fluke_audit_continuity` 做兩分鐘唯讀試玩續局／帳務稽核，結果留evidence；只證明觀察區間。`fluke_validate` 另支援ledger-restart與bot-restart。未掛載的session用repo內 `call.py 工具名稱 --arguments JSON`，不要每輪重寫SDK client。
+
+`fluke_validate(scenario="mahjong")` 呼叫 Fluke 的 `scripts/mahjong/validate_services.sh all`，涵蓋日麻帳務／BOT／timeout／history 與德撲回歸。只啟停自有PG，不開Godot／不啟動AI；由子腳本持有同一主機鎖，忙碌即拒絕，不另起第二個測試。
