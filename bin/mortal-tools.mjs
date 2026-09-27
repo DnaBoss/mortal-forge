@@ -35,7 +35,7 @@ const rules = ['.codex/AGENTS.md','.claude/CLAUDE.md'];
 const repoRuleFiles = ['AGENTS.md','CLAUDE.md','GEMINI.md','.cursor/rules/mortal-tools.mdc','.windsurf/rules/mortal-tools.md','.github/copilot-instructions.md'];
 function install() {
  const prev=fs.existsSync(manifestPath)?JSON.parse(read(manifestPath)):null;
- const skill=read(path.join(source,'.agents/skills/mortal-tools/SKILL.md'));
+ const skill=read(path.join(source,'skills/mortal-tools/SKILL.md'));
  if(!skill) throw Error('Packaged SKILL missing');
  for(const r of targets) {
   const p=path.join(home,r);
@@ -46,7 +46,8 @@ function install() {
  const payload=path.join(base,'package');
  if(path.resolve(source)!==payload) {
   fs.mkdirSync(payload,{recursive:true});
-  for(const r of ['bin','.agents','server.py','call.py','pyproject.toml','uv.lock','package.json'])
+  for(const r of ['bin','skills','.agents','src','config','Cargo.toml','Cargo.lock','plugin.json','mcp.json','server.py','call.py','pyproject.toml','uv.lock','package.json'])
+   if(fs.existsSync(path.join(source,r)))
    fs.cpSync(path.join(source,r),path.join(payload,r),{recursive:true});
  }
  for(const r of targets) write(path.join(home,r),skill);
@@ -66,7 +67,7 @@ function uninstall() {
 }
 async function doctor() {
  const checks={installed:fs.existsSync(manifestPath),skills:targets.every(r=>fs.existsSync(path.join(home,r))),rules:rules.every(r=>section(read(path.join(home,r)))===block)};
- for(const cmd of ['uv','python3']) checks[cmd]=spawnSync(cmd,['--version'],{timeout:5000,stdio:'ignore'}).status===0;
+ for(const cmd of ['cargo','python3']) checks[cmd]=spawnSync(cmd,['--version'],{timeout:5000,stdio:'ignore'}).status===0;
  try {
   const res=await fetch('http://127.0.0.1:18765/mcp',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2024-11-05',capabilities:{},clientInfo:{name:'mortal-doctor',version:'0.1.0'}}}),signal:AbortSignal.timeout(4000)});
   const data=await res.json(); checks.mcp=res.ok && data.result?.serverInfo?.name==='mortal-mcp';
@@ -95,6 +96,15 @@ try {
  } else if(command==='call') {
   if(!args[0] || !/^[a-z][a-z0-9_]*$/.test(args[0])) throw Error('Expected MCP tool name');
   run([path.join(source,'call.py'),...args]);
- } else if(command==='serve') run([path.join(source,'server.py')],true);
- else {console.log('mortal-tools install|update|doctor|connect|call <tool> [--arguments JSON]|serve|init [repo]|uninit [repo]|uninstall');if(command)process.exitCode=1;}
+ } else if(command==='serve') {
+  const binary=path.join(source,'target/release/mortal-mcp');
+  const debugBinary=path.join(source,'target/debug/mortal-mcp');
+  if(fs.existsSync(binary)) spawnSync(binary,args,{stdio:'inherit'});
+  else if(fs.existsSync(debugBinary)) spawnSync(debugBinary,args,{stdio:'inherit'});
+  else {
+   const result=spawnSync('cargo',['run','--bin','mortal-mcp','--',...args],{cwd:source,stdio:'inherit'});
+   process.exitCode=result.status ?? 1;
+  }
+ } else if(command==='serve-legacy-python') run([path.join(source,'server.py')],true);
+ else {console.log('mortal-tools install|update|doctor|connect|call <tool> [--arguments JSON]|serve|serve-legacy-python|init [repo]|uninit [repo]|uninstall');if(command)process.exitCode=1;}
 } catch(e) {console.error(e.message);process.exitCode=1;}

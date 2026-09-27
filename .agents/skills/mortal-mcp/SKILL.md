@@ -1,9 +1,11 @@
 ---
 name: mortal-mcp
-description: 使用 MORTAL MCP 本機服務查詢及操作專案工具；目前提供 Fluke 試玩狀態、開啟與隔離驗收，避免重寫常用指令。
+description: Repo-local compatibility entry for operating the MORTAL MCP service. Standard installable skills live under skills/.
 ---
 
-服務：`http://127.0.0.1:18765/mcp`，systemd user unit `mortal-mcp.service`。
+正式可安裝 Skill 位於 `skills/mortal-tools/SKILL.md` 與 `skills/fluke-ops/SKILL.md`。本檔只保留給會掃 `.agents/skills` 的本地 agent。
+
+服務：`http://127.0.0.1:18765/mcp`，systemd user unit `mortal-mcp.service`。目標底層服務是 Rust；Python adapter 只作 legacy fallback。
 先查 `fluke_status`；health 成功不代表遊戲能玩。`fluke_open_preview` 只開試玩，不升級既有 Gateway。
 `fluke_validate` 的 scenario 為 clock、sidepot、bot-ledger、full-table；只處理自有 PLAY 測試 DB，不以局部結果宣稱全產品通過。
 `fluke_restart_preview` 僅用於使用者已授權的 PLAY 換版：備份／退還已入帳籌碼／保留歷史。未完成手牌會取消；不得對真實金錢使用。空桌讀回帳務版本已通過真PG及實際換版。
@@ -18,4 +20,4 @@ description: 使用 MORTAL MCP 本機服務查詢及操作專案工具；目前�
 
 `fluke_validate(scenario="mahjong")` 呼叫 Fluke 的 `scripts/mahjong/validate_services.sh all`，涵蓋日麻帳務／BOT／timeout／history 與德撲回歸。只啟停自有PG，不開Godot／不啟動AI；由子腳本持有同一主機鎖，忙碌即拒絕，不另起第二個測試。
 
-跨專案先用 mortal_catalog 搜尋，mortal_guide 讀指定工具。共用 SKILL 在同 repo 的 .agents/skills/mortal-tools，npm 安裝入口為 mortal-tools install；不要再手寫 SDK。
+跨專案先用 `mortal_catalog` 搜尋；共用標準 Skill 在 `skills/mortal-tools`，npm/插件安裝入口為 `mortal-tools install`。不要再手寫 SDK。

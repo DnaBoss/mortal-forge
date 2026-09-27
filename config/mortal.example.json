@@ -1,0 +1,21 @@
+{
+  "bind": "127.0.0.1:18765",
+  "mcp_path": "/mcp",
+  "companies": [
+    {
+      "id": "dnaboss",
+      "name": "DnaBoss",
+      "tools": [
+        {
+          "name": "fluke_status",
+          "purpose": "Read Fluke PLAY preview service status without proving gameplay acceptance.",
+          "adapter": {
+            "kind": "mcp_tool",
+            "tool": "fluke_status"
+          },
+          "read_only": true
+        }
+      ]
+    }
+  ]
+}

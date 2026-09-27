@@ -1,13 +1,21 @@
 # MORTAL MCP
 
-MORTAL 專用本機工具服務。入口：`http://127.0.0.1:18765/mcp`。
-獨立 repo，沒有 Git remote；只在本機運行，不對外發布。
+MORTAL 是可安裝的標準 Skill／Plugin 套件與本機 MCP 服務。Skill 負責工作流，底層呼叫本 repo 提供的 Rust MCP 服務、固定 CLI、Shell adapter 或其他 MCP tool。
+
+主要目標：
+
+- `skills/` 提供標準可安裝 Skill。
+- `plugin.json` 與 `mcp.json` 提供 Plugin/MCP 打包資訊。
+- Rust 服務預設在 `127.0.0.1:18765` 提供 `/health` 與 `/mcp`。
+- 服務可透過 `MORTAL_CONFIG` 支援一間或多間公司，每家公司工具以固定 adapter 登記。
+- 不提供任意 shell、SQL、刪檔、遠端主機、憑證、付款或正式環境萬用入口。
+
+舊 Python MCP adapter 仍保留作為過渡 fallback；新開發以 Rust service 為準。
 
 ## 執行
 
 ```sh
-uv sync --frozen
-MORTAL_FLUKE_ROOT=/absolute/Fluke/checkout uv run --frozen python server.py
+cargo run --bin mortal-mcp
 ```
 
 客戶端採 Streamable HTTP：
@@ -17,6 +25,12 @@ MORTAL_FLUKE_ROOT=/absolute/Fluke/checkout uv run --frozen python server.py
 ```
 
 不同 AI 客戶端設定格式可能不同；本範例不代表已替所有客戶端安裝。
+
+多公司設定範例：
+
+```sh
+MORTAL_CONFIG=config/mortal.example.json cargo run --bin mortal-mcp
+```
 
 ## AI 助手入口
 
@@ -38,7 +52,7 @@ MORTAL_FLUKE_ROOT=/absolute/Fluke/checkout uv run --frozen python server.py
 - `fluke_validate`：隔離 clock／sidepot／bot-ledger／full-table／ledger-restart／bot-restart 驗收。
 - `fluke_restart_preview`：已接回：授權後備份、退款已入帳桌上籌碼、保留歷史並換版；未完成手牌取消。
 
-Skill 位於 `.agents/skills/mortal-mcp/SKILL.md`。工具只包裝 Fluke 腳本；服務本身不呼叫 AI。
+標準 Skill 位於 `skills/`。`.agents/skills/` 只保留給本 repo 內會掃描該路徑的 agent 作相容入口。
 同時操作會拒絕後來的請求，回傳完整 log 路徑及最多 1800 bytes 摘要。
 MCP 層的 lock 不涵蓋人手直接執行原腳本；不要同時繞過入口執行。
 逾時先中斷並等待清理，若仍卡住會停止該命令；需查殘留測試資源，不自動重試。
@@ -51,6 +65,7 @@ MCP 層的 lock 不涵蓋人手直接執行原腳本；不要同時繞過入口�
 
 服務由使用者 systemd 管理，不建立 cron。停止服務不代表遊戲停止。
 SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
+Rust MCP 使用 `rmcp` 與 `rmcp-actix-web`。
 
 安裝本機服務：`bash scripts/install-service.sh /absolute/Fluke/checkout`。已在執行的服務不會被安裝腳本重啟。
 
@@ -61,9 +76,9 @@ SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
 
 麻將服務驗證：`call.py fluke_validate --arguments '{"scenario":"mahjong"}'`。沿用 Fluke 固定腳本，自有隔離 PostgreSQL，含日麻與德撲回歸；不重啟試玩 Gateway／Godot。
 
-## npm 本機套件（0.1.0，尚未公開發布）
+## npm 本機套件（0.2.0 方向，尚未公開發布）
 
-沿用本 repo；名稱 `mortal-dev-tools` 暫定，private 防止誤發布。Node >=22；MCP Python 入口需 uv，`uv run --frozen` 安裝鎖定依賴。MCP 服務仍為 127.0.0.1:18765，不含 AI 推論。
+沿用本 repo；名稱 `mortal-dev-tools` 暫定，private 防止誤發布。Node >=22；服務底層是 Rust，legacy Python 入口只作 fallback。MCP 服務仍為 127.0.0.1:18765，不含 AI 推論。
 
 ```sh
 npm pack --pack-destination /tmp
@@ -73,7 +88,7 @@ mortal-tools doctor
 mortal-tools connect
 ```
 
-install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，SKILL 到 `~/.agents/skills/mortal-tools`（Codex）與 `~/.claude/skills/mortal-tools`；僅追加有標記的共用規則區塊，不覆寫原規則。MORTAL_HOME 可供隔離測試；實際 AI 使用標準 home 路徑。重開 AI session 才能確認載入；npm 安裝本身不執行 postinstall、不啟服務、不修改客戶端連線。
+install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，標準 Skill 來源在套件內 `skills/`，並安裝 `mortal-tools` skill 到 `~/.agents/skills/mortal-tools`（Codex）與 `~/.claude/skills/mortal-tools`；僅追加有標記的共用規則區塊，不覆寫原規則。MORTAL_HOME 可供隔離測試；實際 AI 使用標準 home 路徑。重開 AI session 才能確認載入；npm 安裝本身不執行 postinstall、不啟服務、不修改客戶端連線。
 
 `connect` 顯示本機 CLI 支援的 Codex／Claude 註冊命令；先核對既有同名配置再執行。不能把輸出命令稱作已完成註冊。已有 systemd 服務直接沿用；其他電腦可 `mortal-tools serve`，Fluke 入口需環境變數 MORTAL_FLUKE_ROOT。工具目錄預設 `~/tools/tools.json`，可設定 MORTAL_TOOL_CATALOG；不存在則回空清單，不能宣稱其他專案已安裝。
 

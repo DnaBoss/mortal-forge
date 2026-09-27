@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name": "mortal-mcp",
+  "version": "0.2.0",
+  "description": "Installable MORTAL skills and a local multi-company MCP service for bounded project tooling.",
+  "skills": [
+    "skills/mortal-tools",
+    "skills/fluke-ops"
+  ],
+  "mcp": "mcp.json",
+  "extensions": {
+    "com.openai": {
+      "display_name": "MORTAL MCP",
+      "short_description": "Route project skills through a local Rust MCP service."
+    }
+  }
+}

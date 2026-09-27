@@ -20,6 +20,8 @@
 ## Project Boundaries
 
 - Read `.agents/skills/mortal-mcp/SKILL.md` before operating tools.
+- Standard installable skills live under `skills/`; `.agents/skills/` is only a repo-local compatibility entry.
+- The service implementation target is Rust. Legacy Python adapters may remain temporarily, but new MCP service work belongs under `src/`.
 - Keep this service local to `127.0.0.1`.
 - Adapters call existing project scripts; never duplicate business, game, or ledger logic.
 - No arbitrary shell, SQL, file deletion, remote-host, credential, payment, or production tool entry. Fixed commands only.

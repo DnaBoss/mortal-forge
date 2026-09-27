@@ -1,0 +1,23 @@
+[package]
+name = "mortal-mcp"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Installable skills and a local multi-tenant MCP service for MORTAL project tooling"
+license = "UNLICENSED"
+
+[[bin]]
+name = "mortal-mcp"
+path = "src/main.rs"
+
+[dependencies]
+actix-web = "4.12.1"
+anyhow = "1.0.100"
+rmcp = { version = "3.4.1", features = ["server", "macros"] }
+rmcp-actix-web = "0.13.0"
+schemars = "1.2.2"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "sync"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
