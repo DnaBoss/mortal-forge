@@ -1,6 +1,6 @@
 {
   "passed": [
-    "discovery4",
+    "discovery5",
     "live_status",
     "invalid_scenario_rejected",
     "concurrent_operation_rejected"
@@ -9,12 +9,12 @@
     "ok": true,
     "exit_code": 0,
     "timed_out": false,
-    "log": "/home/cash/orca/workspaces/Fluke/優化/docs/superpowers/evidence/table-visual-upgrade/mcp-operations/be711a75b0c441c7a21129345a299a53.log",
-    "tail": "ActiveState=active\nMainPID=2154467\n\nActiveState=active\nMainPID=2154479\nok",
+    "log": "/home/cash/orca/workspaces/Fluke/優化/docs/superpowers/evidence/table-visual-upgrade/mcp-operations/05a592086f9247d9bb7f3884f2d51470.log",
+    "tail": "ActiveState=active\nMainPID=2175156\n\nActiveState=active\nMainPID=2175169\nok",
     "next": "done",
     "build": {
-      "label": "20260927-112703",
-      "gateway_sha256": "3786c0b19767331095d651446f7ed2b3933e017d4d109458ec360fefe93e0cd0",
+      "label": "20260927-113228",
+      "gateway_sha256": "4db4e7c9dff15d0760279af6d7f8ed5b0c0a2ab12cd38773c2934c83d7044ad1",
       "url": "ws://127.0.0.1:18080/ws/json",
       "bot_delay_seconds": [
         1,

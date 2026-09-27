@@ -13,3 +13,5 @@ description: 使用 CASH 本機 MCP 服務查詢及操作專案工具；目前�
 輸出只讀摘要；失敗或核對證據時才讀詳細 log。工具不呼叫模型；Godot 渲染中不可啟動本機推論。
 新增其他專案工具沿用同一服務，固定參數與命令，不提供任意 shell／SQL 執行入口。
 安裝設定見 repo README；寫好設定不等於當前 AI session 已載入工具。
+
+`fluke_audit_continuity` 做兩分鐘唯讀試玩續局／帳務稽核，結果留evidence；只證明觀察區間。`fluke_validate` 另支援ledger-restart與bot-restart。未掛載的session用repo內 `call.py 工具名稱 --arguments JSON`，不要每輪重寫SDK client。

@@ -78,10 +78,19 @@ def fluke_restart_preview() -> dict:
 
 
 @SERVER.tool(annotations={"destructiveHint": True, "idempotentHint": False})
-def fluke_validate(scenario: Literal["clock", "sidepot", "bot-ledger", "full-table"]) -> dict:
+def fluke_validate(scenario: Literal["clock", "sidepot", "bot-ledger", "full-table", "ledger-restart", "bot-restart"]) -> dict:
     """Run a bounded isolated PLAY test; creates/deletes only its own test DB. Never infers full V1 completion."""
     output = EVIDENCE / ("test-" + uuid.uuid4().hex)
     result = execute(["python3", "scripts/visual_probe/run_isolated_godot.py", "--scenario", scenario, "--output", str(output)], mutation=True)
+    result["evidence"] = str(output)
+    return result
+
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def fluke_audit_continuity() -> dict:
+    """Read-only two-minute PLAY audit: ten-table progress, stack/escrow, journal balance, rejected actions. Not full gameplay acceptance."""
+    output = EVIDENCE / ("continuity-" + uuid.uuid4().hex)
+    result = execute(["python3", "scripts/visual_probe/audit_preview_continuity.py", "--output", str(output)], mutation=False, timeout=160)
     result["evidence"] = str(output)
     return result
 

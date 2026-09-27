@@ -13,7 +13,7 @@ async def main():
         async with ClientSession(read, write) as session:
             await session.initialize()
             names = {t.name for t in (await session.list_tools()).tools}
-            assert names == {'fluke_status','fluke_open_preview','fluke_restart_preview','fluke_validate'}, names
+            assert names == {'fluke_status','fluke_open_preview','fluke_restart_preview','fluke_validate','fluke_audit_continuity'}, names
             status = await session.call_tool('fluke_status', {})
             assert not status.isError, status
             data = json.loads(status.content[0].text)
@@ -24,6 +24,6 @@ async def main():
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 busy = await session.call_tool('fluke_open_preview', {})
                 assert 'operation_in_progress' in busy.content[0].text
-            print(json.dumps({'passed': ['discovery4','live_status','invalid_scenario_rejected','concurrent_operation_rejected'], 'status': data}, ensure_ascii=False, indent=2))
+            print(json.dumps({'passed': ['discovery5','live_status','invalid_scenario_rejected','concurrent_operation_rejected'], 'status': data}, ensure_ascii=False, indent=2))
 
 asyncio.run(main())
