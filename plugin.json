@@ -6,7 +6,8 @@
   "skills": [
     "skills/mortal-tools",
     "skills/fluke-ops",
-    "skills/orca-claude-env"
+    "skills/orca-claude-env",
+    "skills/local-ai"
   ],
   "mcp": "mcp.json",
   "extensions": {

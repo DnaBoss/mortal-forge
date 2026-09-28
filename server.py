@@ -61,6 +61,8 @@ ROUTES = {
     "orca-claude-env": ["orca_claude_env_check", "orca_stop_stale_daemon"],
     "mortal-mcp": ["mortal_catalog", "mortal_guide"],
     "list-tools": ["mortal_catalog", "mortal_guide"],
+    "localai": ["localai_dispatch"],
+    "remote-zip-extract": ["remote_zip_list", "remote_zip_extract"],
 }
 
 def catalog_entries() -> list[dict]:
@@ -175,6 +177,54 @@ def orca_stop_stale_daemon(pid: int) -> dict:
 @SERVER.resource("mortal://skills/orca-claude-env")
 def orca_claude_env_skill() -> str:
     return (Path(__file__).parent / "skills/orca-claude-env/SKILL.md").read_text()
+
+
+LOCALAI = Path.home() / ".local/bin/localai"
+REMOTE_ZIP = Path.home() / "tools/remote_zip_extract.py"
+
+
+def run_tool_json(argv: list[str], timeout: int) -> dict:
+    try:
+        done = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "reason": "timed_out; inspect before retry"}
+    return {"ok": done.returncode == 0, "exit_code": done.returncode,
+            "stdout": done.stdout[-3500:], "stderr": done.stderr[-1500:]}
+
+
+def inside_home(path: str) -> bool:
+    return Path(path).expanduser().resolve().is_relative_to(Path.home())
+
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def localai_dispatch(role: Literal["code", "review", "second"], task: str, paths: list[str] = [], timeout: int = 300) -> dict:
+    """Dispatch a bounded task to local Ollama models (memory gate enforced by localai). The answer is a lead to verify, not evidence. Paths must be inside $HOME."""
+    bad = [p for p in paths if not inside_home(p)]
+    if bad:
+        return {"ok": False, "reason": f"paths outside home: {bad}"}
+    timeout = max(30, min(timeout, 900))
+    # "--" stops a task that starts with "-" from being parsed as a localai flag.
+    return run_tool_json([str(LOCALAI), role, "--timeout", str(timeout), "--", task, *paths], timeout + 30)
+
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def remote_zip_list(url: str, match: str = "") -> dict:
+    """List members of a remote https zip (e.g. Godot .tpz) via HTTP Range; downloads only the directory."""
+    argv = ["python3", str(REMOTE_ZIP), url, "--list"] + (["--match", match] if match else [])
+    return run_tool_json(argv, 120)
+
+
+@SERVER.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True})
+def remote_zip_extract(url: str, out_dir: str, match: list[str]) -> dict:
+    """Download only the matching members of a remote https zip into out_dir (inside $HOME). Overwrites same-named files there."""
+    if not match:
+        return {"ok": False, "reason": "match must be non-empty"}
+    if not inside_home(out_dir):
+        return {"ok": False, "reason": f"out_dir outside home: {out_dir}"}
+    argv = ["python3", str(REMOTE_ZIP), url, "--out", str(Path(out_dir).expanduser().resolve())]
+    for item in match:
+        argv += ["--match", item]
+    return run_tool_json(argv, 600)
 
 
 if __name__ == "__main__":
