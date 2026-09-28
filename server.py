@@ -58,6 +58,7 @@ ROUTES = {
     "fluke-playtest": ["fluke_status", "fluke_open_preview", "fluke_restart_preview"],
     "fluke-isolated-godot": ["fluke_validate"],
     "fluke-mahjong-service-tests": ["fluke_validate(scenario=mahjong)"],
+    "orca-claude-env": ["orca_claude_env_check", "orca_stop_stale_daemon"],
     "mortal-mcp": ["mortal_catalog", "mortal_guide"],
     "list-tools": ["mortal_catalog", "mortal_guide"],
 }
@@ -138,6 +139,42 @@ def fluke_audit_continuity() -> dict:
     result = execute(["python3", "scripts/visual_probe/audit_preview_continuity.py", "--output", str(output)], mutation=False, timeout=160)
     result["evidence"] = str(output)
     return result
+
+
+ORCA_TOOL = Path(os.environ.get("MORTAL_ORCA_TOOL", str(Path.home() / "tools/orca_claude_env/orca_claude_env.py")))
+ORCA_EVIDENCE = Path.home() / ".local/state/mortal-mcp/evidence/orca"
+
+
+def run_orca_tool(args: list[str], timeout: int) -> dict:
+    if not ORCA_TOOL.is_file():
+        return {"ok": False, "reason": f"ORCA tool missing: {ORCA_TOOL}"}
+    try:
+        done = subprocess.run(["python3", str(ORCA_TOOL), *args], capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "reason": "timed_out; inspect process state before retry"}
+    try:
+        result = json.loads(done.stdout)
+    except ValueError:
+        return {"ok": False, "exit_code": done.returncode, "tail": (done.stdout + done.stderr)[-1800:]}
+    result.setdefault("ok", done.returncode == 0)
+    return result
+
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def orca_claude_env_check() -> dict:
+    """Read-only: find ORCA terminal daemons that pass a stale ANTHROPIC_BASE_URL to Claude Code, and list ORCA Claude sessions with resume ids. No model call."""
+    return run_orca_tool(["check"], timeout=20)
+
+
+@SERVER.tool(annotations={"destructiveHint": True, "idempotentHint": False})
+def orca_stop_stale_daemon(pid: int) -> dict:
+    """Authorized fix: save resume list, then SIGTERM one daemon that check reported as stale. Closes every Claude session in that daemon; requires user's instruction."""
+    return run_orca_tool(["stop-daemon", "--pid", str(pid), "--evidence", str(ORCA_EVIDENCE)], timeout=30)
+
+
+@SERVER.resource("mortal://skills/orca-claude-env")
+def orca_claude_env_skill() -> str:
+    return (Path(__file__).parent / "skills/orca-claude-env/SKILL.md").read_text()
 
 
 if __name__ == "__main__":

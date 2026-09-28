@@ -5,7 +5,8 @@
   "description": "Installable MORTAL skills and a local multi-company MCP service for bounded project tooling.",
   "skills": [
     "skills/mortal-tools",
-    "skills/fluke-ops"
+    "skills/fluke-ops",
+    "skills/orca-claude-env"
   ],
   "mcp": "mcp.json",
   "extensions": {
