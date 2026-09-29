@@ -71,6 +71,9 @@ Rust MCP 使用 `rmcp` 與 `rmcp-actix-web`。
 
 已驗證：`smoke_test.py` 透過真 HTTP MCP 呼叫查狀態、探索五工具、拒絕錯誤參數及拒絕同時重複操作；詳 `smoke-result.json`。開啟與隔離測試工具本輪未經 MCP 執行，底層腳本既有驗證不算此介面的驗證。
 
+- `orca_claude_env_check`／`orca_stop_stale_daemon`：ORCA 裡 Claude Code 報「模型不存在」時使用。先唯讀查出帶著過期 `ANTHROPIC_BASE_URL` 的 ORCA 背景程式；使用者授權後才關閉它（會關掉該背景程式內所有 Claude 對話，先存 resume 清單）。流程見 `skills/orca-claude-env/SKILL.md`，底層工具在 `~/tools/orca_claude_env/`。
+- `localai_dispatch`：在主機 Essence 把工作派給本地模型（code／review／second），回答只當線索要再驗證；檔案路徑限定在家目錄。流程見 `skills/local-ai/SKILL.md`。
+- `remote_zip_list`／`remote_zip_extract`：只下載遠端 https 大壓縮檔裡需要的檔案（例如 Godot 輸出模板），輸出目錄限定在家目錄。
 - `fluke_audit_continuity`：兩分鐘唯讀十桌續局／帳務檢查，不替代多人玩法验收。
 - 無動態工具掛載的session可用 `uv run python call.py fluke_status`，仍透過真MCP呼叫，沒有另一套命令實作。
 
