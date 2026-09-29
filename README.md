@@ -102,3 +102,9 @@ install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，標準 Ski
 - 共用小程式未全面遷入本 repo；先保留原位置及唯一 tools.json。此次不把模型呼叫、DB 或 Windows 工具盲目封裝／執行。
 
 實作計畫與範圍見 docs/package-plan.md。參考：npm 官方 https://docs.npmjs.com/files/package.json/；Claude 個人 SKILL https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview；Codex／Claude MCP 指令依本機 CLI --help 查證。
+
+## 共用規則與工具清單（2026-09-29 起納入本 repo）
+
+- `agents/`：跨 AI 共用規則（cash-rule、白話輸出、本機模型管理、錯誤知識庫 `lessons.md`）。本機 `~/.agents` 是指向這裡的連結。
+- `tools/`：可重用小工具與工具清單 `tools.json`。本機 `~/tools` 是指向這裡的連結。
+- 不進 Git：公司專案衍生的研究資料（`tools/cash_rule_study`、`tools/cash_rule_pilot`）、同步來的技能、備份、執行紀錄。規則見 `.gitignore`。
