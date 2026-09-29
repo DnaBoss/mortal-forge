@@ -301,5 +301,16 @@
     "dependencies": "Python 3 標準函式庫",
     "risk": "會寫入 --out 目錄並覆蓋同名檔；單檔上限 200MB；每次請求逾時 60 秒；只接受 https；不重試",
     "verification": "2026-09-28 Godot 4.3 tpz（1,073,228,327 bytes）：列清單只抓 3,555 bytes；取出兩個網頁模板共抓 18,877,923 bytes，unzip -t 通過"
+  },
+  {
+    "name": "agent-guards",
+    "purpose": "Claude Code 與 Codex 的強制檢查掛勾：擋強制推送與直接在 develop/master 上 commit、開工注入錯誤知識庫、收工檢查 LOOP 是否過時、進度紀錄格式與工具清單格式",
+    "location": "/home/cash/.agents/guards/git_guard.py",
+    "usage": "已掛在 ~/.claude/settings.json 與 ~/.codex/hooks.json：PreToolUse→git_guard.py、SessionStart→lessons_context.py、Stop→finish_check.py；手動測試：echo '{\"tool_input\":{\"command\":\"git push -f\"},\"cwd\":\".\"}' | python3 ~/.agents/guards/git_guard.py",
+    "input": "掛勾傳入的 JSON（tool_input.command、cwd、stop_hook_active）",
+    "output": "擋下時輸出 permissionDecision=deny 或 decision=block 與原因；每次判斷寫入 ~/.local/state/agent-guards/*.jsonl",
+    "dependencies": "Python 3、git；收工檢查驗證進度紀錄時需要 uvx 與 cash-rule 的 requirements",
+    "risk": "只讀，不改檔；內部錯誤時放行不擋；收工檢查每次停止最多擋一次（stop_hook_active）；只看 6 小時內改過的進度紀錄",
+    "verification": "2026-09-29：強制推送 5 種寫法擋下、一般推送與 echo 放行；在 develop 上 commit 擋下、feature 分支放行；過時 LOOP 測試 repo 擋下、更新後放行；本 session 實測 git push --force --dry-run 被擋"
   }
 ]
