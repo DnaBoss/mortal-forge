@@ -5,3 +5,17 @@ __pycache__/
 
 artifacts/
 target/
+
+# Shared rules and tool catalog live here; ~/.agents and ~/tools are symlinks.
+__pycache__/
+agents/skills/synced/
+agents/skills/.trash/
+agents/skills/*.bak-*/
+agents/skill-backups/
+agents/plain-style-backup.*/
+agents/.skill-lock.json
+# Company-derived study material stays local only (not for a personal repo).
+tools/cash_rule_study/
+tools/cash_rule_pilot/
+# Runtime audit log of reply checks (may contain conversation text).
+agents/plain-output/audit/

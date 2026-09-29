@@ -1,0 +1,17 @@
+{
+  "description": "User-global MCP inventory for MCP-capable agents. Agent-specific configs are generated or maintained from this list when the client cannot read it directly.",
+  "servers": {
+    "playwright": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "purpose": "Browser automation and visual/user-flow verification."
+    },
+    "context7": {
+      "transport": "streamable_http",
+      "url": "https://mcp.context7.com/mcp",
+      "purpose": "Current library/framework documentation lookup.",
+      "optional_env": ["CONTEXT7_API_KEY"]
+    }
+  }
+}
