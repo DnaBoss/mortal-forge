@@ -34,9 +34,12 @@ test('repeated failure stops and reports failure', () => {
 test('missing answer is not silently accepted', () => {
   assert.equal(hook({hook_event_name: 'Stop'}).decision, 'block');
 });
-test('policy is added on every user prompt', () => {
-  const result = hook({hook_event_name: 'UserPromptSubmit'});
+test('policy is added at session start', () => {
+  const result = hook({hook_event_name: 'SessionStart'});
   assert.match(result.hookSpecificOutput.additionalContext, /學習曲線/);
+});
+test('policy is not repeated on every user prompt', () => {
+  assert.deepEqual(hook({hook_event_name: 'UserPromptSubmit'}), {});
 });
 test('buffered gate exposes zero answer bytes on violation', () => {
   const result = spawnSync(process.execPath, [path.join(__dirname, 'guard.cjs'), 'gate'], {input: 'TCN 更好。', encoding: 'utf8'});
