@@ -311,6 +311,6 @@
     "output": "audit JSON；安裝與復原紀錄；違反分支/commit/gate 時非零退出且不改 index",
     "dependencies": "Python3.10+、Git、bash、repo原有 formatter/lint/tests；MCP 新 Rust 原始碼尚未部署",
     "risk": "audit唯讀無網路；安裝改 Git metadata/core.hooksPath，保留原hooks與復原紀錄；不改工作樹，不部署，不強推",
-    "verification": "2026-10-01 真Git與local bare remote 19正反案例通過；逐repo驗證另見gitflow結果"
+    "verification": "2026-10-01 22真Git正反案例通過；外部發布全push阻擋、upgrade/native-hook/rollback、升級不擴大歷史豁免"
   }
 ]

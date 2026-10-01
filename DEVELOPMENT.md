@@ -85,3 +85,5 @@ push 會自動部署／發布的分支記在 `deployment_branches`；本套 hook
 - push 會部署／發布的分支：本次盤點未發現。
 - `dev` 如存在，保留為歷史主線；尚未決定的分歧不自動合併。
 - 語言 gate 詳見 `.repo-policy/config.json`；不存在的 manifest 不宣稱通過。
+
+已審查的新版可用 `python3 .repo-policy/install.py --upgrade` 安裝獨立快照。新版復原紀錄指向前一版；原生 hook 仍直接串接，舊快照不刪除。`deployment_branches` 的 `"*"` 表示所有正向 push 都會發布，因此全部拒絕。

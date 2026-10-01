@@ -103,6 +103,12 @@ class HooksTest(unittest.TestCase):
         self.assertIn("Uncommitted tracked", self.push_hook().stderr)
         self.assertIn("triggers deployment", self.push_hook(target="refs/heads/main").stderr)
 
+    def test_external_publication_on_all_branches_is_rejected(self):
+        self.assertEqual(self.candidate().returncode, 0)
+        self.config["deployment_branches"] = ["*"]
+        (Path(self.state["installed_hooks_path"]) / "config.json").write_text(json.dumps(self.config))
+        self.assertIn("triggers deployment", self.push_hook().stderr)
+
     def test_force_and_protected_deletion_are_rejected(self):
         self.assertEqual(self.candidate().returncode, 0)
         latest = self.run_git("rev-parse", "HEAD").stdout.strip()
@@ -152,6 +158,31 @@ class HooksTest(unittest.TestCase):
         installed.write_text(json.dumps(self.config))
         self.assertEqual(self.candidate().returncode, 0)
         self.assertIn("Project check failed", self.push_hook().stderr)
+
+    def test_upgrade_keeps_native_hook_and_recovers_previous_snapshot(self):
+        original = self.state["installed_hooks_path"]
+        hook = self.repo / ".git/hooks/pre-commit"
+        hook.write_text("#!/bin/sh\necho original-gate >&2\nexit 19\n")
+        hook.chmod(0o755)
+        result = subprocess.run(["python3", str(SOURCE / "install.py"), "--repo", str(self.repo), "--source", str(self.source), "--upgrade"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        upgraded = json.loads(result.stdout)
+        self.assertNotEqual(upgraded["installed_hooks_path"], original)
+        self.assertIn("original-gate", self.candidate().stderr)
+        subprocess.run(["python3", str(SOURCE / "install.py"), "--repo", str(self.repo), "--restore", str(Path(upgraded["installed_hooks_path"]) / "installation.json")], check=True)
+        self.assertEqual(self.run_git("config", "--get", "core.hooksPath").stdout.strip(), original)
+
+    def test_upgrade_does_not_grandfather_new_invalid_work(self):
+        bad = subprocess.run(["git", "commit-tree", "HEAD^{tree}", "-p", "HEAD"], cwd=self.repo, input="update files\n", capture_output=True, text=True, check=True).stdout.strip()
+        self.run_git("update-ref", "refs/heads/random-name", bad)
+        self.run_git("update-ref", "refs/heads/feature/example", bad)
+        result = subprocess.run(["python3", str(SOURCE / "install.py"), "--repo", str(self.repo), "--source", str(self.source), "--upgrade"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.state = json.loads(result.stdout)
+        configuration = json.loads((Path(self.state["installed_hooks_path"]) / "config.json").read_text())
+        self.assertNotIn("random-name", configuration["legacy_branches"])
+        self.assertNotIn(bad, configuration["legacy_tips"])
+        self.assertIn("Conventional Commits", self.push_hook().stderr)
 
     def test_release_name_and_merge_to_develop(self):
         self.run_git("switch", "-c", "release/1.2.3")

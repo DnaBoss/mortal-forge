@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 
-VERSION = "1.0.0"
+VERSION = "1.0.2"
 TYPES = "feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
 SUBJECT = re.compile(rf"^(?:{TYPES})(?:\([a-z0-9][a-z0-9._/-]*\))?!?: \S.*$")
 TOPIC = re.compile(r"^(feature|bug|docs|chore|refactor|test|ci)/[a-z0-9]+(?:[/-][a-z0-9]+)*$")
@@ -181,7 +181,7 @@ def push_updates(payload, config):
             if remote_oid == ZERO or git("merge-base", "--is-ancestor", remote_oid, develop, check=False).returncode:
                 raise Refused("Deletion requires fetched proof the remote tip is merged into develop.")
             continue
-        if name in config.get("deployment_branches", []):
+        if name in config.get("deployment_branches", []) or "*" in config.get("deployment_branches", []):
             raise Refused("Push triggers deployment on " + name + "; use the reviewed release procedure and explicit deployment authorization.")
         if remote_ref.startswith("refs/tags/"):
             if config.get("deployment_tags"):
