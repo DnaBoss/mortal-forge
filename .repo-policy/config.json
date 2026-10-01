@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "repository": "mortal-mcp",
+  "baseline": "00b5d0ec04ecc36ddd774b5480bb80ddcfb38b8f",
+  "default_branch": "main",
+  "legacy_branches": [
+    "chore/agent-guards",
+    "chore/track-agents-and-tools",
+    "develop",
+    "feat/localai-and-remote-zip-mcp",
+    "feature/orca-claude-env",
+    "main"
+  ],
+  "deployment_branches": [],
+  "deployment_tags": false,
+  "checks": [
+    {
+      "pattern": "^\\.repo-policy/",
+      "pre_commit": [
+        "python3",
+        ".repo-policy/test_policy.py"
+      ],
+      "pre_push": [
+        "python3",
+        ".repo-policy/test_policy.py"
+      ],
+      "timeout": 60
+    },
+    {
+      "pattern": "^(?!\\.repo-policy/).*\\.rs$|(^|/)Cargo\\.(toml|lock)$|^rustfmt\\.toml$",
+      "requires": "Cargo.toml",
+      "pre_commit": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pre_push": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ]
+    },
+    {
+      "pattern": "^(?!\\.repo-policy/).*\\.rs$|(^|/)Cargo\\.(toml|lock)$|^rustfmt\\.toml$",
+      "requires": "Cargo.toml",
+      "pre_push": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "Cargo.toml",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    {
+      "pattern": "^(?!\\.repo-policy/).*\\.rs$|(^|/)Cargo\\.(toml|lock)$|^rustfmt\\.toml$",
+      "requires": "Cargo.toml",
+      "pre_push": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "Cargo.toml",
+        "--workspace"
+      ]
+    },
+    {
+      "pattern": "^(src/|server/.*\\.[cm]?[jt]s|package(?:-lock)?\\.json$|.*\\.(tsx?|jsx?|css)$|.*config\\.[cm]?[jt]s$)",
+      "requires": "package.json",
+      "pre_push": [
+        "npm",
+        "run",
+        "test"
+      ]
+    }
+  ],
+  "legacy_tips": [
+    "fa4bbccfed7f79ead9562d5ac44909c8b25b182b",
+    "35a51462b873cab62d4263045fcad5d70820042b",
+    "00b5d0ec04ecc36ddd774b5480bb80ddcfb38b8f",
+    "0ea53f94b3d95c28d939862fd7dfc3a11c500cfb",
+    "cb8adb56fd6d37aac3d2f26dc0505064939b7b0d",
+    "7b0fbf10bcaa1a5996ddbb785b8530a6db0a45be"
+  ]
+}

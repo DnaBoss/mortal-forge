@@ -301,5 +301,16 @@
     "dependencies": "Python 3 標準函式庫",
     "risk": "會寫入 --out 目錄並覆蓋同名檔；單檔上限 200MB；每次請求逾時 60 秒；只接受 https；不重試",
     "verification": "2026-09-28 Godot 4.3 tpz（1,073,228,327 bytes）：列清單只抓 3,555 bytes；取出兩個網頁模板共抓 18,877,923 bytes，unzip -t 通過"
+  },
+  {
+    "name": "gitflow-policy",
+    "purpose": "私人 repo 的 Gitflow、Conventional Commits、可恢復 pre-commit/commit-msg/pre-merge-commit/pre-push hooks 與唯讀核對",
+    "location": "/home/cash/tools/gitflow-policy/policy.py",
+    "usage": "python3 ~/tools/gitflow-policy/policy.py audit <repo>；在已審查 repo 執行 python3 .repo-policy/install.py；MCP mortal_repo_policy_status(repository=\"Fluke\")；SKILL mortal-mcp/skills/gitflow-policy",
+    "input": "audit 接受本地 repo；安裝使用 repo 內明確 config，多 worktree 需先核對；MCP 僅固定16私人名稱",
+    "output": "audit JSON；安裝與復原紀錄；違反分支/commit/gate 時非零退出且不改 index",
+    "dependencies": "Python3.10+、Git、bash、repo原有 formatter/lint/tests；MCP 新 Rust 原始碼尚未部署",
+    "risk": "audit唯讀無網路；安裝改 Git metadata/core.hooksPath，保留原hooks與復原紀錄；不改工作樹，不部署，不強推",
+    "verification": "2026-10-01 真Git與local bare remote 19正反案例通過；逐repo驗證另見gitflow結果"
   }
 ]

@@ -29,6 +29,11 @@ struct CatalogRequest {
     limit: Option<usize>,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct RepoPolicyRequest {
+    repository: String,
+}
+
 #[tool_router]
 impl MortalService {
     pub fn new(config: ServiceConfig) -> Self {
@@ -36,6 +41,18 @@ impl MortalService {
             config: Arc::new(config),
             tool_router: Self::tool_router(),
         }
+    }
+
+    #[tool(
+        description = "Read Gitflow hook installation and develop presence for one allowlisted personal repository. No network or mutations."
+    )]
+    fn mortal_repo_policy_status(
+        &self,
+        Parameters(request): Parameters<RepoPolicyRequest>,
+    ) -> Result<CallToolResult, McpError> {
+        crate::repo_policy::status(&request.repository)
+            .map(CallToolResult::structured)
+            .map_err(|error| McpError::invalid_params(error.to_string(), None))
     }
 
     #[tool(description = "Return MORTAL MCP service readiness and configured company count.")]
@@ -69,7 +86,9 @@ impl MortalService {
         })))
     }
 
-    #[tool(description = "Search the configured tool catalog. This does not execute shell, MCP tools, DB, or remote actions.")]
+    #[tool(
+        description = "Search the configured tool catalog. This does not execute shell, MCP tools, DB, or remote actions."
+    )]
     fn mortal_catalog(
         &self,
         Parameters(request): Parameters<CatalogRequest>,
@@ -80,10 +99,10 @@ impl MortalService {
         let mut tools = Vec::new();
 
         for company in &self.config.companies {
-            if let Some(company_id) = company_filter {
-                if company.id != company_id {
-                    continue;
-                }
+            if let Some(company_id) = company_filter
+                && company.id != company_id
+            {
+                continue;
             }
             for tool in &company.tools {
                 let haystack = format!(
