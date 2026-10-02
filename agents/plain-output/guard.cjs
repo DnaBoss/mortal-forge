@@ -41,7 +41,9 @@ function audit(event, accepted, count) {
 
 function hook(input) {
   const name = input.hook_event_name;
-  if (['SessionStart', 'UserPromptSubmit', 'PostCompact', 'SubagentStart'].includes(name)) {
+  // Not on UserPromptSubmit: CLAUDE.md / AGENTS.md already carry the policy, so
+  // repeating it every prompt only grows the context.
+  if (['SessionStart', 'PostCompact', 'SubagentStart'].includes(name)) {
     const policy = fs.readFileSync(POLICY, 'utf8');
     audit(name, true, 0);
     return {hookSpecificOutput: {hookEventName: name, additionalContext: policy}};

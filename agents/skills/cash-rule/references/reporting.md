@@ -23,6 +23,7 @@ LOOP 只保留目前狀態的可讀投影：現在在哪、已證明、未證明
 
 - decision 是下一步行為：continue 只用於 DISCOVERING／PLANNED／RUNNING／VALIDATING／REVIEWING；replan→PLANNED、wait→WAITING、block→BLOCKED、monitor→MONITORING，其餘與對應終止狀態一致。
 - actions 只用 `command_summary` 保存已遮蔽秘密、可重現意圖的表示，例如 `curl -H "Authorization: Bearer <REDACTED>" <URL>`。result 只寫摘要；完整 stdout/stderr 應先檢查並遮蔽秘密後另存 evidence artifact，以 locator 引用。改欄位名不是自動秘密掃描，其他字串也禁止秘密。
+- 追加 checkpoint 一律用 `~/tools/cash-rule-checkpoint FILE --task T --step S --task-state ... --step-state ... --target "..."`：它讀上一筆自動接續狀態與序號、用時鐘蓋 `recorded_at`、寫入後整檔驗證，不合格就還原。不得手寫 JSON，不得用 echo／cat／tee／python 直接追加或改寫 `*.checkpoints.jsonl`；PreToolUse guard（`~/.agents/guards/write_guard.py`）會擋下。
 - 驗證器只證明格式與已記錄狀態一致，不證明來源真實、未記錄的 step 不存在或工程成果完成。COMPLETE 仍須整體驗收；pass 不可搭配失敗／未跑 checks，需至少一個 check，必要的負向對照必須通過。
-- 依賴安裝到隔離環境：`uv venv /tmp/cash-rule-validator`，再 `uv pip install --python /tmp/cash-rule-validator/bin/python -r scripts/requirements.txt`（在技能目錄執行）。
-- 執行：`/tmp/cash-rule-validator/bin/python scripts/validate_checkpoints.py <完整歷史.jsonl>`；成功 0、格式／接續錯誤 1。不寫回 JSONL，錯誤不回顯內容。測試：`/tmp/cash-rule-validator/bin/python -m unittest discover -s tests -v`。
+- 依賴安裝到隔離環境：`uv venv ~/.cache/cash-rule-validator`，再 `uv pip install --python ~/.cache/cash-rule-validator/bin/python -r scripts/requirements.txt`（在技能目錄執行）。
+- 執行：`~/.cache/cash-rule-validator/bin/python scripts/validate_checkpoints.py <完整歷史.jsonl>`；成功 0、格式／接續錯誤 1。不寫回 JSONL，錯誤不回顯內容。測試：`~/.cache/cash-rule-validator/bin/python -m unittest discover -s tests -v`。

@@ -38,7 +38,7 @@ Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED
 
 ## 每輪執行
 
-依上述循環推進；每輪只推進一個主要 step。連續兩輪沒有新證據或可驗收進展，換方法、縮小問題或提出決策，不重跑原命令。首次 checkpoint 在盤點或規劃完成時寫入（`DISCOVERING`／`PLANNED`）；step 首次為 `PENDING`／`READY`。之後在每輪結束寫入；若輪內跨越必要狀態，於狀態邊界補 checkpoint，不得省略驗證階段。`iteration` 是每 task 的 checkpoint 序號，不是模型呼叫數。已終止 step 可重複投影原狀態，不可重新啟動。多輪／持續任務追加符合 [checkpoint schema](schemas/checkpoint.schema.json) 的 JSONL 紀錄；LOOP 只保留目前狀態摘要。短任務不需為形式建立 LOOP 或 JSONL。
+依上述循環推進；每輪只推進一個主要 step。連續兩輪沒有新證據或可驗收進展，換方法、縮小問題或提出決策，不重跑原命令。首次 checkpoint 在盤點或規劃完成時寫入（`DISCOVERING`／`PLANNED`）；step 首次為 `PENDING`／`READY`。之後在每輪結束寫入；若輪內跨越必要狀態，於狀態邊界補 checkpoint，不得省略驗證階段。`iteration` 是每 task 的 checkpoint 序號，不是模型呼叫數。已終止 step 可重複投影原狀態，不可重新啟動。多輪／持續任務追加符合 [checkpoint schema](schemas/checkpoint.schema.json) 的 JSONL 紀錄，只准經 `~/tools/cash-rule-checkpoint` 寫入（見 [回報規則](references/reporting.md)）；LOOP 只保留目前狀態摘要。短任務不需為形式建立 LOOP 或 JSONL。
 
 ## 證據與停止
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+# Wrapper: run cash_rule_checkpoint.py with the validator's dependencies.
+exec uv run -q --with-requirements "$HOME/.claude/skills/cash-rule/scripts/requirements.txt" python3 "$HOME/tools/cash_rule_checkpoint.py" "$@"

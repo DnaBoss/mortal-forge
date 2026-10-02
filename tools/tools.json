@@ -304,13 +304,129 @@
   },
   {
     "name": "agent-guards",
-    "purpose": "Claude Code 與 Codex 的強制檢查掛勾：擋強制推送與直接在 develop/master 上 commit、開工注入錯誤知識庫、收工檢查 LOOP 是否過時、進度紀錄格式與工具清單格式",
+    "purpose": "Claude Code 與 Codex 的強制檢查掛勾：擋強制推送與直接在 develop/master 上 commit、擋直接寫 *.checkpoints.jsonl、擋 pkill -f／pgrep -f、擋對未提交檔 git checkout --／restore（DISCARD=1 放行）、開工注入錯誤知識庫、收工檢查整個 repo 的 LOOP 是否過時、進度紀錄格式與工具清單格式",
     "location": "/home/cash/.agents/guards/git_guard.py",
-    "usage": "已掛在 ~/.claude/settings.json 與 ~/.codex/hooks.json：PreToolUse→git_guard.py、SessionStart→lessons_context.py、Stop→finish_check.py；手動測試：echo '{\"tool_input\":{\"command\":\"git push -f\"},\"cwd\":\".\"}' | python3 ~/.agents/guards/git_guard.py",
+    "usage": "已掛在 ~/.claude/settings.json 與 ~/.codex/hooks.json：PreToolUse→git_guard.py（Bash）與 write_guard.py（Bash|Write|Edit）、SessionStart→lessons_context.py、cash_rule_loop_context.py、Stop→finish_check.py；手動測試：echo '{\"tool_input\":{\"command\":\"pkill -f x\"},\"cwd\":\".\"}' | python3 ~/.agents/guards/write_guard.py；測試：cd ~/.agents/guards && python3 -m unittest test_guards -v",
     "input": "掛勾傳入的 JSON（tool_input.command、cwd、stop_hook_active）",
     "output": "擋下時輸出 permissionDecision=deny 或 decision=block 與原因；每次判斷寫入 ~/.local/state/agent-guards/*.jsonl",
     "dependencies": "Python 3、git；收工檢查驗證進度紀錄時需要 uvx 與 cash-rule 的 requirements",
-    "risk": "只讀，不改檔；內部錯誤時放行不擋；收工檢查每次停止最多擋一次（stop_hook_active）；只看 6 小時內改過的進度紀錄",
-    "verification": "2026-09-29：強制推送 5 種寫法擋下、一般推送與 echo 放行；在 develop 上 commit 擋下、feature 分支放行；過時 LOOP 測試 repo 擋下、更新後放行；本 session 實測 git push --force --dry-run 被擋"
+    "risk": "只讀，不改檔；內部錯誤時放行不擋；收工檢查連續擋最多 3 次後放行並記 gave_up；只看 6 小時內改過的進度紀錄；掃整個 repo 但略過 .git、node_modules、target 與隱藏目錄",
+    "verification": "2026-09-29：強制推送 5 種寫法擋下、一般推送與 echo 放行；在 develop 上 commit 擋下、feature 分支放行；過時 LOOP 測試 repo 擋下、更新後放行；本 session 實測 git push --force --dry-run 被擋；2026-10-02：test_guards 23 項通過（直接寫 checkpoint 9 種寫法擋下、經工具放行；pkill -f 7 種擋下；未提交檔 checkout/restore 7 種擋下、DISCARD=1 放行；loops/ 下壞紀錄擋下、連擋 3 次後放行、1.2.0 範本過期 LOOP 擋下）"
+  },
+  {
+    "name": "gitflow-policy",
+    "purpose": "私人 repo 的 Gitflow、Conventional Commits、可恢復 pre-commit/commit-msg/pre-merge-commit/pre-push hooks 與唯讀核對",
+    "location": "/home/cash/tools/gitflow-policy/policy.py",
+    "usage": "python3 ~/tools/gitflow-policy/policy.py audit <repo>；在已審查 repo 執行 python3 .repo-policy/install.py；MCP mortal_repo_policy_status(repository=\"Fluke\")；SKILL mortal-mcp/skills/gitflow-policy",
+    "input": "audit 接受本地 repo；安裝使用 repo 內明確 config，多 worktree 需先核對；MCP 僅固定16私人名稱",
+    "output": "audit JSON；安裝與復原紀錄；違反分支/commit/gate 時非零退出且不改 index",
+    "dependencies": "Python3.10+、Git、bash、repo原有 formatter/lint/tests；MCP 新 Rust 原始碼尚未部署",
+    "risk": "audit唯讀無網路；安裝改 Git metadata/core.hooksPath，保留原hooks與復原紀錄；不改工作樹，不部署，不強推",
+    "verification": "2026-10-01 22真Git正反案例通過；外部發布全push阻擋、upgrade/native-hook/rollback、升級不擴大歷史豁免"
+  },
+  {
+    "name": "tmp-cleanup",
+    "purpose": "清掉 /tmp 裡沒人在用、超過設定時間沒修改的檔案與資料夾；本機 /tmp 放在記憶體，舊檔會佔記憶體",
+    "location": "/home/cash/tools/tmp_cleanup.py",
+    "usage": "python3 ~/tools/tmp_cleanup.py（只列不刪）；加 --apply 才刪；--verbose 列保留原因；systemctl --user list-timers tmp-cleanup.timer；排程檔 ~/.config/systemd/user/tmp-cleanup.{service,timer}（每小時 --apply --min-age-hours 6）",
+    "input": "/tmp 第一層項目，及 /tmp/claude-<uid>/<專案>/<工作階段> 資料夾；/proc 的開啟檔、工作目錄、執行檔與記憶體對應；~/.claude/sessions/*.json",
+    "output": "stdout 列出刪除項目與合計；每次執行追加一行到 ~/.local/state/tmp-cleanup/log.jsonl；有刪除失敗時 exit 1",
+    "dependencies": "Python 3.9+ 標準函式庫；Linux /proc",
+    "risk": "--apply 會永久刪除。保護：只刪自己擁有的；有程式開著、內含 socket、活著的 Claude 工作階段、6 小時內有修改、走訪超過 20 萬項者一律保留；略過 .X*、.ICE*、systemd-private*、.mount_*、tmux-*、ssh-*；每次最多刪 2000 項。不保護『沒開著檔案但之後還要用』的檔案",
+    "verification": "2026-10-01 test_tmp_cleanup.py 8/8 通過；陰性對照：移除使用中檢查或 socket 檢查各使 1 項測試失敗；首次實跑刪 2000 項、80MB、失敗 0，保留 367 項"
+  },
+  {
+    "name": "render-pages",
+    "purpose": "用無頭 Chromium 打開需要瀏覽器執行程式才會顯示內容的網頁，存下渲染後 HTML、純文字與整頁截圖，作為官方文件備份",
+    "location": "/home/cash/tools/render_pages.py",
+    "usage": "~/.venvs/page-render/bin/python ~/tools/render_pages.py pages.tsv --out-dir DIR [--wait-ms 2000]；pages.tsv 每行 <url>\\t<輸出名稱>",
+    "input": "TSV 網址清單；網址的 # 後段會保留（單頁網站靠它切換內容）",
+    "output": "DIR/<名稱>.rendered.html、.txt、.png；DIR/render-report-<時間>.json 記 HTTP 狀態、文字長度、SHA256；有任何一頁失敗 exit 1",
+    "dependencies": "~/.venvs/page-render（uv 建、playwright 1.63.0）；~/.cache/ms-playwright/chromium-1234",
+    "risk": "每個網址只導覽一次，不點擊、不送表單、不登入；已存在的輸出檔不覆寫（標 skipped_exists）。HTTP 500 等錯誤頁仍記為 ok，要看 http_status 判斷",
+    "verification": "2026-10-01 群益 API 下載頁：原始下載只有空殼（純文字 0 字），渲染後 3,407 字並含 Windows 限定說明；七家 41 頁皆完成"
+  },
+  {
+    "name": "md-to-pdf",
+    "purpose": "把繁體中文 Markdown（含表格）轉成 A4 PDF，嵌入 Noto Sans CJK TC 字型、頁尾頁碼",
+    "location": "/home/cash/tools/md_to_pdf.py",
+    "usage": "~/.venvs/page-render/bin/python ~/tools/md_to_pdf.py IN.md OUT.pdf [--title 標題] [--force]",
+    "input": "Markdown 檔（tables、fenced code；段落後緊接清單會自動補空行）",
+    "output": "OUT.pdf；已存在時不覆寫，除非 --force",
+    "dependencies": "~/.venvs/page-render（playwright 1.63.0、markdown 3.11）；~/.cache/ms-playwright/chromium-1234；系統字型 Noto Sans CJK",
+    "risk": "只寫 OUT.pdf；不連網路（set_content 本機 HTML）",
+    "verification": "2026-10-01 identity-platform 計劃 v2：7 頁，pdffonts 顯示 NotoSansCJKtc 內嵌，表格與清單截圖目視正確"
+  },
+  {
+    "name": "cash-rule-checkpoint-append",
+    "purpose": "追加一筆 cash-rule 1.2.0 checkpoint：自動接續上一筆的狀態與序號，寫入後整檔驗證，不合格就還原",
+    "location": "/home/cash/tools/cash_rule_checkpoint.py（執行檔 ~/tools/cash-rule-checkpoint）",
+    "usage": "~/tools/cash-rule-checkpoint FILE --task T --step S --task-state RUNNING --step-state RUNNING --target 說明 [--evidence kind=locator] [--check 名稱=pass] [--neg 程序=>證據] [--decision continue] [--next 下一步]",
+    "input": "checkpoint JSONL 路徑與欄位參數",
+    "output": "追加一行；驗證失敗時檔案還原、exit 1",
+    "dependencies": "uv；~/.claude/skills/cash-rule/scripts（validate_checkpoints.py 與 requirements.txt）",
+    "risk": "只寫指定 JSONL；失敗自動還原",
+    "verification": "2026-10-01 identity-platform：非法跳轉 READY→DONE 被拒且檔案未變；合法 4 筆通過"
+  },
+  {
+    "name": "jobresearch-lever-saved-evidence",
+    "purpose": "只校驗JobResearch保存的Binance公開職缺收據與完整內容，不重新連網或刷新時間",
+    "location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_lever_saved.py",
+    "usage": "from jobresearch.decision_lever_saved import verified_saved_posting; verified_saved_posting(body_bytes, receipt_dict, saved_job, aware_now)",
+    "input": "≤2MB/≤25筆官方API原文、200收據/雜湊/觀察時間、快照內單一職缺",
+    "output": "校驗後job字典；不符丟ValueError",
+    "dependencies": "專案uv Python3.12+與beautifulsoup4",
+    "risk": "只在本機記憶體轉換，無DB寫入或網路；active只代表收據時公開刊登，非錄取/名額/遠端資格保證",
+    "verification": "uv run pytest -q tests/test_decision_lever_saved.py；五真收據與隔離雜湊故障對照通過",
+    "persistence_location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_lever_store.py",
+    "persistence_usage": "save_verified_batch(conn, base_snapshot_id, entries, batch_id, aware_now); caller holds decision_update_lock and backup",
+    "persistence_risk": "Atomic original observations and new immutable snapshot;≤25/4MB bodies/1MB inventory. Same batch reuses/no network. reparse_cached(conn, job_ids) scoped≤25; all-source dispatch not verified.",
+    "cached_readback": "decision_cached.reparse_cached(conn, job_ids):≤25；source id/hash checked, structured results explicitly preserved, unknown provider rejected. Existing522 read back21batches/0network; no source date refresh."
+  },
+  {
+    "name": "career-snapshot-source-diff",
+    "purpose": "本機保存快照的來源代號差異，非內容去重或有效職缺量",
+    "location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_snapshot_diff.py",
+    "usage": "compare_snapshot_sources(base,candidate,offset=0,limit=25)",
+    "input": "兩份≤5000職缺dict清單；唯一job_id",
+    "output": "來源增減/內容變更與≤25筆分頁",
+    "dependencies": "Python標準庫",
+    "risk": "純函式零網路DB；網頁GET /api/snapshot-diff只檢視，不合併",
+    "verification": "612 tests; snapshot-diff-browser-v1.json"
+  },
+  {
+    "name": "career-saved-source-adoption",
+    "purpose": "保存快照中完整原文的有界預覽與保守採用，不重抓網站",
+    "location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_source_adoption.py",
+    "usage": "preview_adoption(conn,base_id,source_id,job_ids,reason);save_adoption(conn,...,batch_id,preview_hash,backup=None)",
+    "input": "immutable snapshots;1..25 IDs;reason;preview requesthash;callerbackup+lock",
+    "output": "immutable new snapshot and receipt;source dates/status retained but eligibility fields unknown",
+    "dependencies": "Python SQLite and project modules",
+    "risk": "DBwritesatomic;cannot overwrite conflicts;no network;check committedreceipt before retry",
+    "verification": "627 tests plus final31API;actual browser124 and isolated negative1failed"
+  },
+  {
+    "name": "career-technology-history",
+    "purpose": "保存有界職缺索引與技術排名歷史，及從DB輸出公司技能／版本圖表",
+    "location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_technology_history.py",
+    "chart_location": "/home/cash/work_space/JobResearch-career-decision/jobresearch/decision_market_history.py",
+    "usage": "在JobResearch-career-decision: python3 -m jobresearch.decision_technology_history --db DB --discovery JSON --keyword rag；python3 -m jobresearch.decision_market_history --db DB --output HTML",
+    "input": "已保存公開索引JSON或排名JSON；既有decision.sqlite；單一query最多20筆",
+    "output": "追加式DB批次與版本；本機可篩公司圖表HTML，最多5000近期完整職缺觀察",
+    "dependencies": "Python3標準庫；同專案既有SQLite；首次遷移先decision_backup",
+    "risk": "寫入追加式隔離表，不連外、不改完整職缺；同ID不同input拒絕、部分錯誤整批rollback；圖表只讀，趨勢不足明示",
+    "verification": "2026-10-02 冪等、內容變更、20筆限制、錯host拒絕、失敗rollback、阻止刪改；Chromium公司切換與0外部請求通過",
+    "mcp_adapter": null
+  },
+  {
+    "name": "cash-rule-compliance",
+    "purpose": "每週 cash-rule 遵守度報告：進度紀錄不合格率、收工檢查擋下後修好率與放棄次數、錯誤知識庫疑似重複條目",
+    "location": "/home/cash/tools/cash_rule_compliance.py",
+    "usage": "~/tools/cash-rule-compliance [--roots DIR ...] [--days 7] [--json]；目標：不合格率 0、修好率 1.0、疑似重複 0",
+    "input": "所有 *checkpoint*.jsonl（依內容雜湊去重）、~/.local/state/agent-guards/finish_check.jsonl、~/.agents/lessons.md",
+    "output": "三組數字與不合格路徑、疑似重複標題配對；--json 輸出完整結構",
+    "dependencies": "uv、cash-rule scripts/requirements.txt（jsonschema）；由 cash-rule-compliance 包裝腳本帶入",
+    "risk": "只讀；疑似重複用標題字元二元組相似度 0.5 判斷，只是提示，不是定論",
+    "verification": "2026-10-02：對 ~/work_space 實跑，數字與手動逐檔驗證結果一致（見派工紀錄）"
   }
 ]
