@@ -58,8 +58,11 @@ function hook(input) {
     return {continue: false, stopReason: '白話檢查仍未通過，已停止自動重寫。',
       systemMessage: '這次回答未通過白話檢查，不能標為合格。'};
   }
+  // The rules travel with the hook: Claude Code no longer carries POLICY.md in
+  // CLAUDE.md (2026-10-03), so the full policy is attached at the moment of failure.
   return {decision: 'block', reason: '白話檢查未通過。只重寫剛才的回答，不執行工具或重做任務。'
-    + '請用以下說法或在同一句解釋原名：' + failures.join('；') + '。保留學習曲線等常用詞。'};
+    + '請用以下說法或在同一句解釋原名：' + failures.join('；') + '。保留學習曲線等常用詞。\n\n'
+    + fs.readFileSync(POLICY, 'utf8')};
 }
 
 function main() {
