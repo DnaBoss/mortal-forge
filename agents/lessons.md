@@ -98,10 +98,12 @@
 ## 2026-10-01 用 pkill -f 停服務，連自己的 shell 一起殺掉（ai-mall #2778）
 - 錯：在同一行 bash 指令裡用 `pkill -f "crossec-hotfix-2778/...tsx.*src/index.ts"`；這行 bash 的命令列本身也含這段字串，pkill 殺掉自己，指令停在中途（exit 144），陰性對照改壞的檔案沒被還原。
 - 防：停服務改成「先列出 PID、排除自己，再 kill PID」，寫成獨立腳本執行；任何「先改壞、後還原」的流程，還原步驟放在 trap 或另一個指令，執行後立刻 `git status` 確認。
+- guard: write_guard.py pkill-full
 
 ## 2026-10-01 `pkill -f` 殺掉了自己所在的 shell（Fluke）
 - 錯：用 `pkill -f 'GATEWAY_PORT=18197'` 關測試程式，但這個字串也出現在同一個 shell 指令裡，結果 shell 被殺，後面的紀錄和提交都沒做。
 - 防：關程式用 `pgrep <程式名>`（不要加 -f），再比對 `/proc/<pid>/exe` 的完整路徑。`pgrep -f` 和比對 cwd 都會選到自己的 shell（同日重犯一次）。
+- guard: write_guard.py pkill-full
 
 ## 2026-10-01 JobResearch 陰性對照意外讀到原工作樹
 - 錯：隔離副本放在 repo 的 data 下，pytest 向上讀原 pyproject 的 pythonpath，改壞副本仍測到原版而通過。
@@ -227,6 +229,7 @@
 ## 2026-10-02 ai-mall #2771 用 pgrep -f 比對字串殺行程時殺到自己的 shell
 - 錯：迴圈用 pgrep -f 'tsx watch src/index.ts' 再比工作目錄；執行中的 shell 命令列本身含這段字串且工作目錄相同，被自己 kill，後半段命令沒跑。
 - 防：停行程用程序名（pgrep -x node）加 /proc/PID/cwd 完全相等，並在別的目錄下執行；不要用會比對到自己命令列的 -f 字串。
+- guard: write_guard.py pkill-full
 
 ## 2026-10-02 ai-mall dev-up.sh 把被別的 worktree 佔用的 3000 埠當成空的
 - 錯：腳本用 lsof 查埠，查不到別的 next-server 佔的 *:3000，網頁啟動失敗（EADDRINUSE），後面的檢查卻打到別人的網頁。
@@ -235,6 +238,7 @@
 ## 2026-10-02 進度紀錄的時間用猜的，寫成了未來時間（Aletheia 本機監控）
 - 錯：寫 checkpoint 時沒有看時鐘，憑印象填 `05:10Z`，實際才 `01:05Z`，三筆紀錄的時間都在未來。
 - 防：每次寫紀錄前先跑 `date -u +%Y-%m-%dT%H:%M:%SZ`，直接用輸出；不要用對話裡的印象推算。
+- guard: write_guard.py checkpoint-write（只准經 cash-rule-checkpoint 寫入，時間由工具蓋）
 
 ## 2026-10-02 CI 用浮動的 stable Rust，上游升版後檢查突然失敗（Fluke）
 - 錯：GitHub Actions 用 `dtolnay/rust-toolchain@stable`，本機是 1.98.0；stable 升版後新的 clippy 規則在 async-trait 展開碼報錯，擋下已核准的部署，本機卻全綠。
@@ -243,6 +247,7 @@
 ## 2026-10-02 Helios 進度紀錄的時間戳用猜的
 - 錯：寫第一筆 checkpoint 時沒查時鐘，自己填了一個時刻，與實際差四小時，事後才改。
 - 防：寫任何時間戳前先跑 `date -u +%FT%TZ`，用輸出值，不憑印象填。
+- guard: write_guard.py checkpoint-write（只准經 cash-rule-checkpoint 寫入，時間由工具蓋）
 
 ## 2026-10-02 Helios 含程式的提交被 repo 提交規則擋下
 - 錯：工作區有使用者原有的未追蹤檔，直接 `git commit` 被拒（Untracked files would contaminate the gate）；暫時分支取名 `tmp/...` 又被拒一次。我還一度誤以為後續指令已把錯的提交編號寫進紀錄，實際上 `&&` 已中止、檔案沒被改——沒查檔案就下判斷。
@@ -251,6 +256,7 @@
 ## 2026-10-02 Fluke 又用 pkill -f 關暫時網頁服務，殺到自己的 shell
 - 錯：用 `pkill -f "http.server 18321 ..."` 關背景服務；執行中的 shell 命令列含同一字串，被一起殺掉（結束碼 144），後半段指令沒跑。這與 ai-mall #2771 那條是同一個錯。
 - 防：背景服務啟動時就記 PID（或用工具回傳的背景工作代號停止）；要查就用 `ss -ltnp` 取得監聽埠的 PID 再 `kill <PID>`。任何 `pkill -f`／`pgrep -f` 都先當成會打到自己。
+- guard: write_guard.py pkill-full
 
 ## 2026-10-02 Fluke 分支名與提交被 repo 規則擋下（與 Helios 同一套規則）
 - 錯：照 Fluke 的 CLAUDE.md 開 `feat/<name>` 分支，提交被拒（只收 `feature/`、`bug/`、`release/`、`hotfix/`）；改名後又因工作區有使用者的未追蹤檔 `AGENTS.md` 被拒，推送也被同一條擋。
@@ -276,6 +282,7 @@
 ## 2026-10-02 陰性對照後用 git checkout 還原，把整份改好的檔案退回原版（Aletheia 改名）
 - 錯：為了驗證編譯檢查，往 `src/probe.rs` 尾端加了一行中文函數，事後用 `git checkout -- src/probe.rs` 還原；但這個檔案在工作目錄裡已經改名過、還沒提交，checkout 把它退回提交前的中文版本。
 - 防：在「有未提交修改」的檔案上做陰性對照，先把檔案複製到暫存區，結束後從那份複製還原並 `cmp` 比對；不要用 `git checkout` 還原未提交的檔案。
+- guard: write_guard.py discard-uncommitted
 
 ## 2026-10-02 照專案既有寫法而違反使用者的全域規則（Aletheia）
 - 錯：專案原本的測試函數多用中文命名，我跟著用中文寫了 23 個測試名稱與 82 行註解，違反「識別字與註解用英文 ASCII」。

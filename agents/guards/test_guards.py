@@ -275,6 +275,16 @@ class LessonsContextTest(unittest.TestCase):
         import lessons_context
         self.assertEqual(lessons_context.select("# h\n1. a\n", budget=400), "# h\n1. a\n")
 
+    def test_guarded_entries_stay_in_file_but_are_not_injected(self):
+        sys.path.insert(0, str(HERE))
+        import lessons_context
+        text = ("# h\n\n## 2026-10-01 pkill -f killed my shell\n- 防：x\n- guard: write_guard.py pkill-full\n\n"
+                "## 2026-10-02 still relevant\n- 防：y\n")
+        out = lessons_context.select(text, budget=4000)  # well under budget: filtering is not a budget effect
+        self.assertNotIn("pkill -f killed", out)
+        self.assertIn("still relevant", out)
+        self.assertIn("1 條已由 guard 機械擋下", out)
+
 
 if __name__ == "__main__":
     unittest.main()
