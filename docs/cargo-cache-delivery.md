@@ -14,3 +14,6 @@
 工具設定寫入與真實新 AI 工作階段是否載入分開驗證；Fluke 功能與模型訓練仍暫停。
 
 驗證：清理與 hook 的 16 項測試、既有共用檢查 24 項測試、npm 套件 5 項測試、Rust 3 項測試通過；cargo build、全功能 clippy 無警告。真 HTTP MCP 可列工具、讀 Fluke 盤點、讀技能，任意刪除工具被拒絕。實際 SessionEnd 約 0.04 秒；新工作樹自動連結與獨立 target 拒絕已驗證。現有 AI 對話是否重新載入設定仍需新工作階段確認。
+
+上版整合時另發現既有 Git hook 測試沿用父程序 Git 環境，會碰到父 repo 的 index。已隔離拋棄式測試 repo 的環境，22 項測試在 hook 環境通過，並核對父 index 的 SHA256 未改變；沒有停用或放寬任何檢查。
+MCP 只讀狀態已獨立安裝於 127.0.0.1:18766，服務 `mortal-cargo-cache.service`；保留既有 Python MCP 及遊戲程序，Claude／Codex 已登記，新對話才能確認工具載入。
