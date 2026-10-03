@@ -362,3 +362,9 @@
 - guard: write_guard.py git-source-revision；git show或ls-tree帶完整40位SHA但該repo不存在時攔下，要求核對工作目錄與版本來源。
 - 邊界：符號版本、短SHA、動態命令與一般相對路徑搜尋不涵蓋；有界4秒與最多16次，不改任何Git狀態。新增拒絕測試先失敗後通過，新舊共53項。
 - 來源：identity-platform未改遊戲伺服器成品的TLS對照準備，2026-10-03。
+
+## 2026-10-03 私有目錄過長使本機Unix轉送啟動失敗
+- 錯：將轉送socket放入長隔離目錄，路徑117 bytes超過108上限；真服務已簽發憑證，但轉送尚未啟動，未送到Gateway。
+- 原因：把私有檔案目錄直接當socket目錄，未核對位址長度；PostgreSQL的host socket亦有同類限制。
+- 防：socket放短的自有0700目錄，啟動前斷言轉送及PostgreSQL完整socket路徑小於100 bytes；socat前置重現已確認長度錯誤。失敗收據保留且清理後，才建立全新環境。
+- 來源：identity-platform真原生HTTPS登入服務至Gateway候選；第二輪兩封本機信，兩次接收保留合成舊玩家、竄改簽章拒絕，TLS未關閉。
