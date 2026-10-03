@@ -439,5 +439,16 @@
     "dependencies": "Linux /proc、Python stdlib、Git；程序權限不足僅 sudo -n 只讀掃描",
     "risk": "CLI 可刪除核對過的閒置 target；未知內容／程序無法查明均保留；背景清理120秒有鎖無重試；MCP無刪除入口",
     "verification": "python3 -m unittest discover -s tools -p test_cargo_cache.py；真 HTTP MCP status smoke；來源 skills/cargo-cache/SKILL.md"
+  },
+  {
+    "name": "mall-standard-intake",
+    "purpose": "驗證商城API經共用收集器與Aletheia隔離保存，不包含正式部署或查詢畫面",
+    "location": "/home/cash/work_space/newretail/crossec-standard-observability/apps/api/test/standard-intake-isolated.py",
+    "usage": "python3 <location> --mall-root <商城工作樹> --aletheia-root <Aletheia工作樹> --runtime-dir <既有執行目錄> --evidence-root <既有自有證據父目錄>；期限對照只加--negative execution-budget；沿用skills/mall-standard-intake/SKILL.md。MCP執行介面未實作，不重啟共用服務。",
+    "input": "四個操作者選定的自有路徑；商城依賴已安裝、Aletheia已編譯官方描述檔、runtime/receipt.json；拒絕-O，不讀正式憑證",
+    "output": "新建自有mall-api-intake證據目錄，收據、來源、保存批次及正常停止／精確清理；失敗退出1，期限對照預期1，摘要不冒充原文核對",
+    "dependencies": "Linux、Python3與google.protobuf、Node22、Docker、pnpm及已裝商城依賴、既有Aletheia執行檔／描述檔、固定快取映像；不新增Rust編譯、拉映像或安裝",
+    "risk": "在商城工作樹建立API bundle，並只在自有DB建立schema；建立自有隔離API、DB、Redis、Collector與收件程序／容器，沒有正式來源或真付款；不可跟隨連結且非阻塞主機鎖，240秒後清理，逾時查同句柄與精確名稱／網路，不盲重送",
+    "verification": "先前固定隔離187日誌／7追蹤與指標完整保存及期限清理證據已保留；登記本身不重跑此樣本，不代表MCP掛載、正式兩站、查詢API或原首頁已驗"
   }
 ]
