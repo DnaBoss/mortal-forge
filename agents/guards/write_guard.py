@@ -42,7 +42,7 @@ PROSE_MSG = "進度紀錄的說明含已登記的簡體字。請改用繁體中�
 PREFLIGHT_MSG = "Python前置檢查後的編譯沒有綁定成功條件。請先確認檢查成功再另行編譯，或用&&串接；失敗不能繼續編譯。"
 PROSE_OPTIONS = {"--target", "--proven", "--not-proven", "--risk", "--next",
                  "--reason", "--impact", "--source", "--check"}
-SIMPLIFIED_PROSE = re.compile("[\u65f6\u9a8c\u7801\u753b\u7eed\u72ec\u65e0\u636e\u73b0\u6d4b\u8bc1\u4e0e\u4e3a\u9519\u8bef\u62a4\u5355\u6761\u53d1\u8fc7]")
+SIMPLIFIED_PROSE = re.compile("[\u65f6\u9a8c\u7801\u753b\u7eed\u72ec\u65e0\u636e\u73b0\u6d4b\u8bc1\u4e0e\u4e3a\u9519\u8bef\u62a4\u5355\u6761\u53d1\u8fc7\u4e24\u8f6e\u9759\u6765\u9605\u7ed3\u95f4]")
 
 
 def wrong_kratos_default(text, base):

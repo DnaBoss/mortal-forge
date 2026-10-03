@@ -32,5 +32,16 @@ class CheckpointProseTest(unittest.TestCase):
         self.assertIsNone(self.rule('~/tools/cash-rule-checkpoint --target "unterminated'))
 
 
+    def test_new_observed_glyphs_in_all_prose_fields_denied(self):
+        for glyph in ['\u4e24', '\u8f6e', '\u9759', '\u6765', '\u9605', '\u7ed3', '\u95f4']:
+            for option in ['target','proven','not-proven','risk','next','reason','impact','source','check']:
+                with self.subTest(glyph=ord(glyph), option=option):
+                    self.assertEqual(self.rule('~/tools/cash-rule-checkpoint x.checkpoints.jsonl --'+option+' "'+glyph+'"'), 'checkpoint-prose')
+
+    def test_new_glyphs_do_not_scan_paths_or_unrelated_tools(self):
+        self.assertIsNone(self.rule('~/tools/cash-rule-checkpoint /\u8f6e/x.checkpoints.jsonl --target "\u5169\u8f2a\u975c\u4f86\u95b1\u7d50\u9593" --evidence file=/\u9759/result.json'))
+        self.assertIsNone(self.rule('python3 unrelated.py --target "\u4e24\u8f6e"'))
+
+
 if __name__ == '__main__':
     unittest.main()
