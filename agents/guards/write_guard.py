@@ -284,6 +284,65 @@ def missing_git_source_path(text, base):
     return False
 
 
+
+def missing_literal_docs_read(text, base):
+    """Only straight-line Python heredocs reading a literal relative docs path."""
+    import ast
+    if len(text) > 65536 or not os.path.isdir(base):
+        return False
+    if re.search(r"(?:^|[;\n])\s*cd\s|\b(?:chdir|fchdir)\s*\(", text):
+        return False
+    opening = re.compile(r"(?m)^[ \t]*(?:[^\s]+/)?python(?:3(?:\.[0-9]+)?)?\s+-\s+<<(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*$")
+    examined = 0
+    for match in opening.finditer(text):
+        rest = text[match.end():]
+        closing = re.search(r"(?m)^" + re.escape(match[2]) + r"[ \t]*$", rest)
+        if not closing:
+            continue
+        try:
+            tree = ast.parse(rest[:closing.start()])
+        except (SyntaxError, ValueError):
+            continue
+        if any(not isinstance(stmt, (ast.Assign, ast.Expr, ast.Import, ast.ImportFrom, ast.Assert)) for stmt in tree.body):
+            continue
+        bindings = {}
+        created = set()
+        def literal(node):
+            if isinstance(node, ast.Name):
+                return bindings.get(node.id)
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                    and node.func.id == 'Path' and len(node.args) == 1
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)):
+                return node.args[0].value
+            return None
+        for stmt in tree.body:
+            for node in ast.walk(stmt):
+                if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                        and node.func.attr in ('read_text', 'read_bytes')):
+                    continue
+                path = literal(node.func.value)
+                if not path or not path.startswith('docs/') or path in created:
+                    continue
+                examined += 1
+                if examined > 16:
+                    return False
+                if not os.path.isfile(os.path.join(base, path)):
+                    return True
+            for node in ast.walk(stmt):
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                        and node.func.attr in ('write_text', 'write_bytes')):
+                    path = literal(node.func.value)
+                    if path:
+                        created.add(path)
+            if isinstance(stmt, ast.Assign):
+                value = literal(stmt.value)
+                for target in stmt.targets:
+                    if isinstance(target, ast.Name):
+                        bindings[target.id] = value
+    return False
+
+
 def verdict(payload):
     tool_input = payload.get("tool_input") or {}
     if not isinstance(tool_input, dict):
@@ -299,6 +358,8 @@ def verdict(payload):
             return "git-source-revision", "目前Git專案沒有這個固定版本，請先核對工作目錄與版本來源，再讀來源檔案。"
         if missing_git_source_path(text, schema_base):
             return "git-source-path", "該Git版本沒有這個路徑，請先列出版本內檔案並核對工作目錄，勿猜路徑。"
+        if missing_literal_docs_read(text, schema_base):
+            return "docs-read-path", "目前工作目錄找不到這個相對文件路徑；請核對專案，跨專案文件改用已確認的絕對路徑。"
         if checkpoint_shell_write(text):
             return "checkpoint-write", CHECKPOINT_MSG
         if checkpoint_prose(text):
