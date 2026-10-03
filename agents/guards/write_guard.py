@@ -219,6 +219,35 @@ def edit_targets(tool_input):
     return out
 
 
+def unknown_literal_git_revision(text, base):
+    """Catch a pinned full SHA queried in the wrong repository, not branch discovery."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    deadline = time.monotonic() + 4
+    examined = 0
+    for seg, seg_cwd in git_segments(text, base):
+        args, c = strip_git_opts(seg)
+        if not args or args[0] not in ("show", "ls-tree"):
+            continue
+        cwd = os.path.join(seg_cwd, c) if c else seg_cwd
+        for value in args[1:]:
+            rev = value.split(":", 1)[0]
+            if not re.fullmatch(r"[0-9a-fA-F]{40}", rev):
+                continue
+            examined += 1
+            remaining = deadline - time.monotonic()
+            if examined > 16 or remaining <= 0:
+                return False
+            try:
+                result = subprocess.run(["git", "rev-parse", "--verify", rev + "^{tree}"],
+                                        cwd=cwd, env=env, stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.DEVNULL, timeout=min(2, remaining))
+                if result.returncode != 0:
+                    return True
+            except (OSError, subprocess.SubprocessError):
+                return False
+    return False
+
+
 def missing_git_source_path(text, base):
     """Warn only for missing literal paths in a known Git tree; bounded, fail open."""
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
@@ -266,6 +295,8 @@ def verdict(payload):
         return "kratos-schema-default", "專案沒有註冊default身分格式，請從Kratos設定讀取實際schema_id，再建立測試帳號。"
     if is_shell:
         text = command_text(payload)
+        if unknown_literal_git_revision(text, schema_base):
+            return "git-source-revision", "目前Git專案沒有這個固定版本，請先核對工作目錄與版本來源，再讀來源檔案。"
         if missing_git_source_path(text, schema_base):
             return "git-source-path", "該Git版本沒有這個路徑，請先列出版本內檔案並核對工作目錄，勿猜路徑。"
         if checkpoint_shell_write(text):

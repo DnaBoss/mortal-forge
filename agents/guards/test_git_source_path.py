@@ -42,6 +42,9 @@ class GitSourcePathTests(unittest.TestCase):
     def test_unknown_revision_allowed(self):
         self.assertIsNone(self.verdict(['show', 'unknown:absent.rs']))
 
+    def test_wrong_repository_fixed_revision_denied(self):
+        self.assertEqual(self.verdict(['ls-tree', '-r', 'a' * 40]), 'git-source-revision')
+
     def test_dynamic_allowed(self):
         self.assertIsNone(self.verdict(['show', 'HEAD:$PATH']))
 
