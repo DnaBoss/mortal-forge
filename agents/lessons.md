@@ -368,3 +368,10 @@
 - 原因：把私有檔案目錄直接當socket目錄，未核對位址長度；PostgreSQL的host socket亦有同類限制。
 - 防：socket放短的自有0700目錄，啟動前斷言轉送及PostgreSQL完整socket路徑小於100 bytes；socat前置重現已確認長度錯誤。失敗收據保留且清理後，才建立全新環境。
 - 來源：identity-platform真原生HTTPS登入服務至Gateway候選；第二輪兩封本機信，兩次接收保留合成舊玩家、竄改簽章拒絕，TLS未關閉。
+
+## 2026-10-03 跨專案來源攔截的真工具工作目錄邊界
+- 觀察：exec_command明寫Fluke工作目錄，但自動攔截訊息仍以identity-platform判斷固定版本並拒絕；同一讀取改用git -C明列正確專案後通過。沒有錯專案寫入。
+- 原因：當前連接器的攔截payload未必傳遞巢狀工具workdir；不能把單元測試尊重workdir當成真連接器已傳入。
+- 防：跨repo Git讀取除工具workdir外，同時使用git -C已核對的根目錄。原git-source-revision攔截保持啟用，不改成跳過或放寬。
+- guard: write_guard.py git-source-revision；本次真工具拒絕已觀察，明列-C後正常取得固定樹。只宣稱固定完整SHA查詢邊界，不把它當成全部Shell路徑檢查。
+- 來源：identity-platform實際Godot與真服務及Gateway候選同流程驗收準備，2026-10-03。
