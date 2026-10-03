@@ -291,3 +291,12 @@
 ## 2026-10-02 ai-mall #2829 流程檔沒先跑語法檢查就提交，多一個修正提交
 - 錯：本機沒裝 actionlint，提交前的自動檢查只印「跳過」。我只用 YAML 解析確認格式就提交，之後才用容器版 actionlint 抓到單引號內的 `${...}` 被擋（SC2016）。
 - 防：改 `.github/workflows/` 的檔案，提交前先跑 `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:latest <檔>`；在 `node -e '...'` 裡不寫 `${}`，用字串相加。自動檢查印「跳過」等於沒檢查。
+
+## 2026-10-03 檢查點證據種類用了不存在的artifact
+- 錯：cash-rule-checkpoint的evidence種類傳artifact，格式驗證拒絕並還原，沒有留下錯誤歷史。
+- 防：檔案證據傳file；新增種類前先讀schema允許清單，不從其他工具的名稱猜。
+
+## 2026-10-03 進度說明反覆混入簡體字
+- 錯：本輪第158筆的時效誤用簡體；歷史保持原樣，不改寫。
+- 防：寫入前只查進度工具的說明欄位，檔名與證據路徑不攔；已登記字形遇到就拒絕。不是完整語意或所有中文檢查。
+- guard: write_guard.py checkpoint-prose；14項新舊測試及真實hook輸入拒絕通過。Claude既有hook已登記；目前Codex會話是否自動載入未證明，寫入前另明確呼叫檢查。

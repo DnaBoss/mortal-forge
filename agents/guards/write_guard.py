@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse guard for Claude Code and Codex: three mistakes that recurred in 2026-10.
+"""PreToolUse guard for Claude Code and Codex: recurring writing mistakes.
 
 1. checkpoint history (`*.checkpoints.jsonl`) is append-only and must be written by
    ~/tools/cash-rule-checkpoint, which validates before writing. Direct writes
@@ -9,11 +9,13 @@
    running shell four times. Denied.
 3. `git checkout -- <path>` / `git restore <path>` on a file with uncommitted changes
    threw away wanted edits. Denied unless the command text contains `DISCARD=1`.
+4. Registered simplified glyphs in checkpoint prose are denied before writing;
+   technical file paths and evidence locators remain unchanged.
 
 Early warning, not a security boundary (same as git_guard): what it cannot parse
 passes. Fails open on bad input. Decisions are logged without command text.
 """
-import hashlib, json, os, re, subprocess, sys, time
+import hashlib, json, os, re, shlex, subprocess, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 from git_guard import command_text, git_segments, strip_git_opts, unwrap  # noqa: E402
@@ -34,6 +36,47 @@ PKILL_MSG = ("禁止 pkill -f／pgrep -f（會比對到自己的 shell，2026-10
              "改用 ss -ltnp 取監聽 PID 後 kill <PID>，或 pgrep -x <程序名> 再比對 /proc/<PID>/cwd。")
 DISCARD_MSG = ("禁止用 git checkout --／git restore 丟掉有未提交修改的檔案（2026-10-02 改好的檔被退回舊版）。"
                "要保留就先 cp 到暫存目錄；確定要丟棄，在命令最前面加 DISCARD=1。")
+PROSE_MSG = "進度紀錄的說明含已登記的簡體字。請改用繁體中文，再經原寫入工具追加；不要改寫歷史。"
+PROSE_OPTIONS = {"--target", "--proven", "--not-proven", "--risk", "--next",
+                 "--reason", "--impact", "--source", "--check"}
+SIMPLIFIED_PROSE = re.compile("[\u65f6\u9a8c\u7801\u753b\u7eed\u72ec\u65e0\u636e\u73b0\u6d4b\u8bc1\u4e0e\u4e3a\u9519\u8bef\u62a4\u5355\u6761\u53d1\u8fc7]")
+
+
+def checkpoint_prose(text):
+    """Reject registered glyphs only in the writer's human-facing options."""
+    lexer = shlex.shlex(text, posix=True, punctuation_chars=";&|\n")
+    lexer.whitespace = " \t\r"
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return False
+    groups, current = [], []
+    for token in tokens:
+        if token and all(char in ";&|\n" for char in token):
+            groups.append(current)
+            current = []
+        else:
+            current.append(token)
+    groups.append(current)
+    for group in groups:
+        words = unwrap(group)
+        if not words:
+            continue
+        head = os.path.basename(words[0])
+        if head in ("python", "python3") and len(words) > 1:
+            words = words[1:]
+            head = os.path.basename(words[0])
+        if head not in ("cash-rule-checkpoint", "cash_rule_checkpoint.py"):
+            continue
+        for index, word in enumerate(words[1:], 1):
+            option, separator, inline = word.partition("=")
+            if option not in PROSE_OPTIONS:
+                continue
+            value = inline if separator else words[index + 1] if index + 1 < len(words) else ""
+            if SIMPLIFIED_PROSE.search(value):
+                return True
+    return False
 
 
 def segments(text):
@@ -148,6 +191,8 @@ def verdict(payload):
         text = command_text(payload)
         if checkpoint_shell_write(text):
             return "checkpoint-write", CHECKPOINT_MSG
+        if checkpoint_prose(text):
+            return "checkpoint-prose", PROSE_MSG
         if pkill_full(text):
             return "pkill-full", PKILL_MSG
         if discard_without_flag(text, payload.get("cwd") or os.getcwd()):
