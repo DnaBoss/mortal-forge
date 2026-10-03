@@ -29,6 +29,11 @@ struct CatalogRequest {
     limit: Option<usize>,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct RepoPolicyRequest {
+    repository: String,
+}
+
 #[tool_router]
 impl MortalService {
     pub fn new(config: ServiceConfig) -> Self {
@@ -36,6 +41,18 @@ impl MortalService {
             config: Arc::new(config),
             tool_router: Self::tool_router(),
         }
+    }
+
+    #[tool(
+        description = "Read Gitflow hook installation and develop presence for one allowlisted personal repository. No network or mutations."
+    )]
+    fn mortal_repo_policy_status(
+        &self,
+        Parameters(request): Parameters<RepoPolicyRequest>,
+    ) -> Result<CallToolResult, McpError> {
+        crate::repo_policy::status(&request.repository)
+            .map(CallToolResult::structured)
+            .map_err(|error| McpError::invalid_params(error.to_string(), None))
     }
 
     #[tool(
