@@ -343,6 +343,65 @@ def missing_literal_docs_read(text, base):
     return False
 
 
+def invalid_fixture_preflight(text, fixture_root=None):
+    """Known standalone fixture setup mistakes; not a general Python checker."""
+    import ast
+    if len(text) > 65536:
+        return False
+    root = os.path.realpath(fixture_root or os.path.expanduser('~/.cache/identity-platform'))
+    pattern = r"(?:^|[;\n])\s*(?:[^\s]+/)?python(?:3(?:\.[0-9]+)?)?\s+(?:-u\s+)?['\"]?([^\s'\"]*launcher[^\s'\"]*\.py)"
+    for examined, match in enumerate(re.finditer(pattern, text)):
+        if examined >= 4:
+            break
+        source = os.path.realpath(match[1])
+        try:
+            if os.path.commonpath([root, source]) != root:
+                continue
+            with open(source, encoding='utf-8') as stream:
+                content = stream.read(131073)
+            if len(content) > 131072:
+                continue
+            tree = ast.parse(content)
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == 'window' and node.func.attr == 'wait'):
+                for kw in node.keywords:
+                    if (kw.arg == 'seconds' and isinstance(kw.value, ast.Constant)
+                            and isinstance(kw.value.value, (int, float))
+                            and not 0 < kw.value.value <= 300):
+                        return True
+            if not isinstance(node, ast.FunctionDef) or node.name != 'gateway_running':
+                continue
+            calls = [x for x in ast.walk(node) if isinstance(x, ast.Call)
+                     and isinstance(x.func, ast.Attribute) and x.func.attr == 'write_text'
+                     and isinstance(x.func.value, ast.Name) and x.func.value.id == 'inner']
+            assigned = any(isinstance(x, ast.Name) and x.id == 'inner'
+                           and isinstance(x.ctx, ast.Store) for x in ast.walk(node))
+            if calls and not assigned:
+                return True
+            for call in calls:
+                if not call.args or not isinstance(call.args[0], ast.Constant) or not isinstance(call.args[0].value, str):
+                    continue
+                if len(call.args[0].value) > 65536:
+                    continue
+                try:
+                    nested = ast.parse(call.args[0].value)
+                except (SyntaxError, ValueError):
+                    continue
+                uses = any(isinstance(x, ast.Name) and x.id == 'Request'
+                           and isinstance(x.ctx, ast.Load) for x in ast.walk(nested))
+                bound = any((isinstance(x, ast.Name) and x.id == 'Request' and isinstance(x.ctx, ast.Store))
+                            or (isinstance(x, ast.alias) and (x.asname or x.name) == 'Request')
+                            or (isinstance(x, (ast.FunctionDef, ast.ClassDef)) and x.name == 'Request')
+                            for x in ast.walk(nested))
+                if uses and not bound:
+                    return True
+    return False
+
+
 def verdict(payload):
     tool_input = payload.get("tool_input") or {}
     if not isinstance(tool_input, dict):
@@ -360,6 +419,8 @@ def verdict(payload):
             return "git-source-path", "該Git版本沒有這個路徑，請先列出版本內檔案並核對工作目錄，勿猜路徑。"
         if missing_literal_docs_read(text, schema_base):
             return "docs-read-path", "目前工作目錄找不到這個相對文件路徑；請核對專案，跨專案文件改用已確認的絕對路徑。"
+        if invalid_fixture_preflight(text):
+            return "fixture-setup-preflight", "這份隔離啟動器有已知漏項或等待時間超過工具上限；請先核對內層程式路徑、Request匯入及300秒限制，不要啟動服務。"
         if checkpoint_shell_write(text):
             return "checkpoint-write", CHECKPOINT_MSG
         if checkpoint_prose(text):
