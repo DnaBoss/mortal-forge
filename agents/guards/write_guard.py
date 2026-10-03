@@ -11,6 +11,7 @@
    threw away wanted edits. Denied unless the command text contains `DISCARD=1`.
 4. Registered simplified glyphs in checkpoint prose are denied before writing;
    technical file paths and evidence locators remain unchanged.
+5. Cargo must not run unconditionally after a Python preflight heredoc.
 
 Early warning, not a security boundary (same as git_guard): what it cannot parse
 passes. Fails open on bad input. Decisions are logged without command text.
@@ -37,9 +38,21 @@ PKILL_MSG = ("禁止 pkill -f／pgrep -f（會比對到自己的 shell，2026-10
 DISCARD_MSG = ("禁止用 git checkout --／git restore 丟掉有未提交修改的檔案（2026-10-02 改好的檔被退回舊版）。"
                "要保留就先 cp 到暫存目錄；確定要丟棄，在命令最前面加 DISCARD=1。")
 PROSE_MSG = "進度紀錄的說明含已登記的簡體字。請改用繁體中文，再經原寫入工具追加；不要改寫歷史。"
+PREFLIGHT_MSG = "Python前置檢查後的編譯沒有綁定成功條件。請先確認檢查成功再另行編譯，或用&&串接；失敗不能繼續編譯。"
 PROSE_OPTIONS = {"--target", "--proven", "--not-proven", "--risk", "--next",
                  "--reason", "--impact", "--source", "--check"}
 SIMPLIFIED_PROSE = re.compile("[\u65f6\u9a8c\u7801\u753b\u7eed\u72ec\u65e0\u636e\u73b0\u6d4b\u8bc1\u4e0e\u4e3a\u9519\u8bef\u62a4\u5355\u6761\u53d1\u8fc7]")
+
+
+def unchecked_cargo_preflight(text):
+    """Recognize the observed Python-heredoc fallthrough, not all shell gates."""
+    opening = re.compile(r"(?m)^[ \t]*(?:[^\s]+/)?python(?:3(?:\.[0-9]+)?)?\s+-\s+<<(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*$")
+    for match in opening.finditer(text):
+        remainder = text[match.end():]
+        closing = re.search(r"(?m)^" + re.escape(match[2]) + r"[ \t]*$", remainder)
+        if closing and re.match(r"cargo\s+(?:build|test|clippy|run)\b", remainder[closing.end():].lstrip()):
+            return True
+    return False
 
 
 def checkpoint_prose(text):
@@ -193,6 +206,8 @@ def verdict(payload):
             return "checkpoint-write", CHECKPOINT_MSG
         if checkpoint_prose(text):
             return "checkpoint-prose", PROSE_MSG
+        if unchecked_cargo_preflight(text):
+            return "cargo-unchecked-preflight", PREFLIGHT_MSG
         if pkill_full(text):
             return "pkill-full", PKILL_MSG
         if discard_without_flag(text, payload.get("cwd") or os.getcwd()):

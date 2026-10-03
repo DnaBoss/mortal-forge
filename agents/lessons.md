@@ -300,3 +300,12 @@
 - 錯：本輪第158筆的時效誤用簡體；歷史保持原樣，不改寫。
 - 防：寫入前只查進度工具的說明欄位，檔名與證據路徑不攔；已登記字形遇到就拒絕。不是完整語意或所有中文檢查。
 - guard: write_guard.py checkpoint-prose；14項新舊測試及真實hook輸入拒絕通過。Claude既有hook已登記；目前Codex會話是否自動載入未證明，寫入前另明確呼叫檢查。
+
+## 2026-10-03 SDK前置檢查失敗仍啟動編譯
+- 錯：在SDK子目錄把cwd當Git根，檢查拒絕後，同一shell下一行仍執行cargo。
+- 防：根目錄由git rev-parse取得；先確認前置檢查成功，再另行編譯或用&&綁定成功條件。
+- guard: write_guard.py cargo-unchecked-preflight；僅涵蓋Python heredoc後直接cargo的已知型態，18項新舊測試與真hook拒絕通過。
+
+## 2026-10-03 SDK測試CA缺用途欄位
+- 錯：自建CA少了keyUsage，Python嚴格憑證檢查拒絕，尚未進入SDK驗簽。
+- 防：CA明訂critical CA:TRUE與keyCertSign/cRLSign；另造CA:FALSE伺服器憑證，啟動前先以openssl verify -x509_strict核對完整鏈。不得關TLS驗證。
