@@ -345,3 +345,12 @@
 - 錯：Godot已進入真登入頁後，以為login_challenge仍在網址；實際登入畫面已建立Kratos流程，網址只留flow，觀察呼叫因此停止，尚未送Email。
 - 防：先核對當下網址欄位與登入流程回應；從同一流程的oauth2_login_request取得原授權網址，再核對登入前的state、nonce與S256。不要以慣例猜導頁後的資料位置，亦不重啟或重送登入。
 - 來源：identity-platform固定版本Godot成品與原生HTTPS真服務；最後一封本機信、真授權碼交換200、產品保存憑證，獨立核對簽章及登入前nonce相符。設定橋接不是真Gateway，玩家映射仍未驗。
+
+## 2026-10-03 再次猜Git版本內的來源路徑
+- 錯：把遷移檔猜成migrations/0023_identity_links.sql，實際在migrations/postgres；又猜不存在的services/gateway/src/ledger_wiring.rs，實際函式在main.rs。兩次唯讀查詢失敗，未改來源。
+- 原因：未先列出固定版本檔案，沿用慣例猜位置。
+- 防：先用git ls-tree核對固定版本與工作目錄，再讀確認存在的路徑。
+- guard: write_guard.py git-source-path；拒絕已知Git樹內不存在的字面git show REV:PATH；每次最多16項、總計4秒，清除父Git環境，尊重工具workdir與-C。
+- 邊界：未知版本、動態值與無法解析的命令放行；不是完整Shell檢查。新增8項先抓到3項失敗，修正後新舊52項通過。
+- 本機模型草稿漏掉環境隔離、總時限與未知版本放行，已修訂後驗收，未直接採用。
+- 來源：identity-platform遊戲伺服器隔離對照，2026-10-03。

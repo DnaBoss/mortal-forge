@@ -219,6 +219,42 @@ def edit_targets(tool_input):
     return out
 
 
+def missing_git_source_path(text, base):
+    """Warn only for missing literal paths in a known Git tree; bounded, fail open."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    deadline = time.monotonic() + 4
+    examined = 0
+    for seg, seg_cwd in git_segments(text, base):
+        args, c = strip_git_opts(seg)
+        if not args or args[0] != "show":
+            continue
+        cwd = os.path.join(seg_cwd, c) if c else seg_cwd
+        for value in args[1:]:
+            if value.startswith("-") or ":" not in value or "$" in value or "`" in value:
+                continue
+            rev, path = value.split(":", 1)
+            if not rev or not path:
+                continue
+            examined += 1
+            if examined > 16:
+                return False
+            def run(options):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired("git", 4)
+                return subprocess.run(["git", *options], cwd=cwd, env=env,
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                      timeout=min(2, remaining)).returncode
+            try:
+                if run(["rev-parse", "--verify", rev + "^{tree}"]) != 0:
+                    continue
+                if run(["cat-file", "-e", value]) != 0:
+                    return True
+            except (OSError, subprocess.SubprocessError):
+                return False
+    return False
+
+
 def verdict(payload):
     tool_input = payload.get("tool_input") or {}
     if not isinstance(tool_input, dict):
@@ -230,6 +266,8 @@ def verdict(payload):
         return "kratos-schema-default", "專案沒有註冊default身分格式，請從Kratos設定讀取實際schema_id，再建立測試帳號。"
     if is_shell:
         text = command_text(payload)
+        if missing_git_source_path(text, schema_base):
+            return "git-source-path", "該Git版本沒有這個路徑，請先列出版本內檔案並核對工作目錄，勿猜路徑。"
         if checkpoint_shell_write(text):
             return "checkpoint-write", CHECKPOINT_MSG
         if checkpoint_prose(text):
