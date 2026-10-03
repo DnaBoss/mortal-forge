@@ -14,6 +14,14 @@ class PreflightOrderTest(unittest.TestCase):
                     cmd = 'python3 - <<' + tag + '\nraise AssertionError()\nPY\ncargo ' + action
                     self.assertEqual(self.rule(cmd), 'cargo-unchecked-preflight')
 
+    def test_git_worktree_fallthrough_denied(self):
+        cmd="python3 - <<'PY'\nraise AssertionError()\nPY\ngit worktree add /tmp/test feature/test"
+        self.assertEqual(self.rule(cmd),'git-unchecked-preflight')
+
+    def test_git_worktree_checked_chain_allowed(self):
+        self.assertIsNone(self.rule("python3 - <<'PY' &&\nassert True\nPY\ngit worktree add /tmp/test feature/test"))
+        self.assertIsNone(self.rule('git worktree add /tmp/test feature/test'))
+
     def test_checked_chain_allowed(self):
         self.assertIsNone(self.rule("python3 - <<'PY' &&\nassert True\nPY\ncargo build"))
         self.assertIsNone(self.rule('cargo build --locked'))

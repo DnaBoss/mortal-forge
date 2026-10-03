@@ -12,6 +12,7 @@
 4. Registered simplified glyphs in checkpoint prose are denied before writing;
    technical file paths and evidence locators remain unchanged.
 5. Cargo must not run unconditionally after a Python preflight heredoc.
+6. A literal schema_id default is denied when the nearby Kratos schema list excludes it.
 
 Early warning, not a security boundary (same as git_guard): what it cannot parse
 passes. Fails open on bad input. Decisions are logged without command text.
@@ -44,13 +45,36 @@ PROSE_OPTIONS = {"--target", "--proven", "--not-proven", "--risk", "--next",
 SIMPLIFIED_PROSE = re.compile("[\u65f6\u9a8c\u7801\u753b\u7eed\u72ec\u65e0\u636e\u73b0\u6d4b\u8bc1\u4e0e\u4e3a\u9519\u8bef\u62a4\u5355\u6761\u53d1\u8fc7]")
 
 
-def unchecked_cargo_preflight(text):
+def wrong_kratos_default(text, base):
+    """Only the observed default literal against a known simple schema list."""
+    if not re.search(r"(['\"])schema_id\1\s*:\s*(['\"])default\2", text):
+        return False
+    current = os.path.abspath(base)
+    while True:
+        config = os.path.join(current, "deploy", "systemd", "kratos.yml")
+        if os.path.isfile(config):
+            try:
+                with open(config, encoding="utf-8") as source:
+                    content = source.read(65537)
+            except OSError:
+                return False
+            if len(content) > 65536:
+                return False
+            ids = re.findall(r"(?m)^\s*-\s*id:\s*['\"]?([A-Za-z_][A-Za-z0-9_-]*)['\"]?\s*$", content)
+            return bool(ids) and "default" not in ids
+        parent = os.path.dirname(current)
+        if parent == current:
+            return False
+        current = parent
+
+
+def unchecked_cargo_preflight(text, next_pattern=r"cargo\s+(?:build|test|clippy|run)\b"):
     """Recognize the observed Python-heredoc fallthrough, not all shell gates."""
     opening = re.compile(r"(?m)^[ \t]*(?:[^\s]+/)?python(?:3(?:\.[0-9]+)?)?\s+-\s+<<(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*$")
     for match in opening.finditer(text):
         remainder = text[match.end():]
         closing = re.search(r"(?m)^" + re.escape(match[2]) + r"[ \t]*$", remainder)
-        if closing and re.match(r"cargo\s+(?:build|test|clippy|run)\b", remainder[closing.end():].lstrip()):
+        if closing and re.match(next_pattern, remainder[closing.end():].lstrip()):
             return True
     return False
 
@@ -200,6 +224,10 @@ def verdict(payload):
     if not isinstance(tool_input, dict):
         return None, None
     is_shell = "command" in tool_input or "cmd" in tool_input
+    schema_text = command_text(payload) if is_shell else " ".join(str(tool_input[k]) for k in EDIT_KEYS if k in tool_input)
+    schema_base = tool_input.get("workdir") or tool_input.get("cwd") or payload.get("cwd") or os.getcwd()
+    if wrong_kratos_default(schema_text, schema_base):
+        return "kratos-schema-default", "專案沒有註冊default身分格式，請從Kratos設定讀取實際schema_id，再建立測試帳號。"
     if is_shell:
         text = command_text(payload)
         if checkpoint_shell_write(text):
@@ -208,6 +236,8 @@ def verdict(payload):
             return "checkpoint-prose", PROSE_MSG
         if unchecked_cargo_preflight(text):
             return "cargo-unchecked-preflight", PREFLIGHT_MSG
+        if unchecked_cargo_preflight(text, r"git\s+worktree\s+add\b"):
+            return "git-unchecked-preflight", "Python前置檢查後直接建立工作樹，未綁定成功條件。請確認成功後再另行建立，或用&&串接。"
         if pkill_full(text):
             return "pkill-full", PKILL_MSG
         if discard_without_flag(text, payload.get("cwd") or os.getcwd()):
