@@ -428,5 +428,16 @@
     "dependencies": "uv、cash-rule scripts/requirements.txt（jsonschema）；由 cash-rule-compliance 包裝腳本帶入",
     "risk": "只讀；疑似重複用標題字元二元組相似度 0.5 判斷，只是提示，不是定論",
     "verification": "2026-10-02：對 ~/work_space 實跑，數字與手動逐檔驗證結果一致（見派工紀錄）"
+  },
+  {
+    "name": "cargo-cache",
+    "purpose": "Rust 多工作樹共用編譯產物、盤點與已授權的安全清理",
+    "location": "/home/cash/work_space/private/mortal-mcp/tools/cargo_cache.py",
+    "usage": "python3 ~/tools/cargo_cache.py audit --repo <worktree>; adopt --repo <worktree> --keeper <target> [--apply] [--allow-session-cleanup]; install-hooks",
+    "input": "Git 登記工作樹、同 repo 保留 target；刪除需 --apply，收工背景清理另需明確 opt-in",
+    "output": "JSON：共用位置、獨立副本、已刪除與使用中略過項目；MCP mortal_cargo_cache_status 唯讀最近紀錄",
+    "dependencies": "Linux /proc、Python stdlib、Git；程序權限不足僅 sudo -n 只讀掃描",
+    "risk": "CLI 可刪除核對過的閒置 target；未知內容／程序無法查明均保留；背景清理120秒有鎖無重試；MCP無刪除入口",
+    "verification": "python3 -m unittest discover -s tools -p test_cargo_cache.py；真 HTTP MCP status smoke；來源 skills/cargo-cache/SKILL.md"
   }
 ]
