@@ -1,3 +1,4 @@
+mod cache_status;
 mod config;
 mod repo_policy;
 mod service;

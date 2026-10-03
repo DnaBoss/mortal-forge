@@ -34,7 +34,10 @@
     "docs/package-plan.md",
     ".repo-policy/",
     "DEVELOPMENT.md",
-    "tools/gitflow-policy/"
+    "tools/gitflow-policy/",
+    "tools/cargo_cache.py",
+    "agents/guards/cargo_cache_guard.py",
+    "agents/skills/cash-rule/"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs && cargo test"

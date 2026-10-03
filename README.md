@@ -1,5 +1,10 @@
 # MORTAL MCP
 
+Rust 多工作樹共用編譯快取：見 [cargo-cache 技能](skills/cargo-cache/SKILL.md)。
+先用 `python3 tools/cargo_cache.py audit --repo <工作樹>` 盤點；`adopt` 預設預覽，加 `--apply` 才刪除已核對的閒置編譯快取。
+`install-hooks` 追加 Claude／Codex 的開工、編譯前、收工與關閉檢查，保留原有 hook 並備份。
+`--allow-session-cleanup` 明確啟用關閉後的有界背景清理；MCP 的 `mortal_cargo_cache_status` 只讀最近盤點紀錄。
+
 MORTAL 是可安裝的標準 Skill／Plugin 套件與本機 MCP 服務。Skill 負責工作流，底層呼叫本 repo 提供的 Rust MCP 服務、固定 CLI、Shell adapter 或其他 MCP tool。
 
 主要目標：

@@ -38,7 +38,7 @@ Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED
 
 ## 每輪執行
 
-依上述循環推進；每輪只推進一個主要 step。連續兩輪沒有新證據或可驗收進展，換方法、縮小問題或提出決策，不重跑原命令。首次 checkpoint 在盤點或規劃完成時寫入（`DISCOVERING`／`PLANNED`）；step 首次為 `PENDING`／`READY`。之後在每輪結束寫入；若輪內跨越必要狀態，於狀態邊界補 checkpoint，不得省略驗證階段。`iteration` 是每 task 的 checkpoint 序號，不是模型呼叫數。已終止 step 可重複投影原狀態，不可重新啟動。多輪／持續任務追加符合 [checkpoint schema](schemas/checkpoint.schema.json) 的 JSONL 紀錄；LOOP 只保留目前狀態摘要。短任務不需為形式建立 LOOP 或 JSONL。
+依上述循環推進；每輪只推進一個主要 step。連續兩輪沒有新證據或可驗收進展，換方法、縮小問題或提出決策，不重跑原命令。首次 checkpoint 在盤點或規劃完成時寫入（`DISCOVERING`／`PLANNED`）；step 首次為 `PENDING`／`READY`。之後在每輪結束寫入；若輪內跨越必要狀態，於狀態邊界補 checkpoint，不得省略驗證階段。`iteration` 是每 task 的 checkpoint 序號，不是模型呼叫數。已終止 step 可重複投影原狀態，不可重新啟動。多輪／持續任務追加符合 [checkpoint schema](schemas/checkpoint.schema.json) 的 JSONL 紀錄，只准經 `~/tools/cash-rule-checkpoint` 寫入（見 [回報規則](references/reporting.md)）；LOOP 只保留目前狀態摘要。短任務不需為形式建立 LOOP 或 JSONL。
 
 ## 證據與停止
 
@@ -46,7 +46,15 @@ Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED
 
 整體 step 完成後仍須做整合驗收。停止時明確標示 `COMPLETE`、`WAITING`、`BLOCKED`、`MONITORING` 或終止原因；LOOP 本身不是背景執行器。看門狗與鎖依 [執行與看門狗](references/runtime.md)；評估依 [評估規則](references/evaluation-policy.md)；派工依 [派工規則](references/model-dispatch.md)；checkpoint、通知與用量依 [回報規則](references/reporting.md)。
 
-## 按需載入
+## Rust 編譯產物（使用者 2026-10-03 定，強制）
+
+- 同一 repo 的所有工作樹共用一份已登記的 `target/`；新工作樹與每次編譯前必須確認共用位置，不得另建整份快取或指定獨立 `CARGO_TARGET_DIR`。
+- 收工前盤點實體副本、容量、程序使用狀態與略過原因；已授權清理的閒置重複產物必須清除，不可只寫待辦。來源碼、模型、資料與使用中的執行檔不得刪除；查不清就保留並記錄。
+- `PreToolUse` 攔獨立編譯位置，`Stop` 核對新副本，`SessionEnd` 寫快速紀錄；經 repo 明確啟用後，由有鎖、有時限、無自動重試的背景工作清理已登記的略過項目。
+- 保留快取所在工作樹不得直接移除；先搬移快取並更新登記及連結。
+- 工具、授權、程序檢查與證據位置唯一見 [cargo-cache 技能](../../../skills/cargo-cache/SKILL.md)。
+
+## 按需載入的參考文件
 
 - 任務背景與交接：[背景與證據](references/context-policy.md)
 - 專案計畫、驗收、授權與 LOOP 投影：[工程政策](references/engineering-policy.md)

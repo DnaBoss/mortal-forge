@@ -55,6 +55,18 @@ impl MortalService {
             .map_err(|error| McpError::invalid_params(error.to_string(), None))
     }
 
+    #[tool(
+        description = "Read the latest Rust cache audit receipt, including its timestamp. No deletion or shell execution."
+    )]
+    fn mortal_cargo_cache_status(&self) -> Result<CallToolResult, McpError> {
+        let home = std::env::var_os("HOME")
+            .ok_or_else(|| McpError::internal_error("HOME missing", None))?;
+        let path = std::path::PathBuf::from(home).join(".local/state/cargo-cache/status.json");
+        let value = crate::cache_status::read_receipt(&path)
+            .map_err(|error| McpError::internal_error(error, None))?;
+        Ok(CallToolResult::structured(value))
+    }
+
     #[tool(description = "Return MORTAL MCP service readiness and configured company count.")]
     fn mortal_health(&self) -> Result<CallToolResult, McpError> {
         Ok(CallToolResult::structured(json!({
@@ -163,6 +175,7 @@ impl ServerHandler for MortalService {
         Ok(ListResourcesResult::with_all_items(vec![
             Resource::new("mortal://skills/mortal-tools", "mortal-tools skill"),
             Resource::new("mortal://skills/fluke-ops", "fluke operations skill"),
+            Resource::new("mortal://skills/cargo-cache", "Rust shared cache skill"),
         ]))
     }
 
@@ -174,6 +187,7 @@ impl ServerHandler for MortalService {
         let text = match uri.as_str() {
             "mortal://skills/mortal-tools" => include_str!("../skills/mortal-tools/SKILL.md"),
             "mortal://skills/fluke-ops" => include_str!("../skills/fluke-ops/SKILL.md"),
+            "mortal://skills/cargo-cache" => include_str!("../skills/cargo-cache/SKILL.md"),
             _ => {
                 return Err(McpError::resource_not_found(
                     "resource_not_found",

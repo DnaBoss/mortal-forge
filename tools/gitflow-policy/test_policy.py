@@ -1,16 +1,23 @@
 """Exercise actual Git hooks against disposable repositories and a local bare remote."""
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parent
 
 
 class HooksTest(unittest.TestCase):
     def setUp(self):
+        # Git hooks inherit parent repository/index settings. Fixtures must not.
+        clean_env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+        environment = patch.dict(os.environ, clean_env, clear=True)
+        environment.start()
+        self.addCleanup(environment.stop)
         self.directory = tempfile.TemporaryDirectory()
         self.root = Path(self.directory.name)
         self.repo = self.root / "repo"
