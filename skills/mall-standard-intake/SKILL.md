@@ -1,6 +1,6 @@
 ---
 name: mall-standard-intake
-description: 核商城 API 經共用收集器保存標準日誌、指標與追蹤時使用；只跑自有隔離來源，不替代查詢畫面或正式站驗收。
+description: 核商城 API 經共用收集器保存標準資料，或核歷史原頁與續跑位置保存時使用；只跑自有隔離來源，不替代查詢畫面或正式站驗收。
 ---
 
 # 商城標準資料隔離驗收
@@ -22,3 +22,18 @@ python3 <mall-root>/apps/api/test/standard-intake-isolated.py   --mall-root <商
 期限對照只加 `--negative execution-budget`：預期在隔離業務GET後退出1並留失敗收據，另核精確資源已清；這不是出口故障或正式斷線驗證。逾時先查同一程序句柄與已留證據；確認原程序已終止後才決定下一個不同驗證，不盲重送。
 
 既有固定樣本曾核187筆日誌、7段追蹤及指標保存；數字只指該輪，不是新版本重跑保證。這個入口不核查詢API、原首頁或兩站安裝，不授權真付款、通知、正式部署或故障注入。
+
+
+## 歷史頁面保存分支
+
+需要核原文與位置一起保存時，先讀商城`docs/observability/selfhost-collector-installation.md`的保存核心範圍。程式來源是商城`apps/api/scripts/cloudwatch_history_store.py`；這是標準庫模組，完整AWS回讀及MCP介面尚未實作，不能直接拿來補正式來源。
+
+```sh
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_history_store_test.py
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --source <mall-root>/apps/api/scripts/cloudwatch_history_store.py --evidence-root <已存在的私人證據目錄>
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_crash.py --source <mall-root>/apps/api/scripts/cloudwatch_history_store.py --evidence-root <已存在的自有證據目錄>
+```
+
+只用自有暫存資料庫，沒有Docker、AWS、安裝或正式憑證依賴。變異工具只改新證據目錄內的副本，每次8秒／整次120秒、最多256個；固定來源與測試bytes，來源改動不算當前通過。自有證據目錄建立後，基準失敗或逾時也留失敗收據與部分結果；前置路徑拒絕只回錯誤。存活變異使工具退出1，等價判斷另經反方與實際路徑核對，保留原分數，不由清單或工具自動放行。範圍是比較、布林、raise及整數變異，沒有SQL字串。
+
+中斷對照只建立兩個自有Python子程序，每個標記最多4秒、停止後等待最多3秒，精確PID停止並回收；正向核交易中斷後原文／位置不變，反例先提交位置必須被拒。這不是硬體斷電；資料庫容量也不涵蓋交易日誌總額。必要收據、固定檔案摘要或精確清理不符即停止，不把27／28等歷史案例數當新版保證。
