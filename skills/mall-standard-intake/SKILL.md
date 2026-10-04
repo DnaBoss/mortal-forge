@@ -66,3 +66,18 @@ python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --s
 
 
 實際站點對照沿用已核權限：每批最多6個唯讀GET、並行最多2、沒有重試。保存每次開始／結束、標記與回應requestId，再從固定日期來源窗逐筆核access的method／route／status及時間；原文與五欄對照，無後頁只代表當次來源分頁結束，不保證晚到全完整。health只有status/timestamp時不當依賴就緒；根readyz與api/v1路徑分開核，404不直接判健康故障。本機來源或舊盤點不當線上同版／安裝證據。
+
+
+## Web原頁分支
+
+Web先用既有reader選已核Web group／selfhost；QA0事件不當沒有日誌，仍有後頁算部分。cloudwatch_web_otlp.py只產標準JSON，原文／CW時間／接收時間／事件身分保留，等級未知，不猜版本／追蹤／堆疊；1MiB原頁、100事件、512KiB輸出，超限整頁拒絕，沒有發送或清理原頁。
+
+```sh
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_web_otlp_test.py
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --source <mall-root>/apps/api/scripts/cloudwatch_web_otlp.py --evidence-root <私人證據目錄>
+python3 -B <mall-root>/apps/api/test/cloudwatch_web_isolated.py --mall-root <商城工作樹> --aletheia-root <Aletheia工作樹> --runtime-dir <既有且摘要已核執行目錄> --evidence-root <自有私人證據父目錄> --source-root <reader的query及sqlite目錄> --site prod
+```
+
+source-root須有prod-query.json／prod.sqlite（或qa兩檔），至少一筆、最多10頁／1000筆，空來源不能當格式通過。只用既有固定快取映像與runtime，不讀AWS／下載／編譯；三自有容器與隔離網路，240秒預算後仍精確清理。正向核原五欄／位置／全部標準內容、錯環境403表不變、正常停後全批／表與原DB。只消除完全空optional scope有無表示差異，保留有值內容。
+
+陰性加--negative comparator-body，應退出1且source-body比較失敗，仍核精確清理；不改原頁，不是正式故障。當輪13案例／36變異與40真樣本保存只限同摘要，不代表自動sender確認、完整歷史、最新接收端、原首頁或安裝，不新增純文字無秘密的保證。
