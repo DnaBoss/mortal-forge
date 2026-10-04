@@ -85,7 +85,7 @@ source-root須有prod-query.json／prod.sqlite（或qa兩檔），至少一筆�
 
 ## Web送件紀錄分支
 
-需要核已存Web原頁的送件意圖時，使用商城cloudwatch_delivery.py；只有本機資料庫紀錄，HTTP sender與下游保存確認尚未接上。沿固定查詢產生內容，先提交unknown再交出payload；原頁／位置保留，入口200完整接受只能記ingress_accepted。未知、接受與重複意圖均先查原紀錄，保持不自動重送。
+需要核已存Web原頁的送件意圖時，使用商城cloudwatch_delivery.py；已接單次HTTP／HTTPS候選；來源自動送件、下游保存確認與MCP介面尚未接上。沿固定查詢產生內容，先提交unknown再交出payload；原頁／位置保留，入口200完整接受只能記ingress_accepted。未知、接受與重複意圖均先查原紀錄，保持不自動重送。
 
 ```sh
 python3 -B <mall-root>/apps/api/scripts/cloudwatch_delivery_test.py
@@ -94,3 +94,16 @@ python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_delivery_crash.py --sou
 ```
 
 中止工具只建兩個自有合成資料子程序，標記4秒／回收3秒；核UPDATE後提交前及提交後狀態、原五表及完整性。加--negative-unsafe-reset應退出1，保留失敗收據；再以收據精確PID核沒有剩餘。16意圖、每份內容512KiB及回應64KiB；容量沿HistoryStore，交易日誌合計上限仍未知。變異固定mapper與保存核心，不碰產品來源；核基準、摘要、所有結果與零跳過，不把入口接受當成下游確認，也不當正式站故障、安裝或畫面。
+
+
+核送件候選時，先讀商城安裝文件的「單次Web送件候選」，再跑以下自有合成對照；這些命令不讀AWS、不送正式入口。
+
+```sh
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_delivery_sender_test.py
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_delivery_sender_process_test.py
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_delivery_sender_guard_process_test.py
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --source <mall-root>/apps/api/scripts/cloudwatch_delivery_sender.py --evidence-root <既有私人證據目錄>
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_delivery_sender_crash.py --source <mall-root>/apps/api/scripts/cloudwatch_delivery_sender.py --evidence-root <既有私人證據目錄>
+```
+
+同版快測、真程序期限、真連線、所有改壞結果與來源摘要均需通過；中止反例加--negative-unsafe-reset應退出1。任一失敗先讀收據與原紀錄，不自動再送。中止只涵蓋提交未知後HTTP前，以及HTTP完成後保存結果前；私人合成暫存會留在證據目錄，不含真憑證。仍須另驗下游確認、最新接收端、原首頁與兩站安裝。
