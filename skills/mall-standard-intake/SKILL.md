@@ -63,3 +63,6 @@ python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --s
 來源命令已擷取的失敗會另存私人DB，最多16筆；滿額不刪舊資料，stdout最多1MiB／stderr64KiB。逾時與超限僅存已讀有界部分；容量滿可能diagnosticSaved=false，仍保留原來源錯誤及頁面位置。清理再失敗不覆蓋原錯誤，cleanupConfirmed=false及安全摘要明列，必要時列自有PID；不要因摘要無原文就宣稱沒有來源錯誤。
 
 讀取核心變異宜加--start 0 --count 32分批，後續起點依完整收據接續。核各批sourceSHA256、testSHA256、dependencySHA256相同，起點及executed覆蓋全體、無重疊；保留存活及逾時原結果，不能只加總pass批次。
+
+
+實際站點對照沿用已核權限：每批最多6個唯讀GET、並行最多2、沒有重試。保存每次開始／結束、標記與回應requestId，再從固定日期來源窗逐筆核access的method／route／status及時間；原文與五欄對照，無後頁只代表當次來源分頁結束，不保證晚到全完整。health只有status/timestamp時不當依賴就緒；根readyz與api/v1路徑分開核，404不直接判健康故障。本機來源或舊盤點不當線上同版／安裝證據。
