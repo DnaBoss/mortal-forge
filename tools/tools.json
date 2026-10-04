@@ -444,7 +444,7 @@
     "name": "mall-standard-intake",
     "purpose": "驗證商城API經共用收集器與Aletheia隔離保存，不包含正式部署或查詢畫面；歷史頁面保存核心的本機交易與中斷對照；有界AWS固定窗原頁讀取與續跑（真帳號先核）",
     "location": "/home/cash/work_space/newretail/crossec-standard-observability/apps/api/test/standard-intake-isolated.py",
-    "usage": "python3 <location> --mall-root <商城工作樹> --aletheia-root <Aletheia工作樹> --runtime-dir <既有執行目錄> --evidence-root <既有自有證據父目錄>；期限對照只加--negative execution-budget；沿用skills/mall-standard-intake/SKILL.md。MCP執行介面未實作，不重啟共用服務。 保存核心／變異／中斷分支入口依同一SKILL，不猜AWS回讀已完成。 有界讀取：python3 <mall-root>/apps/api/scripts/cloudwatch_history_reader.py --query <私人固定查詢檔> --db <私人保存目錄>/history.sqlite --max-pages 2 --max-events 40 --page-size 20 --seconds 60。",
+    "usage": "python3 <location> --mall-root <商城工作樹> --aletheia-root <Aletheia工作樹> --runtime-dir <既有執行目錄> --evidence-root <既有自有證據父目錄>；期限對照只加--negative execution-budget；沿用skills/mall-standard-intake/SKILL.md。MCP執行介面未實作，不重啟共用服務。 保存核心／變異／中斷分支入口依同一SKILL，不猜AWS回讀已完成。 有界讀取：python3 <mall-root>/apps/api/scripts/cloudwatch_history_reader.py --query <私人固定查詢檔> --db <私人保存目錄>/history.sqlite --max-pages 2 --max-events 40 --page-size 20 --seconds 60。 已擷取錯誤最多16筆、不刪舊記錄；容量滿明列未保存。變異分批用--start及--count，按摘要與起點核全體覆蓋。",
     "input": "四個操作者選定的自有路徑；商城依賴已安裝、Aletheia已編譯官方描述檔、runtime/receipt.json；拒絕-O，隔離分支不讀正式憑證；AWS分支用自有0600九欄固定查詢及0700保存目錄，既有mall憑證，只允許台北區域",
     "output": "新建自有mall-api-intake證據目錄，收據、來源、保存批次及正常停止／精確清理；失敗退出1，期限對照預期1，摘要不冒充原文核對；AWS分支保存原頁、事件、位置與取得時間，摘要只含數量／是否仍有後頁，失敗不更新位置",
     "dependencies": "Linux、Python3與google.protobuf、Node22、Docker、pnpm及已裝商城依賴、既有Aletheia執行檔／描述檔、固定快取映像；不新增Rust編譯、拉映像或安裝；歷史保存分支只需Linux/Python標準庫；AWS讀取另需既有AWS CLI與mall唯讀身分",
