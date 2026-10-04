@@ -109,6 +109,13 @@ python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_delivery_sender_crash.p
 同版快測、真程序期限、真連線、所有改壞結果與來源摘要均需通過；中止反例加--negative-unsafe-reset應退出1。任一失敗先讀收據與原紀錄，不自動再送。中止只涵蓋提交未知後HTTP前，以及HTTP完成後保存結果前；私人合成暫存會留在證據目錄，不含真憑證。仍須另驗下游確認、最新接收端、原首頁與兩站安裝。
 
 
-Web隔離命令加--delivery-sender可跑真單次候選到原共用Collector；唯讀掛已核本機curl及系統庫，守8.4與檔案摘要，不裝套件。來源副本最多8MiB／10頁，原庫不改。加--receiver-binary <既有成品>及--query-readback可核指定成品的一頁查詢；僅成品摘要，不代表來源建置對應。初始未就緒503保留；明確index-begin及最多一次16批次／1MiB／1000項／3秒index-step後查最多100項，失敗即停止並查原狀態。
+Web隔離命令加--delivery-sender可跑真單次候選到原共用Collector；唯讀掛已核本機curl及系統庫，守8.4與檔案摘要，不裝套件。來源副本最多8MiB／10頁，原庫不改。加--receiver-binary <既有成品>及--query-readback可核指定成品的有限分頁查詢；僅成品摘要，不代表來源建置對應。初始未就緒503保留；明確index-begin及最多一次16批次／1MiB／1000項／3秒index-step後查最多100項，失敗即停止並查原狀態。
 
-核保存原文、完整標準內容與出現次數，再核API全文、奈秒及從SQLite官方解碼獨立列舉的座標，來源完整性保持未知。三個陰性分別加--negative comparator-query-body／comparator-query-position／comparator-query-position-type，均須退出1；401／403／400及精確清理另核。仍只驗一頁且恰好一個下游批次，合法拆批可能假紅；下游確認狀態、任意頁形狀、原首頁與正式兩站安裝另驗。
+核保存原文、完整標準內容與出現次數，再核API全文、奈秒及從SQLite官方解碼獨立列舉的座標，來源完整性保持未知。三個陰性分別加--negative comparator-query-body／comparator-query-position／comparator-query-position-type，均須退出1；401／403／400及精確清理另核。前階段收據只驗一頁及一個下游批次，現行多批對照見下段；下游確認狀態、任意頁形狀、原首頁與正式兩站安裝另驗。
+
+
+加--query-page-size 7核小頁續行，1–100項／最多10頁及1000項；空續頁、重複cursor或超上限直接失敗，不自動重試。按全文及出現次數核全部批次，所有receipt／座標及db/run／保存上界／保留代數從自有SQLite獨立核，不只互比回應。
+
+--split-delivery-batches在自有送件間等2.5秒核自然拆批，原Collector配置不改。--restart-receiver以自有client保留隔離網路，正常停／重啟接收端後重新查完整分頁、全部事件／快照與所有表；不重送來源。新增兩個陰性--negative comparator-query-snapshot（所有頁同錯身分）與comparator-restart-body（重啟後壞原文）應退出1，連同原三種對照、同版摘要與精確清理核。
+
+固定40筆／2批／前後各6頁，只涵蓋一次正常重啟；完整歷史、長期／斷電恢復、來源建置對應、下游確認、原首頁與兩站安裝另驗。
