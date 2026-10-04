@@ -2,6 +2,10 @@
 
 適用 Codex、Claude Code 與其他讀取本文件的 AI，跨專案、session、worktree 與模型。使用者當前指示及專案規則優先。非瑣碎工程工作的唯一生命週期與狀態定義在 `/home/cash/.agents/skills/cash-rule/SKILL.md`；各技能、工程規範、入口描述與 LOOP 不另寫一套。若外掛快取與這份共用規範或 canonical cash-rule 衝突，按 canonical 定義執行，並記錄快取不同步。
 
+## 已移除技能（使用者2026-10-04定）
+
+- `brainstorming`／`superpowers:brainstorming` 已移除。不得重新載入、安裝或由其他技能轉交至它；外掛更新後若再次出現，也不使用。既有任務授權不因設計、規格或計畫缺少額外批准而失效；合併、正式部署、增加費用等原授權邊界照舊。
+
 ## 背景與評估
 
 - 只載入當前 step 必要背景：目標、現況、可觀察證據、未知、限制、允許動作、完成條件與必要路徑。交接不得把前一個 AI 的說法當證據。
