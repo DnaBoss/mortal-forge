@@ -1,6 +1,6 @@
 ---
 name: mall-standard-intake
-description: 核商城 API 經共用收集器保存標準資料，或核歷史原頁與續跑位置保存時使用；只跑自有隔離來源，不替代查詢畫面或正式站驗收。
+description: 核商城 API 經共用收集器保存標準資料，或核歷史原頁與續跑位置保存時使用；只跑自有隔離驗收或有界唯讀來源，不替代畫面或正式站安裝驗收。
 ---
 
 # 商城標準資料隔離驗收
@@ -26,7 +26,7 @@ python3 <mall-root>/apps/api/test/standard-intake-isolated.py   --mall-root <商
 
 ## 歷史頁面保存分支
 
-需要核原文與位置一起保存時，先讀商城`docs/observability/selfhost-collector-installation.md`的保存核心範圍。程式來源是商城`apps/api/scripts/cloudwatch_history_store.py`；這是標準庫模組，完整AWS回讀及MCP介面尚未實作，不能直接拿來補正式來源。
+需要核原文與位置一起保存時，先讀商城`docs/observability/selfhost-collector-installation.md`的保存核心範圍。程式來源是商城`apps/api/scripts/cloudwatch_history_store.py`；這是標準庫模組，有界AWS入口見下節；完整晚到重掃、確認送件及MCP介面尚未實作，不能當正式來源切換。
 
 ```sh
 python3 -B <mall-root>/apps/api/scripts/cloudwatch_history_store_test.py
@@ -39,3 +39,22 @@ python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_crash.py --sour
 中斷對照只建立兩個自有Python子程序，每個標記最多4秒、停止後等待最多3秒，精確PID停止並回收；正向核交易中斷後原文／位置不變，反例先提交位置必須被拒。這不是硬體斷電；資料庫容量也不涵蓋交易日誌總額。必要收據、固定檔案摘要或精確清理不符即停止，不把27／28等歷史案例數當新版保證。
 
 續跑準備另核位置與查詢開始時間：開始時間須在來源要求前取得，與原頁同交易保存。同一位置再出現採最早時間，現在時間不得早於最新要求；年齡加等待預算達24小時就停，預算限1至18000毫秒。舊資料缺時間不補猜，保留原文並停止續跑。現在只驗保存核心，AWS呼叫尚未接上；本機時間守門不保證AWS接受位置。中斷正向也須核已保存時間不變。
+
+
+## 有界AWS讀取與續跑
+
+需要讀已授權的商城歷史時，使用同一商城工作樹的`apps/api/scripts/cloudwatch_history_reader.py`。此入口只允許既有mall身分與ap-east-2台北區域，固定官方TLS端點，先用STS核實際帳號，再讀頁。先從權威容器配置核group／stream與站點，不靠內文env猜；只有舊配置時明列未刷新，不把來源group接受當主機安裝證據。
+
+固定查詢檔須為自有0600一般檔案，最多16KiB，內容是保存核心的九欄：profile、account、region、environment、logGroupName、logStreamNames、startTime、endTime、unmask。帳號須先核實，單一stream，日期窗包含兩端、unmask=false。保存目錄須0700；新資料庫或續跑資料庫使用同一查詢檔，位置只取來源回覆，不手填或轉成CLI的starting-token。
+
+```sh
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_history_reader.py --query <私人固定查詢檔> --db <私人保存目錄>/history.sqlite --max-pages 2 --max-events 40 --page-size 20 --seconds 60
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_history_reader_test.py
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --source <mall-root>/apps/api/scripts/cloudwatch_history_reader.py --evidence-root <已存在的私人證據目錄>
+```
+
+單輪最多10頁、1000筆、每頁100筆；要求總預算最多120秒，單命令最多18秒，stdout上限1MiB／stderr64KiB，最多額外讀一個byte判斷超限。清理等待與SQLite交易不算整體硬期限。關閉CLI自動翻頁、嘗試次數1、不重送；頁滿、時間到而hasNext仍真，只是部分完成。每頁原始bytes與取得時間一起保存，不輸出token或內文。DB上限不涵蓋交易日誌／其他證據總額。
+
+退出1先讀失敗結果與保存狀態；身分錯、來源失敗、時間未知、過期或容量滿時不前進。要續跑先核來源與原位置，不能因失敗就自動重掃或重送。此分支用已有AWS CLI；不裝套件、重啟共用服務或新增費用，不含標準送件、完整來源時間線、原首頁、正式安裝或MCP掛載。
+
+變異工具會固定相依保存模組；基準逾時保留失敗、不開始變異。單個改壞版本超過8秒時，精確停止其自有測試程序群，記真退出代碼及timedOut，再按120秒總預算處理下一個；逾時拒絕與斷言拒絕分開核。不把原分數或等價審查自動改成工具成功。
