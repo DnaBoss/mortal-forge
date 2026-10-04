@@ -442,13 +442,13 @@
   },
   {
     "name": "mall-standard-intake",
-    "purpose": "驗證商城API經共用收集器與Aletheia隔離保存，不包含正式部署或查詢畫面；歷史頁面保存核心的本機交易與中斷對照；有界AWS固定窗原頁讀取與續跑（真帳號先核）",
+    "purpose": "驗證商城API經共用收集器與Aletheia隔離保存，不包含正式部署或查詢畫面；歷史頁面保存核心的本機交易與中斷對照；有界AWS固定窗原頁讀取與續跑（真帳號先核）；Web有界送件意圖與入口結果的SQLite／中止核對",
     "location": "/home/cash/work_space/newretail/crossec-standard-observability/apps/api/test/standard-intake-isolated.py",
     "usage": "python3 <location> --mall-root <商城工作樹> --aletheia-root <Aletheia工作樹> --runtime-dir <既有執行目錄> --evidence-root <既有自有證據父目錄>；期限對照只加--negative execution-budget；沿用skills/mall-standard-intake/SKILL.md。MCP執行介面未實作，不重啟共用服務。 保存核心／變異／中斷分支入口依同一SKILL，不猜AWS回讀已完成。 有界讀取：python3 <mall-root>/apps/api/scripts/cloudwatch_history_reader.py --query <私人固定查詢檔> --db <私人保存目錄>/history.sqlite --max-pages 2 --max-events 40 --page-size 20 --seconds 60。 已擷取錯誤最多16筆、不刪舊記錄；容量滿明列未保存。變異分批用--start及--count，按摘要與起點核全體覆蓋。",
     "input": "四個操作者選定的自有路徑；商城依賴已安裝、Aletheia已編譯官方描述檔、runtime/receipt.json；拒絕-O，隔離分支不讀正式憑證；AWS分支用自有0600九欄固定查詢及0700保存目錄，既有mall憑證，只允許台北區域",
     "output": "新建自有mall-api-intake證據目錄，收據、來源、保存批次及正常停止／精確清理；失敗退出1，期限對照預期1，摘要不冒充原文核對；AWS分支保存原頁、事件、位置與取得時間，摘要只含數量／是否仍有後頁，失敗不更新位置",
     "dependencies": "Linux、Python3與google.protobuf、Node22、Docker、pnpm及已裝商城依賴、既有Aletheia執行檔／描述檔、固定快取映像；不新增Rust編譯、拉映像或安裝；歷史保存分支只需Linux/Python標準庫；AWS讀取另需既有AWS CLI與mall唯讀身分",
     "risk": "在商城工作樹建立API bundle，並只在自有DB建立schema；建立自有隔離API、DB、Redis、Collector與收件程序／容器，沒有正式來源或真付款；不可跟隨連結且非阻塞主機鎖，240秒後清理，逾時查同句柄與精確名稱／網路，不盲重送；歷史保存只寫自有暫存SQLite，中斷只停精確兩個自有子程序，DB上限非交易日誌總額；AWS最多10頁／1000筆、每頁100、單命令18秒，要求預算120秒不含清理／交易硬期限；只讀來源、不重送、不刪原文，不當正式安裝",
-    "verification": "先前固定隔離187日誌／7追蹤與指標完整保存及期限清理證據已保留；登記本身不重跑此樣本，不代表MCP掛載、正式兩站、查詢API或原首頁已驗；保存核心28案例零略過、Python變異原94/95、反方核等價後94/94，真交易中斷與先提交位置反例；限定當輪，完整重掃／送件與MCP尚未接上；新版有界AWS真兩站各60筆且仍部分、關閉重開續跑與錯帳號拒絕另保留；案例與變異依當輪收據，不保證全歷史或MCP載入；Web純文字分支見同一SKILL：cloudwatch_web_otlp.py及cloudwatch_web_isolated.py，未知等級保留、原五欄及停止後全批核；不是自動送件確認或正式安裝"
+    "verification": "先前固定隔離187日誌／7追蹤與指標完整保存及期限清理證據已保留；登記本身不重跑此樣本，不代表MCP掛載、正式兩站、查詢API或原首頁已驗；保存核心28案例零略過、Python變異原94/95、反方核等價後94/94，真交易中斷與先提交位置反例；限定當輪，完整重掃／送件與MCP尚未接上；新版有界AWS真兩站各60筆且仍部分、關閉重開續跑與錯帳號拒絕另保留；案例與變異依當輪收據，不保證全歷史或MCP載入；Web純文字分支見同一SKILL：cloudwatch_web_otlp.py及cloudwatch_web_isolated.py，未知等級保留、原五欄及停止後全批核；不是自動送件確認或正式安裝；Web送件紀錄分支見同一SKILL，尚未HTTP或下游確認"
   }
 ]

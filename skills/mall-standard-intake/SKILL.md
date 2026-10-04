@@ -1,6 +1,6 @@
 ---
 name: mall-standard-intake
-description: 核商城 API 經共用收集器保存標準資料，或核歷史原頁與續跑位置保存時使用；只跑自有隔離驗收或有界唯讀來源，不替代畫面或正式站安裝驗收。
+description: 核商城 API 經共用收集器保存標準資料，或核歷史原頁、續跑位置與Web送件意圖時使用；只跑自有隔離驗收或有界唯讀來源，不替代畫面或正式站安裝驗收。
 ---
 
 # 商城標準資料隔離驗收
@@ -81,3 +81,16 @@ python3 -B <mall-root>/apps/api/test/cloudwatch_web_isolated.py --mall-root <商
 source-root須有prod-query.json／prod.sqlite（或qa兩檔），至少一筆、最多10頁／1000筆，空來源不能當格式通過。只用既有固定快取映像與runtime，不讀AWS／下載／編譯；三自有容器與隔離網路，240秒預算後仍精確清理。正向核原五欄／位置／全部標準內容、錯環境403表不變、正常停後全批／表與原DB。只消除完全空optional scope有無表示差異，保留有值內容。
 
 陰性加--negative comparator-body，應退出1且source-body比較失敗，仍核精確清理；不改原頁，不是正式故障。當輪13案例／36變異與40真樣本保存只限同摘要，不代表自動sender確認、完整歷史、最新接收端、原首頁或安裝，不新增純文字無秘密的保證。
+
+
+## Web送件紀錄分支
+
+需要核已存Web原頁的送件意圖時，使用商城cloudwatch_delivery.py；只有本機資料庫紀錄，HTTP sender與下游保存確認尚未接上。沿固定查詢產生內容，先提交unknown再交出payload；原頁／位置保留，入口200完整接受只能記ingress_accepted。未知、接受與重複意圖均先查原紀錄，保持不自動重送。
+
+```sh
+python3 -B <mall-root>/apps/api/scripts/cloudwatch_delivery_test.py
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_history_mutation.py --source <mall-root>/apps/api/scripts/cloudwatch_delivery.py --evidence-root <既有私人證據目錄>
+python3 -B <mall-root>/apps/api/test/fixtures/cloudwatch_delivery_crash.py --source <mall-root>/apps/api/scripts/cloudwatch_delivery.py --evidence-root <既有私人證據目錄>
+```
+
+中止工具只建兩個自有合成資料子程序，標記4秒／回收3秒；核UPDATE後提交前及提交後狀態、原五表及完整性。加--negative-unsafe-reset應退出1，保留失敗收據；再以收據精確PID核沒有剩餘。16意圖、每份內容512KiB及回應64KiB；容量沿HistoryStore，交易日誌合計上限仍未知。變異固定mapper與保存核心，不碰產品來源；核基準、摘要、所有結果與零跳過，不把入口接受當成下游確認，也不當正式站故障、安裝或畫面。
