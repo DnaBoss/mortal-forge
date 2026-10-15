@@ -1,65 +1,54 @@
 ---
 name: cash-rule
-description: 以證據推進跨專案工作；接手任務、ticket 或 LOOP，直到整體驗收或明確終止。
+description: 以證據推進長任務：生命週期、整體驗收、停止條件；接手任務直到整體驗收或明確終止。
 ---
 
-# cash-rule：共用執行協定
+# cash-rule：執行協定（2026-10-15 精簡版）
 
-Protocol version: `1.2.0`. 使用者當前指示、既有授權與專案規則優先；本協定不增加寫入、部署、合併或外部操作授權。
+Protocol version: `1.2.0`. 使用者當前指示與專案規則優先；本協定不增加任何授權。原文封存於 `../../archive/burden-cut-20261015/rules/cash-rule/`。
 
-## 唯一生命週期與狀態定義
+## 生命週期
 
-唯一循環：`Inspect → Plan → Execute → Validate → Review/Replan → Checkpoint`。本節是狀態、轉換與完成條件的唯一來源；其他技能、規範與 LOOP 只引用本節，不重述流程。
+唯一循環：`Inspect → Plan → Execute → Validate → Review/Replan → Checkpoint`。
 
-Task 狀態：
+- Inspect：盤點現況、產物、限制與未知，不假設。
+- Plan：寫目標、整體驗收、主要 step、風險、停止條件；只細拆近期一至兩步。
+- Execute：每輪推進一個主要 step，走已知最短的路（使用者 2026-10-05 定）。
+- Validate：用實際執行結果；單元測試不替代整體驗收。
+- Review/Replan：依新證據重排，不重做已通過的工作。
+- Checkpoint：只在狀態變化或有新證據時寫（使用者 2026-10-15 定）。
 
-- `DISCOVERING`：盤點現況、owner、產物、限制與未知。
-- `PLANNED`：目標、主要 step、驗收、風險與停止條件已明確。
-- `RUNNING`、`VALIDATING`、`REVIEWING`：執行、查證、審查或依證據重排。
-- `WAITING`：等待具名的人、事件或外部條件；可做的獨立工作仍繼續。
-- `BLOCKED`：沒有安全且已授權的下一步，需條件改變或使用者決定。
-- `MONITORING`：依明確 owner、喚醒方式、鎖與停止條件持續觀察。
-- 終止狀態：`COMPLETE`、`CANCELLED`、`SUPERSEDED`、`FAILED`。取消由使用者或授權者要求；被新目標取代時標 `SUPERSEDED`；只有整體驗收通過才標 `COMPLETE`。
+任務狀態：`DISCOVERING`、`PLANNED`、`RUNNING`、`VALIDATING`、`REVIEWING`、`WAITING`（等具名的人或事件）、`BLOCKED`、`MONITORING`；終態 `COMPLETE`／`CANCELLED`／`SUPERSEDED`／`FAILED`，只有整體驗收通過才 `COMPLETE`。Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED`、`FAILED`、`CANCELLED`、`SKIPPED`、`SUPERSEDED`；未驗收不得 `DONE`。合法轉換由 schema 與寫入工具把關，不在這裡重述。
 
-Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED`、`FAILED`、`CANCELLED`、`SKIPPED`、`SUPERSEDED`。只有依賴已滿足才能 `READY`；未驗收不得標 `DONE`。LOOP 投影見 [工程政策](references/engineering-policy.md)。
+## 每輪三問（使用者 2026-10-09 定）
 
-合法主流程是 `DISCOVERING → PLANNED → RUNNING → VALIDATING → REVIEWING`，之後回到 `RUNNING`／`PLANNED`，或進入 `WAITING`、`BLOCKED`、`MONITORING`、終止狀態。`WAITING`／`BLOCKED`／`MONITORING` 在條件改變後可回到適當的非終止狀態。`COMPLETE`、`CANCELLED`、`SUPERSEDED`、`FAILED` 是終止狀態，不可自行恢復；新任務以 `superseded_by`／`supersedes` 欄位記錄取代關係。Step 依序 `PENDING → READY → RUNNING → VALIDATING → DONE`；驗證失敗可回 `RUNNING`。非終止 step 可進 `BLOCKED`／`FAILED`／`CANCELLED`／`SUPERSEDED`，`PENDING`／`READY`／`BLOCKED` 可依明確範圍決定 `SKIPPED`；`DONE`、`FAILED`、`CANCELLED`、`SKIPPED`、`SUPERSEDED` 為終止狀態，`BLOCKED` 可在解除後依證據回到適當的非終止狀態。
+1. 更接近目標了嗎：對照整體驗收列本輪新證據；改檔數、工具呼叫數、局部測試數不算進度。
+2. 走的是目前最佳路徑嗎：在已知、可行、已授權的路中選最直接的一條。
+3. 走偏了嗎：在做無關功能、過度補文件、重複驗證，立刻停下拉回。
 
-## 本機 Essence：本機 AI 執行（使用者 2026-09-28 定）
+連續兩輪沒有新證據就換方法、縮小問題或提出決策，不重跑原命令。
 
-只在主機 Essence 上適用。這台電腦上的所有 repo 都要遵守，包括 ICO、DnaBoss、private 和 newretail；同一個 repo 在別台電腦不適用。
+## 證據
 
-- 所有工作由監督者拆解後，派給本機 AI 執行，監督者負責驗收。可以自由安裝、使用本機模型。
-- CPU 和記憶體不可用到 100%，要保留餘裕；不得繞過記憶體保護和服務上限。
-- 同樣的錯不得再犯：開工先讀 `~/.agents/lessons.md`，新的錯誤要追加進去。
-- 可重複使用的程式、Shell、Script，一律做成 SKILL＋MCP，放在 `~/work_space/private/mortal-mcp`。
+重要結論連到命令輸出、測試名、檔案路徑與版本。有驗過直接講死並附來源；沒驗過寫「未查證」；講證據同時講邊界。註解、文件、commit 訊息、他人報告描述的是意圖不是行為，引用前先驗證。結果照實報，沒跑的檢查主動講。
 
-細則唯一見 [派工規則](references/model-dispatch.md) 第一節。
+## 授權與不停下（使用者 2026-10-03 定）
 
-## 每輪執行
+不自行增加授權；不假裝通過（不放寬測試、不刪驗證、不用「完成」文字代替交付）；不改寫使用者原始資料。手上有事就不停：卡死的是必要 step 才當場停；非必要 step 卡住先做別的，最後再試一次。只是取捨就自己決定；拿不定主意就上網查最佳做法或問另一個 AI；等人只在缺授權或重大選擇（使用者 2026-10-15 定）。不花使用者的錢、不調機器規格。
 
-依上述循環推進；每輪只推進一個主要 step。連續兩輪沒有新證據或可驗收進展，換方法、縮小問題或提出決策，不重跑原命令。首次 checkpoint 在盤點或規劃完成時寫入（`DISCOVERING`／`PLANNED`）；step 首次為 `PENDING`／`READY`。之後在每輪結束寫入；若輪內跨越必要狀態，於狀態邊界補 checkpoint，不得省略驗證階段。`iteration` 是每 task 的 checkpoint 序號，不是模型呼叫數。已終止 step 可重複投影原狀態，不可重新啟動。多輪／持續任務追加符合 [checkpoint schema](schemas/checkpoint.schema.json) 的 JSONL 紀錄，只准經 `~/tools/cash-rule-checkpoint` 寫入（見 [回報規則](references/reporting.md)）；LOOP 只保留目前狀態摘要。短任務不需為形式建立 LOOP 或 JSONL。
+## 停止
 
-## 證據與停止
+只有三種：整體驗收全過標 `COMPLETE`；做不到（要有「死在哪一步」的直接證據，且換過方法）；缺人類決定（只缺授權或選擇）。停止前交 [停止舉證](references/stop-policy.md)；等人時停排程、不喚醒。
 
-每項重要結論連到可觀察證據及來源、時間或版本。優先引用 Git SHA、路徑、符號／測試名稱或命令與輸出；行號可作輔助，不是唯一定位方式。模型意見、舊證據和推論清楚標示。
+## 紀錄與回報
 
-整體 step 完成後仍須做整合驗收。停止時明確標示 `COMPLETE`、`WAITING`、`BLOCKED`、`MONITORING` 或終止原因；LOOP 本身不是背景執行器。看門狗與鎖依 [執行與看門狗](references/runtime.md)；評估依 [評估規則](references/evaluation-policy.md)；派工依 [派工規則](references/model-dispatch.md)；checkpoint、通知與用量依 [回報規則](references/reporting.md)。
+- 一任務一份 LOOP，整檔不超過 3,000 字元（範本 [task.loop.md](templates/task.loop.md)）：目標、整體驗收、計畫表、目前狀態。歷史進 checkpoint JSONL，只准經 `~/tools/cash-rule-checkpoint` 寫入（細則 [紀錄](references/reporting.md)）。短任務不建檔。
+- 對人回報只有四件事：目標一句、做法一句、每個 step 一句成果、重大事件一行。
 
-## Rust 編譯產物（使用者 2026-10-03 定，強制）
+## 本機 Essence（使用者 2026-09-28 定）
 
-- 同一 repo 的所有工作樹共用一份已登記的 `target/`；新工作樹與每次編譯前必須確認共用位置，不得另建整份快取或指定獨立 `CARGO_TARGET_DIR`。
-- 收工前盤點實體副本、容量、程序使用狀態與略過原因；已授權清理的閒置重複產物必須清除，不可只寫待辦。來源碼、模型、資料與使用中的執行檔不得刪除；查不清就保留並記錄。
-- `PreToolUse` 攔獨立編譯位置，`Stop` 核對新副本，`SessionEnd` 寫快速紀錄；經 repo 明確啟用後，由有鎖、有時限、無自動重試的背景工作清理已登記的略過項目。
-- 保留快取所在工作樹不得直接移除；先搬移快取並更新登記及連結。
-- 工具、授權、程序檢查與證據位置唯一見 [cargo-cache 技能](../../../skills/cargo-cache/SKILL.md)。
+工作派本機 AI 執行、監督者驗收；開工先讀 lessons；可重用程式做成 SKILL＋MCP 進 mortal-mcp；CPU／記憶體留餘裕。Rust 一個 repo 只有一份 `target/`（使用者 2026-10-03／04 定），由 `~/.local/bin/cargo` 包裝程式與 guard 執行，細則見 cargo-cache 技能。
 
-## 按需載入的參考文件
+## 按需載入
 
-- 任務背景與交接：[背景與證據](references/context-policy.md)
-- 專案計畫、驗收、授權與 LOOP 投影：[工程政策](references/engineering-policy.md)
-- 研究、成效或高風險比較：[評估規則](references/evaluation-policy.md)
-- 模型選擇：[派工規則](references/model-dispatch.md)
-- 長時工作與 watchdog：[執行與看門狗](references/runtime.md)
-- 使用量與通知：[回報規則](references/reporting.md)
-- LOOP 範本：[主 LOOP](templates/task.loop.md)、[step LOOP](templates/step.loop.md)
+[工程政策](references/engineering-policy.md)、[評估](references/evaluation-policy.md)、[派工](references/model-dispatch.md)、[停止舉證](references/stop-policy.md)、[執行與看門狗](references/runtime.md)、[交付](references/delivery-policy.md)、[背景](references/context-policy.md)、[紀錄](references/reporting.md)。

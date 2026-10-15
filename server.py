@@ -55,6 +55,7 @@ def execute(argv: list[str], *, mutation: bool, timeout: int = 180) -> dict:
 
 
 ROUTES = {
+    "ssd-scan": ["ssd_scan_start", "ssd_scan_report"],
     "fluke-playtest": ["fluke_status", "fluke_open_preview", "fluke_restart_preview"],
     "fluke-isolated-godot": ["fluke_validate"],
     "fluke-mahjong-service-tests": ["fluke_validate(scenario=mahjong)"],
@@ -226,6 +227,31 @@ def remote_zip_extract(url: str, out_dir: str, match: list[str]) -> dict:
         argv += ["--match", item]
     return run_tool_json(argv, 600)
 
+
+
+@SERVER.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+def ssd_scan_report() -> dict:
+    """Read bounded SSD inventory and status. Does not start or delete anything."""
+    root = Path.home() / ".local/state/ssd-scan"
+    result = {}
+    for name in ["status", "report"]:
+        path = root / (name + ".json")
+        if not path.exists():
+            result[name] = {"status": "not_run"}
+        elif path.is_symlink() or path.stat().st_size > 2000000:
+            raise ValueError("Unsafe or oversized SSD report")
+        else:
+            result[name] = json.loads(path.read_text())
+    return result
+
+
+@SERVER.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True})
+def ssd_scan_start() -> dict:
+    """Start only the fixed read-only SSD inventory unit; no caller-controlled command."""
+    done = subprocess.run(["systemctl", "--user", "start", "--no-block", "ssd-scan.service"],
+                          capture_output=True, text=True, timeout=5)
+    return {"ok": done.returncode == 0, "status": "starting" if done.returncode == 0 else "failed",
+            "error": done.stderr[:500] if done.returncode else None}
 
 if __name__ == "__main__":
     SERVER.run(transport="streamable-http")

@@ -1,0 +1,155 @@
+{
+  "tests_passed": 67,
+  "manual_cases": [
+    {
+      "name": "missing",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": true,
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "\u5df2\u77e5\u8b49\u64daJSON\u6c92\u6709\u9019\u500b\u6700\u4e0a\u5c64\u6b04\u4f4d\uff1b\u8acb\u5148\u6838\u5c0d\u5be6\u969b\u9375\u540d\uff0c\u518d\u7528\u5df2\u78ba\u8a8d\u7684\u6b04\u4f4d\u8b80\u53d6\uff0c\u4e0d\u8981\u731c\u683c\u5f0f\u3002"
+        }
+      },
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "valid",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "alias_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());e=d;e.update({'cases':[]});print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "keyword_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate=lambda data:data.update({'cases':[]});mutate(data=d);print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "same_statement_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate=lambda data:data.update({'cases':[]});print(mutate(d),d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "direct_assignment",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());d['cases']=[];print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "nested",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'][0]['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "unknown_function",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate(d);print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "module_attribute_rebind",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');json.loads=other;d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    },
+    {
+      "name": "path_attribute_rebind",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');pathlib.Path=other;p=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "response": null,
+      "exit_code": 0,
+      "matched": true
+    }
+  ],
+  "guard_sha256": "1b74bd90f34a040f740cab985906fc00f291ec0c42815012c12f501e8a7be08d",
+  "test_sha256": "24ec11a8dfa01391822434f59bdcae2d0846fb3398380e938a0408a4c41bfa42",
+  "host_integration_verified": false,
+  "scope": "Confirmed invalidation only: alias assignment, keyword arguments, within-expression possible mutation. Any reachable modification drops static known-key knowledge; no mutation result inference."
+}

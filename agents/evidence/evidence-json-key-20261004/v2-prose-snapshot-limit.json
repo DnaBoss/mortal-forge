@@ -1,0 +1,12 @@
+{
+  "pre_original_change_literal_snapshot_found": false,
+  "searched": [
+    "shared guard/evidence/plain-output and named backups",
+    "Fluke current evidence",
+    "tracked Git HEAD source at d9d9dd193cc605d249ed76fb050f1c28de13073d (constant absent)"
+  ],
+  "current_literal_snapshot": "SIMPLIFIED_PROSE = re.compile(\"[\\u65f6\\u9a8c\\u7801\\u753b\\u7eed\\u72ec\\u65e0\\u636e\\u73b0\\u6d4b\\u8bc1\\u4e0e\\u4e3a\\u9519\\u8bef\\u62a4\\u5355\\u6761\\u53d1\\u8fc7\\u4e24\\u8f6e\\u9759\\u6765\\u9605\\u7ed3\\u95f4\\u590d\\u7ec8\\u9879\\u8fdb\\u7edf\\u8ba1\\u8bfb\\u79bb\\u8054\\u5f53\\u5199\\u5bf9\\u52a1]\")",
+  "current_snapshot_only": true,
+  "unchanged_literal_claim_verified": false,
+  "new_lesson_prose_passed": true
+}

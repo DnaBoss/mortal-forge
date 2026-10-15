@@ -125,6 +125,9 @@ def main():
         if root:
             problems += [f"LOOP 超過一天沒更新，但有新的程式 commit：{p}" for p in stale_loops(root)]
             problems += [f"進度紀錄格式不合格：{p}" for p in bad_checkpoints(root, faults)]
+        # Independent delivery rule; keep existing lifecycle/schema checks.
+        from delivery_check import problems as delivery_problems
+        problems += delivery_problems(payload)
         c = catalog_problem(faults)
         if c:
             problems.append(c)

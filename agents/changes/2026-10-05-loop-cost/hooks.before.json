@@ -1,0 +1,241 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/node /home/cash/.agents/plain-output/guard.cjs hook",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/lessons_context.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/work_space/private/mortal-mcp/agents/guards/cargo_cache_guard.py",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/node /home/cash/.agents/plain-output/guard.cjs hook",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/node /home/cash/.agents/plain-output/guard.cjs hook",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/finish_check.py",
+            "timeout": 90
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/work_space/private/mortal-mcp/agents/guards/cargo_cache_guard.py",
+            "timeout": 8
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/rust_index_helpers_guard.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/git_guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/write_guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/work_space/private/mortal-mcp/agents/guards/cargo_cache_guard.py",
+            "timeout": 8
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/postgres_fixture_guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/docker_scope_guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/monitoring_comparison_guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/.agents/guards/mall_aws_profile_guard.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/cash/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/cash/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/cash/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/cash/work_space/private/mortal-mcp/agents/guards/cargo_cache_guard.py",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

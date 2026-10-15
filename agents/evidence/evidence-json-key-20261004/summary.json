@@ -1,0 +1,26 @@
+{
+  "focused_tests": 64,
+  "failed": 0,
+  "manual_cases": 10,
+  "manual_matched": 10,
+  "limits": {
+    "command_bytes": 65536,
+    "recognized_file_reads": 16,
+    "json_bytes": 1048576
+  },
+  "unsupported": [
+    "dynamic paths or keys",
+    "nested key inference",
+    "control flow",
+    "open wrappers",
+    "writes",
+    "unknown mutation or reassigned bindings",
+    "JSON outside fixed evidence roots",
+    "missing or malformed nonobject JSON"
+  ],
+  "host_integration_verified": false,
+  "files": {
+    "write_guard.py": "79d0448cf7cde6575ddce041f26c4ed7108cb7cf72627ebc5985b241100d3610",
+    "test_evidence_json_key.py": "481db5fc6a7ec5b6928e8f0a439548df594f80a8ad1baf1f60272797c7beeea5"
+  }
+}

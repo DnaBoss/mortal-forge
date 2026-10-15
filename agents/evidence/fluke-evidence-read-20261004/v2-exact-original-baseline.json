@@ -1,0 +1,14 @@
+{
+  "scope": "unmodified original command via manual hook, command itself not executed",
+  "payload": {
+    "tool_name": "exec_command",
+    "tool_input": {
+      "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-gap-inventory-readback.json').read_text());print(json.dumps(d,indent=2)[:2500])\nPY",
+      "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+    }
+  },
+  "stdout": "",
+  "returncode": 0,
+  "actual": "allow",
+  "old_normalized_payload_was_not_exact_original": true
+}

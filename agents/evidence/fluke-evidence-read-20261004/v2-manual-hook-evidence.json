@@ -1,0 +1,179 @@
+{
+  "scope": "manual hook JSON; commands themselves not executed; host automatic hookup not verified",
+  "unmodified_original_command": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-gap-inventory-readback.json').read_text());print(json.dumps(d,indent=2)[:2500])\nPY",
+  "prior_v1_sample": "normalized from pathlib import Path with absolute path, not exact original import pathlib with relative path",
+  "exact_original_red": {
+    "tests": 1,
+    "failed": 1,
+    "baseline_actual": "allow",
+    "files": [
+      "v2-exact-original-red.log",
+      "v2-exact-original-baseline.json"
+    ]
+  },
+  "green_tests": {
+    "new_and_existing_fluke": 14,
+    "existing_docs": 14,
+    "existing_write": 8,
+    "total": 36,
+    "log": "v2-green.log"
+  },
+  "manual_cases": [
+    {
+      "case": "unmodified_original_wrong_name",
+      "actual": "deny",
+      "expected": "deny",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-gap-inventory-readback.json').read_text());print(json.dumps(d,indent=2)[:2500])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "returncode": 0
+    },
+    {
+      "case": "original_correct_existing_name",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-gap-readback.json').read_text());print(json.dumps(d,indent=2)[:2500])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "module_reassigned",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\npathlib=other\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'wrong.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "module_reimported_other",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\nimport other as pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'wrong.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "imported_alias_wrong",
+      "actual": "deny",
+      "expected": "deny",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib as paths\np=paths.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'wrong.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "returncode": 0
+    },
+    {
+      "case": "arbitrary_object_path",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\np=other.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'wrong.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "dynamic_filename",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/name).read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "outside_evidence",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib\npathlib.Path('/nonexistent/docs/other.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "ordinary_write",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'not-created-v2.json').write_text('{}')\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "create_then_read",
+      "actual": "allow",
+      "expected": "allow",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');(p/'not-created-v2.json').write_text('{}');(p/'not-created-v2.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "response": {},
+      "returncode": 0
+    }
+  ],
+  "guard_sha256": "561bf2b08ad3c671d983b35eb3f2b385070ba786e45718d9deb2794c6f0ccc12",
+  "test_sha256": "17bfb2c428e0af0924bfb33fd79570bb7e633a71aa25e06ceef14d6831aae6df",
+  "old_evidence_preserved": true,
+  "host_hookup_verified": false
+}

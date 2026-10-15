@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-10-05T06:07:33.108543+00:00",
+  "goal": {
+    "status": "paused",
+    "token_budget": null,
+    "tokens_used": 2206451,
+    "time_used_seconds": 13520
+  },
+  "runtime": "/home/cash/.codex/packages/app-server-daemon/releases/0.160.0-x86_64-unknown-linux-musl/bin/codex",
+  "hook_installed": "/usr/bin/python3 /home/cash/.agents/guards/goal_budget_guard.py",
+  "live_goal_tool_hook_dispatch": "unverified",
+  "schema_directory": "/home/cash/.agents/evidence/loop-cost-20261005/schema"
+}

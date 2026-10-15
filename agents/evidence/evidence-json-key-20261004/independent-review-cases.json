@@ -1,0 +1,207 @@
+{
+  "schema": "independent-json-key-review-v1",
+  "guard_sha256": "79d0448cf7cde6575ddce041f26c4ed7108cb7cf72627ebc5985b241100d3610",
+  "semantic_cases": [
+    {
+      "name": "missing",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": true,
+      "rule": "evidence-json-key",
+      "matched": true
+    },
+    {
+      "name": "valid",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    },
+    {
+      "name": "alias_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());e=d;e.update({'cases':[]});print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": "evidence-json-key",
+      "matched": false
+    },
+    {
+      "name": "keyword_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate=lambda data:data.update({'cases':[]});mutate(data=d);print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": "evidence-json-key",
+      "matched": false
+    },
+    {
+      "name": "same_statement_mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate=lambda data:data.update({'cases':[]});print(mutate(d),d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": "evidence-json-key",
+      "matched": false
+    },
+    {
+      "name": "direct_assignment",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());d['cases']=[];print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    },
+    {
+      "name": "nested",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'][0]['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    },
+    {
+      "name": "unknown_function",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());mutate(d);print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    },
+    {
+      "name": "module_attribute_rebind",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');json.loads=other;d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    },
+    {
+      "name": "path_attribute_rebind",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');pathlib.Path=other;p=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "expected_deny": false,
+      "rule": null,
+      "matched": true
+    }
+  ],
+  "manual_hook_only": [
+    {
+      "name": "missing",
+      "exit_code": 0,
+      "stdout": "{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"\u5df2\u77e5\u8b49\u64daJSON\u6c92\u6709\u9019\u500b\u6700\u4e0a\u5c64\u6b04\u4f4d\uff1b\u8acb\u5148\u6838\u5c0d\u5be6\u969b\u9375\u540d\uff0c\u518d\u7528\u5df2\u78ba\u8a8d\u7684\u6b04\u4f4d\u8b80\u53d6\uff0c\u4e0d\u8981\u731c\u683c\u5f0f\u3002\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "valid",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "actual_read_only_counterexample_execution": [
+    {
+      "name": "alias_mutation",
+      "exit_code": 0,
+      "stdout": "[]\n",
+      "stderr": ""
+    },
+    {
+      "name": "keyword_mutation",
+      "exit_code": 0,
+      "stdout": "[]\n",
+      "stderr": ""
+    },
+    {
+      "name": "same_statement_mutation",
+      "exit_code": 0,
+      "stdout": "None []\n",
+      "stderr": ""
+    }
+  ],
+  "boundary_cases": [
+    {
+      "name": "symlink_outside",
+      "denied": false,
+      "matched": true
+    },
+    {
+      "name": "outside_prefix_collision",
+      "denied": false,
+      "matched": true
+    },
+    {
+      "name": "large_object",
+      "denied": false,
+      "matched": true
+    },
+    {
+      "name": "nonobject",
+      "denied": false,
+      "matched": true
+    },
+    {
+      "name": "malformed",
+      "denied": false,
+      "matched": true
+    },
+    {
+      "name": "command_limit",
+      "denied": false
+    },
+    {
+      "name": "read_limit_17",
+      "denied": false
+    }
+  ],
+  "host_automatic_integration_verified": false,
+  "usage_source": "unavailable"
+}

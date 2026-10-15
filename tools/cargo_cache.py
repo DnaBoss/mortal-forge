@@ -16,7 +16,8 @@ import tempfile
 import time
 
 ALLOWED = {'.rustc_info.json', 'CACHEDIR.TAG', 'debug', 'release', 'tmp',
-           '.cargo-lock', 'doc', 'package', 'criterion'}
+           '.cargo-lock', 'doc', 'package', 'criterion',
+           '.future-incompat-report.json'}
 
 
 def git(repo, *args):
@@ -133,12 +134,20 @@ def audit(repo):
             'worktrees': len(targets), 'timestamp': time.time()}
 
 
+def nested_target(path):
+    # A sub target dir such as one made by `--target-dir target/mutation`.
+    return (path.is_dir() and not path.is_symlink()
+            and (path / '.rustc_info.json').is_file()
+            and (path / 'CACHEDIR.TAG').is_file())
+
+
 def validate(target):
     if not target.is_dir() or target.is_symlink():
         raise ValueError(f'Expected real target directory: {target}')
     if not (target / '.rustc_info.json').is_file():
         raise ValueError(f'Missing Cargo cache marker: {target}')
-    unknown = set(p.name for p in target.iterdir()) - ALLOWED
+    unknown = set(p.name for p in target.iterdir()
+                  if p.name not in ALLOWED and not nested_target(p))
     if unknown:
         raise ValueError(f'Unknown cache content: {target}: {sorted(unknown)}')
     if git(target.parent, 'ls-files', '--', 'target').strip():

@@ -1,0 +1,2078 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cash.local/schemas/cash-rule-checkpoint-1.2.0.json",
+  "title": "cash-rule iteration checkpoint",
+  "description": "One append-only checkpoint record for a multi-round task.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "task_id",
+    "step_id",
+    "iteration",
+    "recorded_at",
+    "previous_task_state",
+    "task_state",
+    "step_state",
+    "target",
+    "evidence_before",
+    "dispatch",
+    "actions",
+    "evidence_after",
+    "validation",
+    "review",
+    "decision",
+    "next_target",
+    "previous_step_state"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.2.0"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "step_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "previous_task_state": {
+      "$ref": "#/$defs/nullableTaskState"
+    },
+    "task_state": {
+      "$ref": "#/$defs/taskState"
+    },
+    "step_state": {
+      "$ref": "#/$defs/stepState"
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_before": {
+      "$ref": "#/$defs/evidenceList"
+    },
+    "dispatch": {
+      "type": "object",
+      "required": [
+        "executor",
+        "reason",
+        "risk"
+      ],
+      "properties": {
+        "executor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk": {
+          "type": "object",
+          "required": [
+            "importance",
+            "difficulty",
+            "uncertainty",
+            "impact"
+          ],
+          "properties": {
+            "importance": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            },
+            "difficulty": {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "uncertainty": {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "impact": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "summary",
+          "executor"
+        ],
+        "properties": {
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "executor": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "type": "string"
+          },
+          "command_summary": {
+            "type": "string",
+            "description": "Redacted reproducible representation only; never credentials or raw stdout/stderr."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_after": {
+      "$ref": "#/$defs/evidenceList"
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "checks",
+        "result",
+        "evaluation_required",
+        "negative_control"
+      ],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "result"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "result": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not_run",
+                  "not_applicable"
+                ]
+              },
+              "evidence": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "passed": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "skipped": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "partial",
+            "not_run"
+          ]
+        },
+        "evaluation_required": {
+          "type": "boolean"
+        },
+        "negative_control": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "result",
+            "procedure",
+            "evidence"
+          ],
+          "properties": {
+            "result": {
+              "enum": [
+                "pass",
+                "fail",
+                "not_applicable"
+              ]
+            },
+            "procedure": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "proven",
+        "not_proven",
+        "new_risks"
+      ],
+      "properties": {
+        "proven": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "not_proven": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "new_risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "enum": [
+        "continue",
+        "replan",
+        "wait",
+        "block",
+        "complete",
+        "cancel",
+        "supersede",
+        "fail",
+        "monitor"
+      ]
+    },
+    "replan": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "trigger",
+        "kept",
+        "cancelled_or_deferred",
+        "new_order"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kept": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cancelled_or_deferred": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "new_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "next_target": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "superseded_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "search_conclusion": {
+      "enum": [
+        "not_applicable",
+        "found",
+        "not_found_within_scope"
+      ]
+    },
+    "research_search": {
+      "type": "object",
+      "required": [
+        "searched_at",
+        "queries",
+        "sources",
+        "scope",
+        "limitations"
+      ],
+      "properties": {
+        "searched_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "telemetry_mode": {
+      "enum": [
+        "minimal",
+        "benchmark"
+      ]
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "input_tokens": {
+          "$ref": "#/$defs/countMeasurement"
+        },
+        "output_tokens": {
+          "$ref": "#/$defs/countMeasurement"
+        },
+        "local_only_input_chars": {
+          "$ref": "#/$defs/countMeasurement"
+        },
+        "avoided_cloud_tokens": {
+          "$ref": "#/$defs/avoidedMeasurement"
+        },
+        "elapsed_seconds": {
+          "$ref": "#/$defs/measurement"
+        },
+        "wait_seconds": {
+          "$ref": "#/$defs/measurement"
+        }
+      }
+    },
+    "previous_step_state": {
+      "$ref": "#/$defs/stepState"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_id",
+        "executors"
+      ],
+      "properties": {
+        "baseline_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "executor",
+              "model",
+              "outcome",
+              "calls",
+              "input_tokens",
+              "output_tokens",
+              "wait_seconds",
+              "execution_seconds",
+              "rework_seconds"
+            ],
+            "properties": {
+              "executor": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "outcome": {
+                "enum": [
+                  "used",
+                  "edited",
+                  "rejected"
+                ]
+              },
+              "calls": {
+                "$ref": "#/$defs/countMeasurement"
+              },
+              "input_tokens": {
+                "$ref": "#/$defs/countMeasurement"
+              },
+              "output_tokens": {
+                "$ref": "#/$defs/countMeasurement"
+              },
+              "wait_seconds": {
+                "$ref": "#/$defs/measurement"
+              },
+              "execution_seconds": {
+                "$ref": "#/$defs/measurement"
+              },
+              "rework_seconds": {
+                "$ref": "#/$defs/measurement"
+              }
+            }
+          }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stop_proof": {
+      "type": "object",
+      "required": [
+        "reason",
+        "unblock"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "needs_human",
+            "no_path",
+            "infeasible"
+          ]
+        },
+        "unblock": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "evidence"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "shrunk": {
+          "type": "string",
+          "minLength": 1
+        },
+        "searched": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "no_path",
+                  "infeasible"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "attempts",
+              "shrunk",
+              "searched",
+              "reviewer"
+            ],
+            "properties": {
+              "attempts": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "const": "no_path"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempts": {
+                "minItems": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": null
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "DISCOVERING",
+              "PLANNED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "DISCOVERING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "DISCOVERING",
+              "PLANNED",
+              "WAITING",
+              "BLOCKED",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "PLANNED"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "PLANNED",
+              "RUNNING",
+              "WAITING",
+              "BLOCKED",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "RUNNING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "RUNNING",
+              "VALIDATING",
+              "WAITING",
+              "BLOCKED",
+              "MONITORING",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "VALIDATING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "VALIDATING",
+              "REVIEWING",
+              "RUNNING",
+              "WAITING",
+              "BLOCKED",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "REVIEWING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "REVIEWING",
+              "RUNNING",
+              "PLANNED",
+              "WAITING",
+              "BLOCKED",
+              "MONITORING",
+              "COMPLETE",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "WAITING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "WAITING",
+              "PLANNED",
+              "RUNNING",
+              "BLOCKED",
+              "MONITORING",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "BLOCKED"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "BLOCKED",
+              "PLANNED",
+              "RUNNING",
+              "WAITING",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "previous_task_state": {
+            "const": "MONITORING"
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "MONITORING",
+              "RUNNING",
+              "WAITING",
+              "BLOCKED",
+              "COMPLETE",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "not": {
+        "properties": {
+          "previous_task_state": {
+            "enum": [
+              "COMPLETE",
+              "CANCELLED",
+              "SUPERSEDED",
+              "FAILED"
+            ]
+          }
+        },
+        "required": [
+          "previous_task_state"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_state": {
+            "const": "SUPERSEDED"
+          }
+        },
+        "required": [
+          "task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "const": "supersede"
+          },
+          "superseded_by": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_state": {
+            "const": "COMPLETE"
+          }
+        },
+        "required": [
+          "task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "const": "complete"
+          },
+          "step_state": {
+            "enum": [
+              "DONE",
+              null
+            ]
+          },
+          "validation": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            }
+          },
+          "blockers": {
+            "maxItems": 0
+          },
+          "next_target": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_state": {
+            "const": "CANCELLED"
+          }
+        },
+        "required": [
+          "task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "const": "cancel"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_state": {
+            "const": "FAILED"
+          }
+        },
+        "required": [
+          "task_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "const": "fail"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "search_conclusion": {
+            "enum": [
+              "found",
+              "not_found_within_scope"
+            ]
+          }
+        },
+        "required": [
+          "search_conclusion"
+        ]
+      },
+      "then": {
+        "required": [
+          "research_search"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "evaluation_required": {
+                "const": true
+              }
+            },
+            "required": [
+              "evaluation_required"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "negative_control": {
+                "type": "object",
+                "properties": {
+                  "result": {
+                    "enum": [
+                      "pass",
+                      "fail"
+                    ]
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "research_search"
+        ]
+      },
+      "then": {
+        "required": [
+          "search_conclusion"
+        ],
+        "properties": {
+          "search_conclusion": {
+            "enum": [
+              "found",
+              "not_found_within_scope"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "search_conclusion": {
+            "const": "not_applicable"
+          }
+        },
+        "required": [
+          "search_conclusion"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "research_search"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "continue"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "DISCOVERING",
+              "PLANNED",
+              "RUNNING",
+              "VALIDATING",
+              "REVIEWING"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "replan"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "PLANNED"
+            ]
+          },
+          "replan": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "replan"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "wait"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "WAITING"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "block"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "BLOCKED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "monitor"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "MONITORING"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "complete"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "COMPLETE"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "cancel"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "CANCELLED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "supersede"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "fail"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task_state": {
+            "enum": [
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "telemetry_mode": {
+            "const": "benchmark"
+          }
+        },
+        "required": [
+          "telemetry_mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "benchmark"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "benchmark"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "const": null
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "type": "null"
+          },
+          "previous_step_state": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "step_state": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": null
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "PENDING",
+              "READY"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "PENDING"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "PENDING",
+              "READY",
+              "BLOCKED",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED",
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "READY"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "READY",
+              "RUNNING",
+              "BLOCKED",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED",
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "RUNNING"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "RUNNING",
+              "VALIDATING",
+              "BLOCKED",
+              "FAILED",
+              "CANCELLED",
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "VALIDATING"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "VALIDATING",
+              "RUNNING",
+              "DONE",
+              "BLOCKED",
+              "FAILED",
+              "CANCELLED",
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "BLOCKED"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "BLOCKED",
+              "PENDING",
+              "READY",
+              "RUNNING",
+              "VALIDATING",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED",
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "DONE"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "DONE"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "FAILED"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "CANCELLED"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "CANCELLED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "SKIPPED"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "SKIPPED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "previous_step_state": {
+            "const": "SUPERSEDED"
+          }
+        },
+        "required": [
+          "step_id",
+          "previous_step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "step_state": {
+            "enum": [
+              "SUPERSEDED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "step_state": {
+            "const": "DONE"
+          }
+        },
+        "required": [
+          "step_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_state": {
+            "const": "SUPERSEDED"
+          }
+        },
+        "required": [
+          "task_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "superseded_by"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "checks": {
+                "minItems": 1,
+                "items": {
+                  "properties": {
+                    "result": {
+                      "enum": [
+                        "pass",
+                        "not_applicable"
+                      ]
+                    }
+                  }
+                }
+              },
+              "negative_control": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "result": {
+                        "enum": [
+                          "pass",
+                          "not_applicable"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "stop_proof"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "block",
+              "fail"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "taskState": {
+      "enum": [
+        "DISCOVERING",
+        "PLANNED",
+        "RUNNING",
+        "VALIDATING",
+        "REVIEWING",
+        "WAITING",
+        "BLOCKED",
+        "MONITORING",
+        "COMPLETE",
+        "CANCELLED",
+        "SUPERSEDED",
+        "FAILED"
+      ]
+    },
+    "nullableTaskState": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/taskState"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stepState": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "VALIDATING",
+        "DONE",
+        "BLOCKED",
+        "FAILED",
+        "CANCELLED",
+        "SKIPPED",
+        "SUPERSEDED",
+        null
+      ]
+    },
+    "evidenceList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "locator",
+          "source",
+          "observed_at"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "git",
+              "file",
+              "symbol",
+              "test",
+              "command",
+              "screen",
+              "service",
+              "model_opinion",
+              "other"
+            ]
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "git_sha": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scope": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "exact",
+            "estimated",
+            "unavailable"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "estimated"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "method"
+            ]
+          }
+        }
+      ]
+    },
+    "countMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "exact",
+            "estimated",
+            "unavailable"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "estimated"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "method"
+            ]
+          }
+        }
+      ]
+    },
+    "avoidedMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "estimated",
+            "unavailable"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calculation_method": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "estimated"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "baseline_id",
+              "calculation_method"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
