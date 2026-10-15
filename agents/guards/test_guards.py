@@ -97,6 +97,12 @@ class WriteGuardTest(unittest.TestCase):
         subprocess.run(["git", "-C", cls.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
                        check=True)
         Path(cls.repo, "edited.txt").write_text("b\n")  # uncommitted change
+        Path(cls.repo, "loops").mkdir()
+        subprocess.run([str(Path.home() / 'tools/cash-rule-checkpoint'),
+                        str(Path(cls.repo, 'loops/a.checkpoints.jsonl')),
+                        '--task', 'guard-fixture', '--step', 'S01', '--task-state', 'DISCOVERING',
+                        '--step-state', 'READY', '--target', 'Read-only checkpoint fixture',
+                        '--executor', 'codex'], check=True, stdout=subprocess.DEVNULL)
 
     @classmethod
     def tearDownClass(cls):
@@ -145,6 +151,20 @@ class WriteGuardTest(unittest.TestCase):
 
     def test_pkill_without_full_allowed(self):
         for cmd in ["pgrep -x node", "pkill node", "kill 1234", "ss -ltnp | grep 3000", "echo pkill -f docs"]:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.shell(cmd), "allow")
+
+    def test_zsh_unsplit_command_denied(self):
+        for cmd in ['CK="uv run python3 tool.py f --task t"; $CK --x 1',
+                    'F=a; CK="uv run x"\n$CK --task-state A && $CK --task-state B',
+                    "T='--task a --executor b'; ${T} --step s"]:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.shell(cmd), "deny")
+
+    def test_zsh_split_or_plain_variable_allowed(self):
+        for cmd in ['CK="uv run x"; ${=CK} --x 1', 'echo $HOME', 'X="a b"; echo $X',
+                    'CK="uv run x"; bash -c "$CK"', 'F=loops/a.jsonl; $F',
+                    "cat > t.py <<'X'\nCK=\"a b\"; $CK\nX"]:
             with self.subTest(cmd=cmd):
                 self.assertEqual(self.shell(cmd), "allow")
 
@@ -273,7 +293,9 @@ class LessonsContextTest(unittest.TestCase):
     def test_small_file_unchanged(self):
         sys.path.insert(0, str(HERE))
         import lessons_context
-        self.assertEqual(lessons_context.select("# h\n1. a\n", budget=400), "# h\n1. a\n")
+        # 2026-10-15: undated legacy entries count as old and are not injected; a recent dated entry is kept as-is.
+        self.assertEqual(lessons_context.select("# h\n## 2099-01-01 a\n", budget=400), "# h\n## 2099-01-01 a\n")
+        self.assertIn("1 條超過 30 天未載入", lessons_context.select("# h\n1. a\n", budget=400))
 
     def test_guarded_entries_stay_in_file_but_are_not_injected(self):
         sys.path.insert(0, str(HERE))
@@ -285,6 +307,18 @@ class LessonsContextTest(unittest.TestCase):
         self.assertIn("still relevant", out)
         self.assertIn("1 條已由 guard 機械擋下", out)
 
+
+
+class RegisteredCheckpointGlyphTests(unittest.TestCase):
+    def test_registered_comparison_and_service_glyphs_are_refused(self):
+        from write_guard import verdict
+        for value in ["\u5bf9照", "服\u52a1"]:
+            payload={"cwd":"/tmp","tool_input":{"cmd":"cash-rule-checkpoint /tmp/test.checkpoints.jsonl --proven '"+value+"'"}}
+            self.assertEqual(verdict(payload)[0],"checkpoint-prose")
+    def test_traditional_comparison_and_service_remain_allowed(self):
+        from write_guard import verdict
+        payload={"cwd":"/tmp","tool_input":{"cmd":"cash-rule-checkpoint /tmp/test.checkpoints.jsonl --proven '對照與服務'"}}
+        self.assertEqual(verdict(payload),(None,None))
 
 if __name__ == "__main__":
     unittest.main()

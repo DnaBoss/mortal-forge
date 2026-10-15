@@ -1,0 +1,68 @@
+.F.FF.FFF.F.
+======================================================================
+FAIL: test_direct_absolute_read_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_direct_absolute_read_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 40, in test_direct_absolute_read_rejected
+    self.assertEqual(self.rule(f"Path({str(self.base / 'wrong.json')!r}).read_bytes()"), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+======================================================================
+FAIL: test_manual_true_hook_json_actual_root_paths (test_fluke_evidence_path.FlukeEvidencePathTests.test_manual_true_hook_json_actual_root_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 73, in test_manual_true_hook_json_actual_root_paths
+    self.assertEqual(bool(result.stdout), denied)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False != True
+
+======================================================================
+FAIL: test_multiple_literal_joins_and_alias_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_multiple_literal_joins_and_alias_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 37, in test_multiple_literal_joins_and_alias_rejected
+    self.assertEqual(self.rule(f"p=Path({str(self.base.parent)!r});q=p/'run';r=q/'wrong.json';r.read_bytes()"), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+======================================================================
+FAIL: test_open_read_forms_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_open_read_forms_rejected) (expression="(p/'wrong.json').open()")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 45, in test_open_read_forms_rejected
+    self.assertEqual(self.rule(f"p=Path({str(self.base)!r});{expression}"), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+======================================================================
+FAIL: test_open_read_forms_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_open_read_forms_rejected) (expression="(p/'wrong.json').open(mode='rb')")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 45, in test_open_read_forms_rejected
+    self.assertEqual(self.rule(f"p=Path({str(self.base)!r});{expression}"), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+======================================================================
+FAIL: test_open_read_forms_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_open_read_forms_rejected) (expression="open(p/'wrong.json', 'r')")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 45, in test_open_read_forms_rejected
+    self.assertEqual(self.rule(f"p=Path({str(self.base)!r});{expression}"), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+======================================================================
+FAIL: test_root_json_join_missing_rejected (test_fluke_evidence_path.FlukeEvidencePathTests.test_root_json_join_missing_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_fluke_evidence_path.py", line 31, in test_root_json_join_missing_rejected
+    self.assertEqual(self.rule(body), 'fluke-evidence-read-path')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'fluke-evidence-read-path'
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.054s
+
+FAILED (failures=7)

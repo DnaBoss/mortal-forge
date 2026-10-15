@@ -1,0 +1,14 @@
+..F...
+======================================================================
+FAIL: test_original_missing_key_rejected (test_evidence_json_key.EvidenceJsonKeyTests.test_original_missing_key_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cash/work_space/private/mortal-mcp/agents/guards/test_evidence_json_key.py", line 16, in test_original_missing_key_rejected
+    self.assertEqual(write_guard.verdict({'tool_input': {'cmd': ORIGINAL}})[0], 'evidence-json-key')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'evidence-json-key'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.009s
+
+FAILED (failures=1)

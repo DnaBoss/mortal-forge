@@ -1,0 +1,6 @@
+interface:
+  display_name: "架構與流程圖"
+  short_description: "用區塊、巢狀框與連線呈現架構、資料流和執行循環，適用文件與 PDF"
+  default_prompt: "使用 $architecture-diagrams，將這段架構或流程轉成能直接看懂關係的圖。"
+policy:
+  allow_implicit_invocation: true

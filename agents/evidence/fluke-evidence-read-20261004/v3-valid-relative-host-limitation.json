@@ -1,0 +1,150 @@
+{
+  "scope": "read-only filesystem and manually constructed guard metadata comparison; no guard/product/docs changes",
+  "host_reported_event": {
+    "source": "root message, no raw host payload captured",
+    "relative_read_rejected_with_reported_riichi_workdir": true,
+    "absolute_read_succeeded": true
+  },
+  "filesystem": {
+    "actual_riichi_workdir": {
+      "path": "/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004/s07b-source-principle-scope-map-readback.json",
+      "exists": true,
+      "is_file": true,
+      "resolved": "/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004/s07b-source-principle-scope-map-readback.json",
+      "bytes": 1990,
+      "sha256": "c02784a6d0ab726412f6208d1321910d79c7f49560dec7239556a4ba9a08fdd7",
+      "valid_json": true
+    },
+    "default_optimization_workdir": {
+      "path": "/home/cash/orca/workspaces/Fluke/優化/docs/superpowers/evidence/s07b-teaching-20261004/s07b-source-principle-scope-map-readback.json",
+      "exists": false,
+      "is_file": false,
+      "resolved": "/home/cash/orca/workspaces/Fluke/優化/docs/superpowers/evidence/s07b-teaching-20261004/s07b-source-principle-scope-map-readback.json"
+    }
+  },
+  "specified_relative_command": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY",
+  "manual_guard_cases": [
+    {
+      "case": "explicit_actual_workdir_default_cwd",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/優化",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "verdict": "allow",
+      "expected": "allow",
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "explicit_default_workdir_actual_cwd",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/riichi-finetune",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/優化"
+        }
+      },
+      "verdict": "deny",
+      "expected": "deny",
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "returncode": 0
+    },
+    {
+      "case": "default_payload_cwd_no_workdir",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/優化",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY"
+        }
+      },
+      "verdict": "deny",
+      "expected": "deny",
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "returncode": 0
+    },
+    {
+      "case": "actual_payload_cwd_no_workdir",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/riichi-finetune",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY"
+        }
+      },
+      "verdict": "allow",
+      "expected": "allow",
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "explicit_tool_input_cwd_actual",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/優化",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY",
+          "cwd": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "verdict": "allow",
+      "expected": "allow",
+      "response": {},
+      "returncode": 0
+    },
+    {
+      "case": "absolute_actual_path_default_workdir",
+      "payload_kind": "manually constructed, not captured host payload",
+      "payload": {
+        "tool_name": "exec_command",
+        "cwd": "/home/cash/orca/workspaces/Fluke/優化",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');d=json.loads((p/'s07b-source-principle-scope-map-readback.json').read_text());print(json.dumps(d,indent=2)[:2400])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/優化"
+        }
+      },
+      "verdict": "allow",
+      "expected": "allow",
+      "response": {},
+      "returncode": 0
+    }
+  ],
+  "guard_precedence_source": "tool_input.workdir or tool_input.cwd or payload.cwd or os.getcwd()",
+  "actual_host_tool_input_workdir_verified": false,
+  "metadata_cause_proven": false,
+  "guard_log_limitation": "log retains input hash, rule, tool and timestamp; it does not retain raw tool_input, cwd or workdir",
+  "nearby_host_guard_records_without_payload": [
+    {
+      "at": "2026-10-04T17:42:33+0800",
+      "verdict": "deny",
+      "rule": "fluke-evidence-read-path",
+      "tool": "Bash",
+      "input_sha256": "f13b03b926357937cc430e59339ba67170b609b05abe4c9fd0ef444369ab6483"
+    }
+  ],
+  "safe_read_path": "/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004/s07b-source-principle-scope-map-readback.json",
+  "recommended_scope": "manual entry behavior verified only; host relative-path metadata limitation remains unresolved; use inventoried absolute existing evidence paths",
+  "guard_sha256": "561bf2b08ad3c671d983b35eb3f2b385070ba786e45718d9deb2794c6f0ccc12"
+}

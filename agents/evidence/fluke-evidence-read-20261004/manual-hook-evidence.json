@@ -1,0 +1,137 @@
+{
+  "scope": "manual PreToolUse JSON entry only; actual payloads inspected, no read/write commands executed",
+  "host_hookup_verified": false,
+  "cases": [
+    {
+      "case": "wrong_root_name",
+      "expected": "deny",
+      "actual": "deny",
+      "returncode": 0,
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');json.loads((p/'s07b-source-principle-gap-inventory-readback.json').read_text())\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "correct_root_name",
+      "expected": "allow",
+      "actual": "allow",
+      "returncode": 0,
+      "response": {},
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');json.loads((p/'s07b-source-principle-gap-readback.json').read_text())\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "literal_bytes",
+      "expected": "deny",
+      "actual": "deny",
+      "returncode": 0,
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');(p/'wrong-bytes.json').read_bytes()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "literal_open",
+      "expected": "deny",
+      "actual": "deny",
+      "returncode": 0,
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "這個固定Fluke證據讀取路徑不存在；請先用rg --files列出證據目錄，核對實際檔名後再讀取，不要猜檔名。"
+        }
+      },
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');open(p/'wrong-open.json',mode='rb')\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "ordinary_write",
+      "expected": "allow",
+      "actual": "allow",
+      "returncode": 0,
+      "response": {},
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');(p/'new-do-not-create.json').write_text('{}')\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "dynamic_filename",
+      "expected": "allow",
+      "actual": "allow",
+      "returncode": 0,
+      "response": {},
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\np=Path('/home/cash/orca/workspaces/Fluke/riichi-finetune/docs/superpowers/evidence/s07b-teaching-20261004');(p/name).read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    },
+    {
+      "case": "outside_evidence",
+      "expected": "allow",
+      "actual": "allow",
+      "returncode": 0,
+      "response": {},
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nfrom pathlib import Path\nimport json\nPath('/nonexistent/docs/other.json').read_text()\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      }
+    }
+  ],
+  "guard_sha256": "fa2e2213e2631c6f6f08b2f17425dd35f98ef18fe55f2a49d81955c6e883f5b1",
+  "test_sha256": "98c37283efcff7eb90339850a6da6627c8565c659defded9cbbefc176ebe7529",
+  "focused_red": {
+    "tests": 10,
+    "failed_subtests": 7,
+    "log": "red.log"
+  },
+  "focused_green": {
+    "new_tests": 10,
+    "existing_docs_tests": 14,
+    "passed": 24,
+    "log": "green.log"
+  },
+  "prior_existing_rule_gap": "absolute Path base slash literal filename was allowed; old docs-read-path covers relative docs only",
+  "development_command_error": "WriteGuardTests guessed; nonexistent class failed; actual WriteGuardTest inventoried and rerun in existing-write-guard-tests-v2.log"
+}

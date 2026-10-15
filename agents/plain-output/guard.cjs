@@ -12,13 +12,52 @@ const RULES = [
   {term: /\bbuckets?\b/giu, explanation: /觀察點|時間格|時間區間/u, hint: '依實際長度寫成幾秒觀察點'}
 ];
 
+const LENGTH_LIMIT = 600; // prose characters per reply (user 2026-10-15); code blocks excluded
+const FULL_REQUEST = /完整|詳細|全部|原文|逐條|逐項|一個一個|說明/u;
+
+function proseOf(text) {
+  return text.replace(/```[^\n]*\n[\s\S]*?```|~~~[^\n]*\n[\s\S]*?~~~/g, '')
+    .replace(/^\s*>.*$/gm, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+}
+
+function tooLong(text, prompt) {
+  if (typeof text !== 'string') return false;
+  if (typeof prompt === 'string' && FULL_REQUEST.test(prompt)) return false;
+  return proseOf(text).replace(/\s+/g, '').length > LENGTH_LIMIT;
+}
+
+function lastUserPrompt(transcriptPath) {
+  // Read only the tail of the transcript; the last typed prompt is near the end.
+  try {
+    const fd = fs.openSync(transcriptPath, 'r');
+    try {
+      const size = fs.fstatSync(fd).size;
+      const length = Math.min(size, 4 * 1024 * 1024);
+      const buffer = Buffer.alloc(length);
+      fs.readSync(fd, buffer, 0, length, size - length);
+      const lines = buffer.toString('utf8').split('\n');
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (!lines[i].includes('"type":"user"')) continue;
+        let record;
+        try { record = JSON.parse(lines[i]); } catch { continue; }
+        if (record.type !== 'user' || record.isCompactSummary || record.isMeta) continue;
+        const content = record.message && record.message.content;
+        if (typeof content === 'string') return content;
+        if (Array.isArray(content) && content.every(c => c && c.type === 'text')) {
+          return content.map(c => c.text || '').join('\n');
+        }
+      }
+    } finally { fs.closeSync(fd); }
+  } catch { /* no transcript: treat as no exemption */ }
+  return '';
+}
+
 function inspect(text) {
   if (typeof text !== 'string' || !text.trim()) return ['沒有可檢查的回答'];
   // Fenced executable material and exact block quotes are not prose.
   // Inline backticks do not exempt terminology.
-  const prose = text.replace(/```[^\n]*\n[\s\S]*?```|~~~[^\n]*\n[\s\S]*?~~~/g, '')
-    .replace(/^\s*>.*$/gm, '')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+  const prose = proseOf(text);
   const failures = [];
   for (const sentence of prose.split(/[。！？\n]/u)) {
     for (const rule of RULES) {
@@ -50,6 +89,10 @@ function hook(input) {
   }
   if (name !== 'Stop') return {};
   const failures = inspect(input.last_assistant_message);
+  if (tooLong(input.last_assistant_message, lastUserPrompt(input.transcript_path))) {
+    failures.push(`回覆超過 ${LENGTH_LIMIT} 字元（不含程式碼）。只留結論、原因、下一步各一兩句；`
+      + '使用者要完整內容時會說「完整」或「詳細」');
+  }
   audit(name, failures.length === 0, failures.length);
   if (!failures.length) return {};
   if (input.stop_hook_active) {
@@ -88,5 +131,5 @@ function main() {
   }
 }
 
-module.exports = {inspect, hook};
+module.exports = {inspect, hook, tooLong, lastUserPrompt, LENGTH_LIMIT};
 if (require.main === module) main();

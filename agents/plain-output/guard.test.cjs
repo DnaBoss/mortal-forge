@@ -3,7 +3,25 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {spawnSync} = require('node:child_process');
 const path = require('node:path');
-const {inspect, hook} = require('./guard.cjs');
+const {inspect, hook, tooLong, LENGTH_LIMIT} = require('./guard.cjs');
+
+test('replies over the prose limit are flagged', () => {
+  assert.equal(tooLong('說明。'.repeat(LENGTH_LIMIT), ''), true);
+});
+test('code blocks do not count toward the limit', () => {
+  assert.equal(tooLong('結論。\n```\n' + 'x'.repeat(5000) + '\n```\n', ''), false);
+});
+test('a request for full detail lifts the limit', () => {
+  assert.equal(tooLong('說明。'.repeat(LENGTH_LIMIT), '請給我完整內容'), false);
+});
+test('short replies pass', () => {
+  assert.equal(tooLong('做完了，測試 6 個都過。', ''), false);
+});
+test('hook blocks an over-long reply', () => {
+  const result = hook({hook_event_name: 'Stop', last_assistant_message: '做完了。'.repeat(LENGTH_LIMIT), transcript_path: '/nonexistent'});
+  assert.equal(result.decision, 'block');
+  assert.match(result.reason, /超過/u);
+});
 
 test('common wording is preserved', () => {
   assert.deepEqual(inspect('學習曲線上升，勝率提高，停損維持相同設定。'), []);
