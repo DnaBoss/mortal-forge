@@ -30,7 +30,9 @@ Burden cut (user 2026-10-15):
 
 import argparse
 import datetime as dt
+import fcntl
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -82,8 +84,9 @@ def heartbeat(prev: dict | None, args) -> str | None:
         return None
     old_locators = {e.get("locator") for e in prev.get("evidence_after") or []}
     new_locators = {item.partition("=")[2] for item in args.evidence}
-    old_checks = {c.get("name") for c in (prev.get("validation") or {}).get("checks") or []}
-    new_checks = {item.partition("=")[0] for item in args.check}
+    # A check whose result changed (e.g. fail -> pass) is new evidence even when the name repeats.
+    old_checks = {(c.get("name"), c.get("result")) for c in (prev.get("validation") or {}).get("checks") or []}
+    new_checks = {(item.partition("=")[0], item.partition("=")[2] or "pass") for item in args.check}
     if new_locators - old_locators or new_checks - old_checks:
         return None
     return "無狀態變化且無新證據，不寫（使用者 2026-10-15 定：有狀態變化或新證據才寫 checkpoint）"
@@ -184,19 +187,28 @@ def main() -> int:
     if problem:
         print("rejected; nothing written:\n" + problem, file=sys.stderr)
         return 1
-    prev = last_record(args.file, args.task)
-    problem = heartbeat(prev, args)
-    if problem:
-        print("rejected; nothing written:\n" + problem, file=sys.stderr)
-        return 1
-    record = build(args, prev, last_step_state(args.file, args.task, args.step))
-    original = args.file.read_text(encoding="utf-8") if args.file.exists() else ""
-    args.file.write_text(original + json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
-    check = subprocess.run([sys.executable, str(SKILL), str(args.file)], capture_output=True, text=True)
-    if check.returncode != 0:
-        args.file.write_text(original, encoding="utf-8")
-        print("rejected; file restored:\n" + check.stdout + check.stderr, file=sys.stderr)
-        return 1
+    # One writer at a time per file; the previous record is read under the lock so iteration
+    # numbers and transitions cannot race. The candidate file is validated before it replaces
+    # the real one, so the JSONL never holds an invalid record (Codex review 2026-10-15).
+    args.file.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = args.file.with_name(args.file.name + ".lock")
+    with open(lock_path, "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        prev = last_record(args.file, args.task)
+        problem = heartbeat(prev, args)
+        if problem:
+            print("rejected; nothing written:\n" + problem, file=sys.stderr)
+            return 1
+        record = build(args, prev, last_step_state(args.file, args.task, args.step))
+        original = args.file.read_text(encoding="utf-8") if args.file.exists() else ""
+        candidate = args.file.with_name(args.file.name + ".tmp")
+        candidate.write_text(original + json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
+        check = subprocess.run([sys.executable, str(SKILL), str(candidate)], capture_output=True, text=True)
+        if check.returncode != 0:
+            candidate.unlink(missing_ok=True)
+            print("rejected; nothing written:\n" + check.stdout + check.stderr, file=sys.stderr)
+            return 1
+        os.replace(candidate, args.file)
     print(f"appended iteration {record['iteration']} ({record['task_state']}/{record['step_state']})")
     return 0
 

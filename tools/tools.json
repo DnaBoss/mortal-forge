@@ -712,5 +712,27 @@
     "dependencies": "bash",
     "risk": "會刪隨身碟上其他 NewRetail-POS* 資料夾；保留的資料夾必須存在且有 SHA256SUMS.txt 才會動手；AI 的權限設定擋 rm -r，由使用者用 ! bash 自己執行",
     "verification": "2026-10-15 在 scratchpad 假資料夾 DRY_RUN 列出 1 個；保留資料夾不存在時 exit 1；真隨身碟 DRY_RUN 0 個"
+  },
+  {
+    "name": "mutate-once",
+    "purpose": "陰性對照：對檔案套一個文字改壞、跑測試命令、一定還原，回報測試有沒有變紅",
+    "location": "/home/cash/tools/mutate_once.py",
+    "usage": "python3 ~/tools/mutate_once.py src/x.ts 'if (a) return;' '' -- pnpm vitest run src/x.test.ts",
+    "input": "檔案、要找的文字（必須剛好出現一次）、替換文字、-- 之後的測試命令",
+    "output": "RED／GREEN 與最多四行測試摘要；exit 0=RED、1=GREEN、2=參數錯或錨點不唯一",
+    "dependencies": "python3",
+    "risk": "執行期間會暫時改寫目標檔；用 try/finally 還原，但行程被 kill -9 時不會還原，請只在已提交或有備份的工作樹用；不要對同一檔平行跑",
+    "verification": "2026-10-15 scratchpad 小樣本：改壞被抓到→RED rc0；沒被抓到→GREEN rc1；錨點不存在 rc2；缺 -- rc2；命令不存在時檔案雜湊與原本相同"
+  },
+  {
+    "name": "escape-non-ascii-rs",
+    "purpose": "把 Rust 原始檔的非 ASCII 字元轉成 \\u{...} 跳脫，讓程式碼維持 ASCII-only 但訊息仍是中文",
+    "location": "/home/cash/tools/escape_non_ascii_rs.py",
+    "usage": "python3 ~/tools/escape_non_ascii_rs.py draft.rs apps/x/src/msg.rs",
+    "input": "來源檔、輸出檔（不能同一個）",
+    "output": "寫出 ASCII-only 檔案；印出轉換字數；exit 2=參數錯或路徑相同",
+    "dependencies": "python3",
+    "risk": "只適用非 ASCII 字都在字串或字元常值裡；註解裡的中文會變成看不懂的跳脫，識別字裡的會變成錯誤語法；會覆寫輸出檔",
+    "verification": "2026-10-15 scratchpad：「發票」轉成 \\u{767c}\\u{7968}，輸出全 ASCII；來源與輸出同路徑 rc2"
   }
 ]

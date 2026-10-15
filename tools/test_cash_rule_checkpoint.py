@@ -49,6 +49,25 @@ class CheckpointGateTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(len(self.records()), 2)
 
+    def test_check_result_change_counts_as_new_evidence(self):
+        a = run(self.file, "--step", "S01", "--task-state", "RUNNING", "--step-state", "RUNNING", "--target", "go",
+                "--evidence", "file=/tmp/a", "--check", "unit=fail", "--acceptance", "A1")
+        self.assertEqual(a.returncode, 0, a.stderr)
+        same = run(self.file, "--step", "S01", "--task-state", "RUNNING", "--step-state", "RUNNING", "--target", "again",
+                   "--evidence", "file=/tmp/a", "--check", "unit=fail", "--acceptance", "A1")
+        self.assertEqual(same.returncode, 1)
+        flipped = run(self.file, "--step", "S01", "--task-state", "RUNNING", "--step-state", "RUNNING", "--target", "fixed",
+                      "--evidence", "file=/tmp/a", "--check", "unit=pass", "--acceptance", "A1")
+        self.assertEqual(flipped.returncode, 0, flipped.stderr)
+
+    def test_invalid_record_never_lands_in_file(self):
+        before = self.file.read_text()
+        r = run(self.file, "--step", "S01", "--task-state", "COMPLETE", "--step-state", "READY", "--target", "bad",
+                "--decision", "continue")  # COMPLETE requires decision complete: schema rejects
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual(self.file.read_text(), before)
+        self.assertFalse(self.file.with_name(self.file.name + ".tmp").exists())
+
     def test_state_change_is_accepted_without_new_evidence(self):
         r = run(self.file, "--step", "S01", "--task-state", "RUNNING", "--step-state", "RUNNING", "--target", "go",
                 "--evidence", "file=/tmp/a", "--acceptance", "A1")

@@ -3969,3 +3969,33 @@
 - 原因：`tools/cargo_cache.py hook()` 用 `\bcargo\b` 比對整段指令文字判斷是否編譯；mortal-mcp 的快取登錄有 keeper 指到已不存在的路徑（非本次造成，未查清是哪個工作樹）。
 - 防：Bash 指令文字避免出現 cargo 字樣（路徑用 Python 腳本處理）；看到「Cargo cache inspection failed」先看是不是誤判，再決定要不要修登錄。登錄問題另開任務查，不順手改。
 - 證據：PreToolUse 錯誤訊息兩次（No closing quotation；Registered keeper is missing）；改用 Python 複製後同一批操作成功。
+
+## 2026-10-15 Aletheia test target and Tailscale host routing
+- Error: A library-only test flag failed because Aletheia has only a binary target. HTTP Serve returned 404 for its direct IP; the local Tailscale DNS name did not resolve.
+- Prevention: inspect package targets before selecting test flags. Use Tailscale TCP forwarding for direct-IP HTTP access and verify that exact URL. Do not assume local MagicDNS works.
+- Evidence: ~/.local/state/aletheia-tailscale-20261015/; TCP forwarding returned HTTP 200 and Grafana health database ok.
+
+## 2026-10-15 checkpoint step 從 READY 直接寫 VALIDATING，工具只回「第 2 筆：格式不符（enum）」
+- 錯：S01 做完、測完後，第 2 筆直接寫 `--step-state VALIDATING`，前一筆是 READY，被擋。
+- 原因：schema `allOf[31]`：READY 之後只能接 READY／RUNNING／BLOCKED／FAILED／CANCELLED／SKIPPED／SUPERSEDED；step 必須依序 READY→RUNNING→VALIDATING→DONE，不能跳。
+- 防：一個 step 做完才補記時，固定寫三筆：RUNNING（放實作證據）→ VALIDATING（放測試輸出）→ DONE（放 check 與陰性對照）。task 依序 RUNNING → RUNNING → VALIDATING。
+- 證據：pos-invoice-from-mall checkpoint 首次被拒；改三筆後「appended iteration 2/3/4」。
+
+## 2026-10-15 Temporary DNS override hid actual browser resolution failure
+- Error: Reported custom monitoring URLs as ready after testing with a temporary host override, while the actual local DNS path still returned NXDOMAIN.
+- Cause: Certificate and proxy checks were mistaken for acceptance of the normal user DNS path.
+- Prevention: Domain delivery must test ordinary name resolution and ordinary HTTPS without temporary overrides. If a persistent local mapping is the chosen fix, state its exact scope and verify it remains installed; other-device access remains unverified.
+- Evidence: ~/.local/state/aletheia-domain-20261015/dns-fixed.json; ordinary HTTPS failed before the persistent mapping and returned 200 with verified certificates afterward.
+
+## 2026-10-15 新repo提交缺少作者與統計欄位名稱誤用
+- 錯：新repo提交時沒有user.name/user.email；統計把既有規則的TypeScript、JS誤當TypeScript鍵。
+- 原因：沿用舊repo環境假設；未先列實際統計鍵。
+- 防：新repo提交前查本機既有授權repo作者設定，只複用到新repo本地；讀完規則的實際鍵再選欄位，不改統計口徑。
+- 證據：common-ground c0e8a86；knowledge-runtime-week1/evidence/technology-comparison.json。
+- 後續（2026-10-15 14:04）：使用者要求修。原因是 keeper 目錄 /home/cash/work_space/private/mortal-mcp/target 已被刪（誰刪的未查證），wt-guards 的 target 連結懸空；重建空目錄後登錄一致，含 cargo 字樣的指令不再被擋。沒有刪任何資料。
+
+## 2026-10-15 Xvfb 量全螢幕視窗：沒有視窗管理程式，全螢幕要求不會生效
+- 錯：newretail-pos 主視窗設 `fullscreen: true`，放進 Xvfb（虛擬螢幕）量到 1180x820，差點當成「設定沒生效」。
+- 原因：Xvfb 沒有視窗管理程式，視窗雖帶 `_NET_WM_STATE_FULLSCREEN`，沒人照做。
+- 防：量視窗大小／全螢幕要在有視窗管理程式的虛擬螢幕：`dbus-run-session -- kwin_wayland --virtual --xwayland --width W --height H --exit-with-session <腳本>`，並隔離 XDG_CONFIG_HOME；先用 `xprop _NET_WM_STATE` 看程式有沒有提出要求，再量 xwininfo。
+- 證據：fullscreen true → KWin 量到 1280x800 (0,0)；false → 1180 寬 x=50，無 FULLSCREEN。
