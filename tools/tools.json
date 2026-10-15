@@ -734,5 +734,16 @@
     "dependencies": "python3",
     "risk": "只適用非 ASCII 字都在字串或字元常值裡；註解裡的中文會變成看不懂的跳脫，識別字裡的會變成錯誤語法；會覆寫輸出檔",
     "verification": "2026-10-15 scratchpad：「發票」轉成 \\u{767c}\\u{7968}，輸出全 ASCII；來源與輸出同路徑 rc2"
+  },
+  {
+    "name": "ssd-scan",
+    "purpose": "唯讀盤點本機 SSD 可清快取、編譯產物、大型資料、Docker 佔用與增長；供 Aletheia 背景呼叫",
+    "location": "/home/cash/tools/ssd_scan.py",
+    "usage": "systemctl --user start ssd-scan.service；python3 ~/tools/ssd_scan.py status；python3 ~/tools/ssd_scan.py report；Aletheia 清理與排程內按掃描 SSD",
+    "input": "固定本機範圍；不接受任意執行命令或刪除選項",
+    "output": "~/.local/state/ssd-scan/report.json 與 status.json；未完成量測保持未知",
+    "dependencies": "Python3、GNU du、systemd user、現有程序引用掃描；Docker 可選",
+    "risk": "不刪除檔案；可清候選不是刪除授權。報告路徑只供私人網路閱覽。總覽與細項不可相加。",
+    "verification": "2026-10-15：24項Python掃描與既有快取保護測試、30項Rust本機維護測試通過；格式、靜態檢查與建置通過。Aletheia真瀏覽器啟動／進度／結果、同來源正反例及防重驗證；證據 ~/.local/state/aletheia-disk-scan-20261015。MCP adapter 僅源碼直接測試，未重啟共用MCP。"
   }
 ]

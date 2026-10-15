@@ -3999,3 +3999,26 @@
 - 原因：Xvfb 沒有視窗管理程式，視窗雖帶 `_NET_WM_STATE_FULLSCREEN`，沒人照做。
 - 防：量視窗大小／全螢幕要在有視窗管理程式的虛擬螢幕：`dbus-run-session -- kwin_wayland --virtual --xwayland --width W --height H --exit-with-session <腳本>`，並隔離 XDG_CONFIG_HOME；先用 `xprop _NET_WM_STATE` 看程式有沒有提出要求，再量 xwininfo。
 - 證據：fullscreen true → KWin 量到 1280x800 (0,0)；false → 1180 寬 x=50，無 FULLSCREEN。
+
+## 2026-10-15 本機起 ai-mall API 做端到端，開機預熱把共用 dev Postgres 連線吃滿（100 條）
+- 錯：在任務工作樹用 `pnpm exec tsx src/index.ts` 起第二個商城 API（DB 指向複本 `crossec_3167`），開機 `warmupPool()` 把池開到 100 條，佔滿 `crossec-dev-postgres` 上限，別的 session 連線拿到「too many clients already」。
+- 原因：`packages/db/src/index.ts:38` 預設 `DB_CONNECTION_LIMIT=100`，`index.ts` 開機會預熱到滿；正式站設計給 RDS，本機共用一台 Postgres。
+- 防：本機另起 ai-mall API 一律帶 `DB_CONNECTION_LIMIT=5`；起來後用容器 /proc 數連線（`postgres: <user> <db>` 程序數）確認。用完就停。
+- 證據：停掉前 100 條 `postgres crossec_3167`；帶 5 重開後 log「寫庫 5/5 條」、程序數 5。
+
+## 2026-10-15 KWin 虛擬螢幕裡 xdotool 點擊、打字都沒作用
+- 錯：用 `kwin_wayland --virtual --xwayland` 跑 Tauri 想自動登入，`xdotool getmouselocation` 顯示游標有動，但畫面收不到點擊與鍵盤。
+- 原因（未查證細節）：新版 Xwayland 的模擬輸入改走 libei，要 portal 授權；虛擬 KWin 沒授權就丟掉。
+- 防：要自動操作畫面就用 Xvfb（`Xvfb :7 -screen 0 1280x800x24 -nolisten tcp`），模擬輸入直接有效；量全螢幕大小才用 KWin（見上一條）。截圖用 `ffmpeg -f x11grab -video_size WxH -i :7 -frames:v 1 out.png`。
+- 證據：newretail-pos `loops/evidence/pos-invoice-from-mall/s06-local-e2e.md`。
+
+## 2026-10-15 用「有逐筆檔的日子」當交易日清單，漏抓颱風停市日的除權息（MortalModel）
+- 錯：回補全市場除權息時，只抓 stock-tick-v1 有逐筆檔的 1,871 天；抽查玉山金發現 2024-07-25 除息日沒抓到。
+- 原因：FinMind 把除權息日記在颱風停市日（2024-07-24／25、2023-08-03 等 10 天共 145 筆），那些天沒有逐筆檔。
+- 防：抓「事件型」資料（除權息、公告）不要用行情檔的日期當清單；用全部平日或官方日曆，再用單檔查詢抽查幾檔比對。
+- 證據：補抓 142 個無逐筆檔平日後新增 145 筆；十檔單檔查詢比對全數一致。
+
+## 2026-10-15 SSD scan initially exhausted discovery on one historical tree
+- Error: Depth-first exploration spent its bounded budget on historical artifacts and missed other projects; user-service filesystem namespace also made the existing elevated process check fail.
+- Prevention: Breadth-first discovery prioritizes project roots and prunes artifact/runtime/model trees. Explicitly report limits and unknown process evidence. Verify the process helper inside the actual background unit. The scanner has no deletion operation; privileged fallback is limited to existing process reads and fixed system-directory size reads.
+- Evidence: ~/.local/state/aletheia-disk-scan-20261015/ and ~/.local/state/ssd-scan/report.json. Final discovery found the 54GiB and 13GiB Fluke build trees and retained the live monitoring executable.
