@@ -291,3 +291,10 @@
 ## 2026-10-02 ai-mall #2829 流程檔沒先跑語法檢查就提交，多一個修正提交
 - 錯：本機沒裝 actionlint，提交前的自動檢查只印「跳過」。我只用 YAML 解析確認格式就提交，之後才用容器版 actionlint 抓到單引號內的 `${...}` 被擋（SC2016）。
 - 防：改 `.github/workflows/` 的檔案，提交前先跑 `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:latest <檔>`；在 `node -e '...'` 裡不寫 `${}`，用字串相加。自動檢查印「跳過」等於沒檢查。
+
+## 2026-10-03 新版Gateway對照讀錯回應欄位，外層未傳回子程序失敗
+- 錯：真登入與重整通過後，竄改憑證已被拒，測試卻讀error與session；目前產品實際回傳error_message與session_id，因此斷言失敗，九表最後核帳未完成。外層程序退出0也沒有證明內層驗證成功。
+- 原因：沿用另一種回應格式，未先核目前JSON轉換來源；清理流程只記錄子程序退出碼，沒有將非零退出視為失敗。
+- 防：先查services/gateway/src/json_codec.rs的decode_auth_response，測試使用實際欄位；斷言前私有保存有限回應，清理後拒絕非零子程序退出。直接從修正版來源取出此條件，未啟動、退出0放行，退出1拒絕三個對照通過；不把外層退出0當內層驗收。
+- 結果：原輪保留為部分失敗；全新第二輪真登入、重整、同玩家99950餘額、九表完整內容與歷史重播保留、竄改拒絕及子程序退出0通過。每輪本機信一封，兩張成功輪同次保存畫面已查閱，自有資源清理。
+- 來源：identity-platform/docs/evidence/p0-s04/sdk-fluke-live-v1-partial-20261003.json、sdk-fluke-live-https-20261003.json；Fluke同步來源9cf2da8，2026-10-03。
