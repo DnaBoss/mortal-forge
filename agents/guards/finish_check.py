@@ -4,7 +4,9 @@
 Blocks the end of a turn when a mechanical rule is broken in the current repo:
   1. a RUNNING LOOP file is more than 24h older than the newest code commit;
   2. a `*.checkpoints.jsonl` touched in the last 6h fails the cash-rule schema;
-  3. the shared tool catalog ~/tools/tools.json is malformed.
+  3. the shared tool catalog ~/tools/tools.json is malformed;
+  4. an ai-mall board card Status disagrees with the PRs touched this turn
+     (card_status_check.py).
 The whole repo is scanned (not only docs/); .git, node_modules, target and hidden
 directories are skipped. A repo keeps being blocked until the problems are fixed,
 up to MAX_BLOCKS consecutive stops; after that the hook only reports and logs
@@ -128,6 +130,8 @@ def main():
         # Independent delivery rule; keep existing lifecycle/schema checks.
         from delivery_check import problems as delivery_problems
         problems += delivery_problems(payload)
+        from card_status_check import problems as card_problems
+        problems += card_problems(payload, faults)
         c = catalog_problem(faults)
         if c:
             problems.append(c)
@@ -143,7 +147,7 @@ def main():
                             ensure_ascii=False) + "\n")
     msgs = []
     if problems:
-        msgs.append("收工檢查未通過（規則：LOOP／進度紀錄／工具清單要跟實際一致）：\n- " + "\n- ".join(problems))
+        msgs.append("收工檢查未通過（規則：LOOP／進度紀錄／工具清單／看板卡片要跟實際一致）：\n- " + "\n- ".join(problems))
     if faults:
         msgs.append("收工檢查器故障，以下項目未驗收：\n- " + "\n- ".join(faults))
     if blocked:
