@@ -114,6 +114,32 @@ class CargoCacheTests(unittest.TestCase):
         self.assertEqual(result['hookSpecificOutput']['permissionDecision'], 'deny')
 
     @patch('cargo_cache.in_use', return_value=set())
+    def test_build_replacing_running_binary_is_denied(self, _):
+        cc.adopt(self.repo, self.keeper)
+        running = {str(self.keeper.resolve() / 'debug/app'),
+                   str(self.keeper.resolve() / 'x86_64-unknown-linux-gnu/release/tool')}
+        cases = {
+            'cargo test': 'deny',
+            'cd . && cargo --quiet build 2>&1 | tail -n 3': 'deny',
+            'cargo build --release --target x86_64-unknown-linux-gnu': 'deny',
+            'cargo test --target x86_64-unknown-linux-gnu': 'deny',
+            'cargo test --target=aarch64-unknown-linux-gnu': None,
+            'cargo clippy --all-targets -- -D warnings': None,
+            'cargo fmt --check': None,
+        }
+        with patch('cargo_cache.running_executables', return_value=running):
+            for command, decision in cases.items():
+                result = cc.hook({'hook_event_name': 'PreToolUse', 'cwd': str(self.wt),
+                                  'tool_input': {'command': command}})
+                self.assertEqual(result.get('hookSpecificOutput', {}).get('permissionDecision'),
+                                 decision, command)
+        test_binary = {str(self.keeper.resolve() / 'debug/deps/app-0123')}
+        with patch('cargo_cache.running_executables', return_value=test_binary):
+            result = cc.hook({'hook_event_name': 'PreToolUse', 'cwd': str(self.wt),
+                              'tool_input': {'command': 'cargo test'}})
+        self.assertEqual(result, {})
+
+    @patch('cargo_cache.in_use', return_value=set())
     def test_keeper_removal_is_detected(self, _):
         cc.adopt(self.repo, self.keeper)
         import shutil

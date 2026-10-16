@@ -115,6 +115,42 @@ def in_use():
         return set(data)
 
 
+BUILD_SUBCOMMANDS = {'build', 'b', 'test', 't', 'run', 'r', 'bench'}
+
+
+def running_executables():
+    """Executables of readable processes; other users' processes are skipped."""
+    paths = set()
+    for proc in Path('/proc').iterdir():
+        if proc.name.isdigit():
+            try:
+                paths.add(os.readlink(proc / 'exe').removesuffix(' (deleted)'))
+            except OSError:
+                continue
+    return paths
+
+
+def replaced_binaries(command, out_root, executables):
+    """Running executables that a build in this command would overwrite."""
+    hits = set()
+    for part in re.split(r'&&|\|\||;|\||\n', command):
+        words = shlex.split(part)
+        names = [Path(w).name for w in words]
+        if 'cargo' not in names:
+            continue
+        rest = words[names.index('cargo') + 1:]
+        sub = next((w for w in rest if not w.startswith(('-', '+'))), None)
+        if sub not in BUILD_SUBCOMMANDS:
+            continue
+        triple = next((w.split('=', 1)[1] for w in rest if w.startswith('--target=')), None)
+        if '--target' in rest and rest.index('--target') + 1 < len(rest):
+            triple = rest[rest.index('--target') + 1]
+        root = out_root / triple if triple else out_root
+        # Cargo writes final binaries to <root>/<profile>/<name>.
+        hits.update(e for e in executables if Path(e).parent.parent == root)
+    return sorted(hits)
+
+
 def busy(target, refs):
     return any(v == str(target) or v.startswith(str(target) + '/') for v in refs)
 
@@ -328,6 +364,10 @@ def hook(payload):
             current = Path(git(cwd, 'rev-parse', '--show-toplevel').strip()) / 'target'
             if str(current) in report['skipped'] and not overrides:
                 return blocked(event, 'This cache is retained for a running process. Compile with CARGO_TARGET_DIR=' + str(keeper))
+            replaced = replaced_binaries(command, Path(keeper or current).resolve(), running_executables())
+            if replaced:
+                return blocked(event, f'A running process executes {replaced[0]} from the shared target; this build would replace it. '
+                                      'Add --target <host triple> (output goes to target/<triple>/) or run the process from an installed copy')
         problems = report['duplicates'] + report['invalid_links']
         if problems and event in {'Stop', 'PreToolUse'}:
             reason = 'Rust compilation caches must be shared; inspect cargo-cache audit and adopt safely: ' + ', '.join(problems[:3])
