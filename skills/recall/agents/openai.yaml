@@ -1,0 +1,6 @@
+interface:
+  display_name: "專案盤點與推送"
+  short_description: "盤點目前專案與 Git 異動，依既有檢查提交推送並核對遠端版本"
+  default_prompt: "使用 $recall 盤點目前專案，將本次範圍的 Git 異動提交並推送，回報驗證與遠端版本。"
+policy:
+  allow_implicit_invocation: false
