@@ -20,6 +20,7 @@ LABELS = {'candidate': '可清候選', 'review': '需確認', 'protected': '保�
 ARTIFACTS = {'target': '編譯產物', 'node_modules': 'JavaScript 套件',
              '.next': '網站編譯產物', '.venv': 'Python 執行環境', '.git': 'Git 歷史資料'}
 PROTECTED = {'models', 'model', 'market-data', '_npx', 'ollama', '.git', '.rustup', '.nvm', '.venvs', '.npm', '.bun'}
+SCAN_SCOPE = 'home-projects-caches-large-files-system-docker-v1'
 
 
 def atomic(path, data):
@@ -121,6 +122,40 @@ def compare(row, old):
     return row
 
 
+def record_history(state, report, max_samples=30):
+    path = state / 'history.json'
+    samples = []
+    try:
+        if path.stat().st_size <= 2_000_000:
+            stored = json.loads(path.read_text())
+            if stored.get('version') == 1 and isinstance(stored.get('samples'), list):
+                samples = stored['samples'][-max_samples:]
+    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+        pass
+
+    current = {
+        'finished_at': report['finished_at'],
+        'scan_scope_id': report['scan_scope_id'],
+        'device_id': report['root_filesystem']['device_id'],
+        'used_bytes': report['root_filesystem']['used_bytes'],
+    }
+    growth = {'status': 'unknown', 'reason': '沒有同裝置、同範圍的連續前一筆樣本'}
+    if samples:
+        previous = samples[-1]
+        same_source = (previous.get('device_id') == current['device_id'] and
+                       previous.get('scan_scope_id') == current['scan_scope_id'])
+        chronological = previous.get('finished_at', current['finished_at']) < current['finished_at']
+        if same_source and chronological and isinstance(previous.get('used_bytes'), int):
+            growth = {
+                'status': 'available',
+                'previous_finished_at': previous['finished_at'],
+                'used_delta_bytes': current['used_bytes'] - previous['used_bytes'],
+            }
+    report['growth'] = growth
+    samples.append(current)
+    atomic(path, {'version': 1, 'max_samples': max_samples, 'samples': samples[-max_samples:]})
+
+
 def run(state=STATE, home=HOME, budget=480):
     state.mkdir(mode=0o700, parents=True, exist_ok=True)
     if state.is_symlink() or state.resolve() != state:
@@ -131,19 +166,26 @@ def run(state=STATE, home=HOME, budget=480):
         except BlockingIOError:
             return {'status': 'running', 'message': '已有掃描正在執行'}
         started, deadline = time.time(), time.monotonic() + budget
-        previous = {}
+        previous_report = {}
         try:
             p = state / 'report.json'
             if p.stat().st_size <= 2000000:
-                previous = {r['path']: r for r in json.loads(p.read_text()).get('items', [])}
+                previous_report = json.loads(p.read_text())
         except FileNotFoundError:
             pass
         rows, notes = [], []
         fs = os.statvfs('/')
-        report = {'version': 1, 'started_at': started, 'status': 'running',
+        report = {'version': 2, 'started_at': started, 'status': 'running',
                   'items': rows, 'notes': notes, 'deletes_files': False,
-                  'root_filesystem': {'path': '/', 'total_bytes': fs.f_blocks * fs.f_frsize,
+                  'scan_scope_id': f'{os.stat("/").st_dev}:{SCAN_SCOPE}',
+                  'root_filesystem': {'path': '/', 'device_id': os.stat('/').st_dev,
+                                      'total_bytes': fs.f_blocks * fs.f_frsize,
+                                      'used_bytes': (fs.f_blocks - fs.f_bfree) * fs.f_frsize,
                                       'free_bytes': fs.f_bavail * fs.f_frsize}}
+        previous = {}
+        if (previous_report.get('scan_scope_id') == report['scan_scope_id'] and
+                previous_report.get('root_filesystem', {}).get('device_id') == report['root_filesystem']['device_id']):
+            previous = {r['path']: r for r in previous_report.get('items', [])}
 
         def progress(phase):
             atomic(state / 'status.json', {'status': 'running', 'started_at': started,
@@ -229,6 +271,7 @@ def run(state=STATE, home=HOME, budget=480):
                       '增長只比較兩次都完整取得的相同路徑；首次或未完成的量測不當成零。', '最後修改取完整子目錄的最新修改時間；不等於最後使用，閒置與用途仍需確認。'])
         report.update(status='completed' if complete and report.get('docker') is not None and all(r['bytes'] is not None for r in rows) else 'partial',
                       finished_at=time.time(), candidate_bytes=sum(r['bytes'] or 0 for r in rows if r['status']=='candidate'))
+        record_history(state, report)
         atomic(state / 'report.json', report)
         atomic(state / 'status.json', {'status': report['status'], 'started_at': started,
                                       'finished_at': report['finished_at'], 'items_done': len(rows), 'phase': '掃描結束'})

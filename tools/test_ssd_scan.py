@@ -1,4 +1,5 @@
 import fcntl
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -10,6 +11,27 @@ import ssd_scan as scan
 
 
 class ScannerTests(unittest.TestCase):
+    def test_history_only_compares_consecutive_same_device_and_scope(self):
+        with tempfile.TemporaryDirectory() as td:
+            state = Path(td)
+            first = {'finished_at': 10, 'scan_scope_id': 'device-1:home-v1',
+                     'root_filesystem': {'device_id': 1, 'used_bytes': 100}}
+            scan.record_history(state, first, max_samples=2)
+            self.assertEqual(first['growth']['status'], 'unknown')
+
+            second = {'finished_at': 20, 'scan_scope_id': 'device-1:home-v1',
+                      'root_filesystem': {'device_id': 1, 'used_bytes': 140}}
+            scan.record_history(state, second, max_samples=2)
+            self.assertEqual(second['growth']['status'], 'available')
+            self.assertEqual(second['growth']['used_delta_bytes'], 40)
+
+            changed = {'finished_at': 30, 'scan_scope_id': 'device-1:home-v2',
+                       'root_filesystem': {'device_id': 1, 'used_bytes': 160}}
+            scan.record_history(state, changed, max_samples=2)
+            self.assertEqual(changed['growth']['status'], 'unknown')
+            history = json.loads((state / 'history.json').read_text())
+            self.assertEqual(len(history['samples']), 2)
+
     def test_unknown_and_first_measurement_are_not_zero_growth(self):
         self.assertIsNone(scan.compare({'path':'a','bytes':4}, {})['delta_bytes'])
         self.assertIsNone(scan.compare({'path':'a','bytes':None}, {'a':{'bytes':4}})['delta_bytes'])
