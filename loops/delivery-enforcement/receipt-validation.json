@@ -1,0 +1,26 @@
+{
+  "version_sha256": "a6152480f2be7755dda370c791c39d13c6cd22278214dc56b230359250881e02",
+  "checks": [
+    {
+      "name": "regressions_75",
+      "result": "pass"
+    },
+    {
+      "name": "ruff_and_compile",
+      "result": "pass"
+    },
+    {
+      "name": "real_systemd_order_and_nonblocking",
+      "result": "pass"
+    },
+    {
+      "name": "installed_tools_34",
+      "result": "pass"
+    },
+    {
+      "name": "installed_hooks_21",
+      "result": "pass"
+    }
+  ],
+  "unit": "cash-rule-delivery"
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task": "concise-quality",
+  "project": "/home/cash/work_space/private/mortal-mcp",
+  "steps": {
+    "S02": {
+      "kind": "feature",
+      "environment": "local-code-quality",
+      "artifact": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/v2/release.json",
+        "sha256": "94d945bfc8cc4d223b8e96a041bcc4acf1b025da92b066a7210d3b42a1fc7c21"
+      },
+      "validation": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/v2/delivery-validation.json",
+        "sha256": "9d0e68762dee6ebfb2bedd349dd23da2a2404dc7de80fe6f4ac788f8141b91dc"
+      },
+      "authorization": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/v2/authorization.json",
+        "sha256": "4133c044c3fb17e9783e4ce580dfd4d1ab0fc44c92e97c4b7bacf09e12718476"
+      },
+      "deploy": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/v2/deploy-local.py",
+        "sha256": "6d5a9ca920c81f73b223c6d15e2297386bb1ceb4d70073e811748240177f0b39"
+      },
+      "readback": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/v2/readback-local.py",
+        "sha256": "85984328c079f9857edfcf69555040700337dde4e62be6f26fdd0623a7694052"
+      },
+      "timeout_seconds": 60
+    },
+    "S01": {
+      "kind": "feature",
+      "environment": "local-code-quality",
+      "artifact": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/release.json",
+        "sha256": "200e9a9aabaff0d07166aa6b83b4ebfb357a9561b333cc7bd89a1139e78bc2b7"
+      },
+      "validation": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/delivery-validation.json",
+        "sha256": "fcc0c1ba69aaf937cd7629097231951db868df3d12147446ee182298d194f9cd"
+      },
+      "authorization": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/authorization.json",
+        "sha256": "688120270dde7438d96561390e09d5587f5e42cbfbcbe4cf182947c621bea640"
+      },
+      "deploy": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/deploy-local.py",
+        "sha256": "4081193a17829ac79fe4845beaf84e882880b5c588e3cee828570e2a255c4358"
+      },
+      "readback": {
+        "path": "/home/cash/.local/state/concise-quality/20261019/readback-local.py",
+        "sha256": "28012c309f32349200df43cea56376a7d1b91168a70bc3fd87b832f835eeba80"
+      },
+      "timeout_seconds": 60
+    }
+  }
+}

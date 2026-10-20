@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/QingYunA/answer-me-with-html",
+  "commit": "7acea24024923eaae8647f5988e826062456dc86",
+  "version": "0.5.5",
+  "local_changes": [
+    "narrow automatic activation to useful visual answers",
+    "preserve concise output and Traditional Chinese",
+    "absolute Markdown links in Codex",
+    "no automatic browser, server or update"
+  ],
+  "links": [
+    "/home/cash/.codex/skills/answer-me-with-html",
+    "/home/cash/.claude/skills/answer-me-with-html",
+    "/home/cash/.agents/skills/answer-me-with-html"
+  ],
+  "cli_sha256": "83d0a775738688a4e1e58b19834ad7f4e13670be89479386af958da2d3b1cbf5"
+}

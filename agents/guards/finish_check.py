@@ -121,6 +121,7 @@ def main():
     except Exception:
         payload = {}
     problems, faults = [], []
+    delivery_blockers = []
     root = ""
     try:
         root = git(payload.get("cwd") or os.getcwd(), "rev-parse", "--show-toplevel")
@@ -137,8 +138,14 @@ def main():
             problems.append(c)
     except Exception as exc:
         faults.append(f"{type(exc).__name__}: {exc}"[:200])
+    try:
+        from delivery_state_check import problems as delivery_state_problems
+        delivery_blockers = delivery_state_problems(payload)
+    except Exception as exc:
+        delivery_blockers = ["交付狀態檢查故障，不能視為整體交付：" + type(exc).__name__]
+    problems += delivery_blockers
     earlier = prior_blocks(root) if problems else 0
-    blocked = bool(problems) and earlier < MAX_BLOCKS
+    blocked = bool(delivery_blockers) or (bool(problems) and earlier < MAX_BLOCKS)
     os.makedirs(os.path.dirname(LOG), exist_ok=True)
     with open(LOG, "a", encoding="utf-8") as fh:
         fh.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cwd": root, "problems": problems,
@@ -152,7 +159,7 @@ def main():
         msgs.append("收工檢查器故障，以下項目未驗收：\n- " + "\n- ".join(faults))
     if blocked:
         print(json.dumps({"decision": "block", "reason": "\n".join(msgs)
-                          + f"\n請修正後再結束（第 {earlier + 1} 次，最多擋 {MAX_BLOCKS} 次）。"}, ensure_ascii=False))
+                          + ("\n未交付的整體結案持續拒絕；請保留進行中狀態並繼續其他工作。" if delivery_blockers else f"\n請修正後再結束（第 {earlier + 1} 次，最多擋 {MAX_BLOCKS} 次）。")}, ensure_ascii=False))
     elif msgs:
         if problems:
             msgs.append(f"已連續擋 {MAX_BLOCKS} 次仍未修正，本次放行並記錄 gave_up；請向使用者說明為何不修。")

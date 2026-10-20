@@ -1,0 +1,13 @@
+rejected; nothing written:
+交付檢查拒絕：Delivery point is not deployed; leave VALIDATING and continue independent steps；其他無依賴工作可以繼續。
+delivery: dispatch_unknown; job=/home/cash/.cache/tmp/tmpsnyl0zbe/state/jobs/5271e19675f7b88b9c200b0846ee9b892a462aca0b9b6954e3d1bcea76bb465e; continue independent steps
+delivery: dispatch_unknown; job=/home/cash/.cache/tmp/tmpk73dhnv3/state/jobs/7504485dbe694db0b5678835d9664ca7024b24208a5028014fe72a1b428fc7da; continue independent steps
+delivery: prepared; job=/home/cash/.cache/tmp/tmpk73dhnv3/state/jobs/99f8ab1489e993fd126b45681db088738f9cf7b6042e795b2200c64e52d35b5d; continue independent steps
+delivery: dispatching; job=/home/cash/.cache/tmp/tmpk2ywnbq2/state/jobs/2e4c713cb19c15599c9b04c2eab51569803fafd89a9ef243ef9220f7e0f328b3; continue independent steps
+----------------------------------------------------------------------
+Ran 75 tests in 5.522s
+
+OK
+appended iteration 1 (PLANNED/READY)
+appended iteration 2 (RUNNING/RUNNING)
+appended iteration 3 (VALIDATING/VALIDATING)

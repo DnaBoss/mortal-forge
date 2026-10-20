@@ -1,0 +1,15 @@
+{
+  "result": "pass",
+  "submit_seconds": 0.033,
+  "order": [
+    "start1",
+    "end1",
+    "start2",
+    "end2"
+  ],
+  "independent_work": "pass",
+  "early_completion_rejected": true,
+  "duplicate_executions": 0,
+  "real_systemd_jobs": 2,
+  "production_touched": false
+}

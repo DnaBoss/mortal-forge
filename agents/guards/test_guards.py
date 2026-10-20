@@ -157,14 +157,18 @@ class WriteGuardTest(unittest.TestCase):
     def test_zsh_unsplit_command_denied(self):
         for cmd in ['CK="uv run python3 tool.py f --task t"; $CK --x 1',
                     'F=a; CK="uv run x"\n$CK --task-state A && $CK --task-state B',
-                    "T='--task a --executor b'; ${T} --step s"]:
+                    "T='--task a --executor b'; ${T} --step s",
+                    'for p in "A.tsx a-test" "B.tsx b-test"; do set -- $p; echo $1; done',
+                    "for st in 'A B' 'C D'; do set -- ${st}; x $2; done"]:
             with self.subTest(cmd=cmd):
                 self.assertEqual(self.shell(cmd), "deny")
 
     def test_zsh_split_or_plain_variable_allowed(self):
         for cmd in ['CK="uv run x"; ${=CK} --x 1', 'echo $HOME', 'X="a b"; echo $X',
                     'CK="uv run x"; bash -c "$CK"', 'F=loops/a.jsonl; $F',
-                    "cat > t.py <<'X'\nCK=\"a b\"; $CK\nX"]:
+                    "cat > t.py <<'X'\nCK=\"a b\"; $CK\nX",
+                    'for p in "A B"; do set -- ${=p}; echo $1; done', 'for f in a.ts b.ts; do set -- $f; done',
+                    "cat > r.sh <<'X'\nfor p in \"A B\"; do set -- $p; done\nX"]:
             with self.subTest(cmd=cmd):
                 self.assertEqual(self.shell(cmd), "allow")
 

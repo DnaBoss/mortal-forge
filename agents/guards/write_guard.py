@@ -48,7 +48,7 @@ GLOB_MSG = ("zsh 會因為沒加引號的萬用字元對不到任何檔案而中
 PKILL_MSG = ("禁止 pkill -f／pgrep -f（會比對到自己的 shell，2026-10-02 已犯 4 次）。"
              "改用 ss -ltnp 取監聽 PID 後 kill <PID>，或 pgrep -x <程序名> 再比對 /proc/<PID>/cwd。")
 ZSH_SPLIT_MSG = ("zsh 不會把沒加引號的變數拆成多個字：把整串指令存進變數再用 $變數 開頭執行，"
-                 "會變成「no such file or directory: 整串字」，後面的工作全沒做（2026-10-03、10-14、10-15 已犯 3 次）。"
+                 "會變成「no such file or directory: 整串字」，後面的工作全沒做（2026-10-03、10-14、10-15 已犯 4 次，含 for 迴圈裡的 set -- $變數）。"
                  "請改用 ${=變數}，或寫成函式，或直接寫出完整指令。")
 REV_PARSE_MSG = ("git rev-parse --short／--verify 一次只收一個版本；給兩個會回「Needed a single revision」而且什麼都不印"
                  "（2026-10-10 到 10-12 已犯 3 次）。請一個版本下一次，或改用 git log -1 --format=%h <版本>。")
@@ -281,18 +281,24 @@ def pkill_full(text):
 SPACED_ASSIGN = re.compile(r"(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=(\"[^\"]*\s[^\"]*\"|'[^']*\s[^']*')")
 
 
+SPACED_FOR = re.compile(r"\bfor\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s+[^;\n]*?(\"[^\"\n]*\s[^\"\n]*\"|'[^'\n]*\s[^'\n]*')")
+SET_SPLIT = re.compile(r"\bset\s+--\s+\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?(?![A-Za-z0-9_])")
+
+
 def zsh_unsplit_command(text):
     """A variable holding a spaced string is used as the command word without ${=VAR}."""
     if len(text) > 65536 or "<<" in text:
         return False  # heredoc bodies are data, same fail-open as checkpoint_and_commit
     names = {m.group(1) for m in SPACED_ASSIGN.finditer(text)}
+    names |= {m.group(1) for m in SPACED_FOR.finditer(text)}
     if not names:
         return False
     heads = {f"${n}" for n in names} | {"${%s}" % n for n in names}
     for _, words in segments(text):
         if words and words[0] in heads:
             return True
-    return False
+    # `set -- $p` is meant to split $p into $1 $2; zsh keeps it as one word.
+    return any(m.group(1) in names for m in SET_SPLIT.finditer(text))
 
 
 def rev_parse_many(text):
@@ -988,7 +994,10 @@ def verdict(payload):
         return None, None
     if wrong_mall_metric_field(payload):
         return "mall-metric-field", "商城原延遲欄位是EventLoopLagMs；請核原常數與來源鍵，勿使用已知錯誤欄位EventLoopLagMillis。"
-    is_shell = "command" in tool_input or "cmd" in tool_input
+    tool_name = str(payload.get("tool_name") or "")
+    is_shell = (
+        "command" in tool_input or "cmd" in tool_input
+    ) and tool_name != "apply_patch"
     schema_text = command_text(payload) if is_shell else " ".join(str(tool_input[k]) for k in EDIT_KEYS if k in tool_input)
     schema_base = tool_input.get("workdir") or tool_input.get("cwd") or payload.get("cwd") or os.getcwd()
     if wrong_kratos_default(schema_text, schema_base):
@@ -1029,6 +1038,10 @@ def verdict(payload):
             return "fixture-setup-preflight", "這份隔離啟動器有已知漏項或等待時間超過工具上限；請先核對內層程式路徑、Request匯入及300秒限制，不要啟動服務。"
         if receipt_raw_print(text):
             return "receipt-raw-print", "禁止直接展開大型收據逐筆清單。請只輸出筆數與摘要，完整內容保存檔案。"
+        from secret_mask_guard import problem as secret_mask_problem
+        mask_error = secret_mask_problem(text)
+        if mask_error:
+            return "secret-mask-after-print", mask_error
         if wrong_mall_intake_receipt_field(text):
             return "mall-intake-receipt-field", "商城實送收據的清理欄位位於cleanup內；請先核來源格式，勿沿用佇列收據的頂層欄位。"
         if checkpoint_and_commit(text):
@@ -1047,6 +1060,9 @@ def verdict(payload):
             return "edit-then-verify-unchained", "Python改檔之後直接跑測試，沒有綁定改檔成功；改檔失敗時測試驗到的是舊內容。請用&&把改檔與驗證串起來，或分成兩次執行。"
         if pkill_full(text):
             return "pkill-full", PKILL_MSG
+        from errexit_pipefail_guard import problem as pipefail_problem
+        if pipefail_problem(text):
+            return "errexit-without-pipefail", "管線只回傳最後一段的結束碼，set -e 或 && 看不到前段失敗；請在命令開頭加 setopt pipefail（bash 用 set -o pipefail）。"
         if zsh_unsplit_command(text):
             return "zsh-unsplit-command", ZSH_SPLIT_MSG
         if rev_parse_many(text):

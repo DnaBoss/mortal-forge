@@ -45,6 +45,13 @@ MORTAL_CONFIG=config/mortal.example.json cargo run --bin mortal-mcp
 
 這些入口只指向同一套規則，不複製內容；更新工程標準時改 `AGENTS.md` 即可。`mortal-tools init /path/to/repo` 也會寫入同樣入口。
 
+| 共用模組 | 何時讀 |
+| --- | --- |
+| [專案盤點與推送](skills/repo-publish/SKILL.md) | 手動盤點 Git 異動、依專案檢查提交推送並核對遠端版本時 |
+| [ECC 專項接入](tools/ecc/integration.md) | Rust、PostgreSQL、API 技能的版本、限制、更新與驗收 |
+| [每輪工作技能](agents/skills/cash-workflow/SKILL.md) | 維護 Codex／Claude Code 的每輪規則載入與任務分類時 |
+| [線上 3D 素材技能](skills/online-3d-assets/SKILL.md) | 使用 Tripo／Meshy 製作遊戲素材、規劃成本、保存與 UE 驗收時 |
+
 ## 工具
 
 - `fluke_status`：服務 PID／健康檢查／版本。

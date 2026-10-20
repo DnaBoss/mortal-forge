@@ -745,5 +745,95 @@
     "dependencies": "Python3、GNU du、systemd user、現有程序引用掃描；Docker 可選",
     "risk": "不刪除檔案；可清候選不是刪除授權。報告路徑只供私人網路閱覽。總覽與細項不可相加。",
     "verification": "2026-10-15：24項Python掃描與既有快取保護測試、30項Rust本機維護測試通過；格式、靜態檢查與建置通過。Aletheia真瀏覽器啟動／進度／結果、同來源正反例及防重驗證；證據 ~/.local/state/aletheia-disk-scan-20261015。MCP adapter 僅源碼直接測試，未重啟共用MCP。"
+  },
+  {
+    "name": "worktree-idle-audit",
+    "purpose": "唯讀盤點 git worktree：最後活動時間、未提交改動、分離 HEAD 是否有參照、使用中程序與容器、會被一起刪的被忽略檔，判定可刪或保留",
+    "location": "/home/cash/tools/worktree_idle_audit.py",
+    "usage": "python3 ~/tools/worktree_idle_audit.py --repo <任一 worktree> [--days 5] [--json]",
+    "input": "repo 路徑、閒置天數門檻",
+    "output": "每個 linked worktree 一行判定 SAFE／KEEP:<原因>；--json 輸出完整欄位",
+    "dependencies": "Python3、git；docker 可選（讀不到時判 KEEP:docker_unknown）",
+    "risk": "不刪任何東西；SAFE 不是刪除授權。活動時間先量再跑 git，git 帶 GIT_OPTIONAL_LOCKS=0 不改 index。logs/HEAD 不看修改時間（git gc 會整批改），改讀最後一筆紀錄內的時間。SAFE 仍可能含 .env 副本與 .uploads，刪前自行備份。",
+    "verification": "2026-10-15：臨時 repo 三種情境（乾淨舊→SAFE、有改動→KEEP:dirty、新建→KEEP:active）；logs/HEAD 改成現在仍 SAFE、工作檔改成現在變 KEEP:active。ai-mall 實跑 83 個 worktree，清掉 47 個、0 失敗。"
+  },
+  {
+    "name": "cash-rule-delivery",
+    "purpose": "階段、大功能、里程碑驗證後背景部署；同環境順序與防重；未部署不能結案，其他工作可繼續",
+    "location": "/home/cash/tools/cash_rule_delivery.py",
+    "usage": "python3 ~/tools/cash_rule_delivery.py submit FILE --task T --step S；status JOB_DIR；retry JOB_DIR --authorization JSON --sha256 HASH",
+    "input": "同名 delivery.json 固定版本、驗證與既有授權；固定部署和線上讀回腳本",
+    "output": "持久作業狀態、原件、系統服務；進度工具自動呼叫",
+    "dependencies": "Python3；Linux systemd user manager",
+    "risk": "按既有授權執行固定發布腳本；不自動重試；每腳本最多900秒；不提供任意Shell MCP入口",
+    "verification": "75項相關測試與真systemd兩版本排序、非阻塞、重送防護；隔離環境，不代表專案正式發布驗收",
+    "browser_delivery": "Browser releases require same-version current_entry, previous_entry, missing_asset_negative and cache_revalidation artifacts in delivery receipts; enforced by agents/guards/delivery_check.py at Stop. Fluke host is enforced even without surface hint. Does not prove artifact authenticity.",
+    "browser_verification": "2026-10-18: 4 upgrade guard tests plus 20 existing receipt tests passed; live Fluke old-entry 404 reproduced and restored. Evidence: /home/cash/.local/share/fluke-index-pck-recovery-20261018/"
+  },
+  {
+    "name": "cash-workflow-context",
+    "purpose": "每輪輸出共用工作技能，由模型按上下文選擇問答、單次操作、評估或工程步驟",
+    "location": "/home/cash/work_space/private/mortal-mcp/agents/skills/cash-workflow/scripts/turn_context.py",
+    "usage": "/usr/bin/python3 /home/cash/.agents/skills/cash-workflow/scripts/turn_context.py",
+    "input": "宿主 hook JSON；只使用 hook_event_name",
+    "output": "SessionStart／UserPromptSubmit 的 additionalContext；其他事件空物件；讀取失敗退出 1",
+    "dependencies": "Python 3 標準函式庫；相鄰 SKILL.md",
+    "risk": "只讀技能；不讀提示內容、不連網、不呼叫模型、不寫對話；不改既有 guard；無 MCP adapter，宿主直接執行",
+    "verification": "6 項離線測試通過；宿主新工作階段實際接收仍待驗證"
+  },
+  {
+    "name": "ecc-reference",
+    "purpose": "校驗並讀取固定版本 ECC Rust、PostgreSQL、API 專項參考",
+    "location": "/home/cash/work_space/private/mortal-mcp/tools/ecc/load.py",
+    "usage": "python3 /home/cash/work_space/private/mortal-mcp/tools/ecc/load.py --verify；群組 rust-review/rust-build/rust-test/database-review/database-migration/api",
+    "input": "固定群組名；本機 manifest 與完整來源",
+    "output": "本機限制、版本及校驗過的原文；不執行上游命令",
+    "dependencies": "Python 3.10+、Git；固定版本來源",
+    "risk": "唯讀；不安裝 hooks、不連 DB、不改來源；目前為 CLI，無 MCP adapter",
+    "verification": "tools/ecc/test_load.py 與完整來源校驗"
+  },
+  {
+    "name": "knip",
+    "purpose": "找 JavaScript/TypeScript 未用檔案、匯出與依賴",
+    "location": "/home/cash/.local/share/code-quality/node_modules/.bin/knip",
+    "usage": "依 ~/.agents/skills/cash-workflow/references/code-quality.md 選正確工作區與有界掃描範圍",
+    "input": "目標工作區與可信任專案設定",
+    "output": "報告；不是自動刪除或抽象的依據",
+    "dependencies": "固定版本 6.42.0；完整依賴在 ~/.local/share/code-quality/package-lock.json",
+    "risk": "不使用自動修正、語意模型或外部服務；CLI only，無 MCP adapter",
+    "verification": "2026-10-19 正反案例：問題樣本 exit 1、正常樣本 exit 0、來源雜湊未改；證據 ~/.local/state/concise-quality/20261019/tool-checks.json"
+  },
+  {
+    "name": "jscpd",
+    "purpose": "找多語言複製區段，供本次差異審查",
+    "location": "/home/cash/.local/share/code-quality/node_modules/.bin/jscpd",
+    "usage": "依 ~/.agents/skills/cash-workflow/references/code-quality.md 選正確工作區與有界掃描範圍",
+    "input": "目標工作區與可信任專案設定",
+    "output": "報告；不是自動刪除或抽象的依據",
+    "dependencies": "固定版本 5.4.1；完整依賴在 ~/.local/share/code-quality/package-lock.json",
+    "risk": "不使用自動修正、語意模型或外部服務；CLI only，無 MCP adapter",
+    "verification": "2026-10-19 正反案例：問題樣本 exit 1、正常樣本 exit 0、來源雜湊未改；證據 ~/.local/state/concise-quality/20261019/tool-checks.json"
+  },
+  {
+    "name": "answer-me-with-html",
+    "purpose": "短 Markdown 轉單頁 HTML，比較與複雜解說按需使用",
+    "location": "/home/cash/work_space/private/mortal-mcp/skills/answer-me-with-html/scripts/am.mjs",
+    "usage": "node ~/.agents/skills/answer-me-with-html/scripts/am.mjs render draft.md --no-open",
+    "input": "短 Markdown 草稿；詳見共用同名技能",
+    "output": "本機 HTML 頁面；CLI only，無 MCP adapter",
+    "dependencies": "Node.js 20+；內附 CLI 0.5.5，固定 commit 7acea24024923eaae8647f5988e826062456dc86",
+    "risk": "寫本機頁面；預設不開瀏覽器、不查更新；不自動啟動服務、影片或清理",
+    "verification": "~/.local/state/answer-me-with-html-install/verification.json：繁中表格成功、非法負數圓餅圖拒絕、三個入口連結及 CLI 雜湊核對"
+  },
+  {
+    "name": "ai-tool-index",
+    "purpose": "統一盤點及搜尋本機 AI 工具、Skill、MCP、Plugin、模型與版本異動",
+    "location": "/home/cash/.local/bin/ai-tool-index",
+    "usage": "ai-tool-index scan; ai-tool-index search 關鍵字; ai-tool-index history; MCP ai_tool_index",
+    "input": "已知使用者設定；可明列最多 50 個專案；搜尋最多 200 字及 100 筆",
+    "output": "本機 SQLite 最近 100 次快照、JSON 查詢；未知狀態不當成功",
+    "dependencies": "Python 3.11+ 標準庫；Rust MCP；Ollama 清單唯讀且可略過",
+    "risk": "scan 寫本機索引；不執行登記命令、不讀 .env、不呼叫模型；不含 MCP args/env/headers/URL；未掃來源保留 stale",
+    "verification": "2026-10-20：9 項掃描測試、2 項 Rust 測試、5 項 Node 測試通過；真實 stdio 查詢及缺索引／非法上限陰性對照通過"
   }
 ]

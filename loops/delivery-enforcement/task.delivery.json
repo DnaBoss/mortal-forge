@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task": "delivery-enforcement",
+  "project": "/home/cash/work_space/private/mortal-mcp",
+  "steps": {
+    "S01": {
+      "kind": "milestone",
+      "environment": "local-agent-rules",
+      "artifact": {
+        "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/release.json",
+        "sha256": "a6152480f2be7755dda370c791c39d13c6cd22278214dc56b230359250881e02"
+      },
+      "validation": {
+        "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/validation.json",
+        "sha256": "71c189831a6a29490c9c3b5fdb15425dee19560e40972d663010a65bc3ec7bc7"
+      },
+      "authorization": {
+        "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/authorization.json",
+        "sha256": "5edd00e323ad2bbef19fa54979b657ea9c3fc1af1f76a8d4b72c447345473a09"
+      },
+      "deploy": {
+        "path": "/tmp/cash-delivery-20261017/install-local.py",
+        "sha256": "d0da1b50697ed8de2e39d4985e068796553ac16428883cb7e14868356cd1ad6d"
+      },
+      "readback": {
+        "path": "/tmp/cash-delivery-20261017/readback-local.py",
+        "sha256": "9b34b898289a8db8e6f25c6b1c265b0582473cfb24b1fdd2ad05bb8f664180e2"
+      },
+      "timeout_seconds": 30
+    }
+  }
+}

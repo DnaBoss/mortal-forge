@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task": "ecc-integration",
+  "project": "/home/cash/work_space/private/mortal-mcp",
+  "steps": {
+    "S01": {
+      "kind": "feature",
+      "environment": "local-skills",
+      "artifact": {
+        "path": "/home/cash/.local/state/ecc-integration/20261019/release.json",
+        "sha256": "5156e5e977f5135991198f77b3a8a379fc308116dc49a7db6783c828a96a4aed"
+      },
+      "validation": {
+        "path": "/home/cash/.local/state/ecc-integration/20261019/delivery-validation.json",
+        "sha256": "a5479de775de884fb8e0a207621742a56cb00c9cee3f381d0eef0c6b44e9dad9"
+      },
+      "authorization": {
+        "path": "/home/cash/.local/state/ecc-integration/20261019/delivery-authorization.json",
+        "sha256": "3d113666286ca11c1b3c49170cd314b4b90b7b2113f860c4415273daa4062329"
+      },
+      "deploy": {
+        "path": "/home/cash/.local/state/ecc-integration/20261019/deploy-local.py",
+        "sha256": "7962c9440a821c953e5aeacfe5606c4cf75fdab70f0abb23e12dc7cfd9acd0c5"
+      },
+      "readback": {
+        "path": "/home/cash/.local/state/ecc-integration/20261019/readback-local.py",
+        "sha256": "21749589c56a5487c45ae135918f899acc687fffb1722bb8396c4d6328848896"
+      },
+      "timeout_seconds": 60
+    }
+  }
+}

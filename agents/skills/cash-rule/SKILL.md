@@ -20,6 +20,14 @@ Protocol version: `1.2.0`. 使用者當前指示與專案規則優先；本協�
 
 任務狀態：`DISCOVERING`、`PLANNED`、`RUNNING`、`VALIDATING`、`REVIEWING`、`WAITING`（等具名的人或事件）、`BLOCKED`、`MONITORING`；終態 `COMPLETE`／`CANCELLED`／`SUPERSEDED`／`FAILED`，只有整體驗收通過才 `COMPLETE`。Step 狀態：`PENDING`、`READY`、`RUNNING`、`VALIDATING`、`DONE`、`BLOCKED`、`FAILED`、`CANCELLED`、`SKIPPED`、`SUPERSEDED`；未驗收不得 `DONE`。合法轉換由 schema 與寫入工具把關，不在這裡重述。
 
+## 交付點與不停工（使用者 2026-10-17 定）
+
+階段、大功能、里程碑都是交付點。規劃時列入同名 `*.delivery.json`；內部分析／準備步驟須明列理由，不得把交付點改名藏掉。交付點寫 `VALIDATING` 並附全部通過的檢查時，進度工具自動送出既有授權的背景部署；AI 立即繼續無依賴工作。部署與線上驗收未過，不得將該交付點標 `DONE` 或整體標 `COMPLETE`，但不得因此停下其他工作。不得以「部署中」為由反覆等待或重送；查明狀態，修復或續做其他步驟。細則、部署接法與恢復見 [交付](references/delivery-policy.md)。
+
+## 瀏覽器跨版交付（2026-10-18）
+
+網頁發布須同時驗新版入口、升級前入口仍開著的情況、原網址正常重新整理、舊資源可讀及故意缺檔的失敗對照；不得用清快取或加查詢參數代替原網址驗收。保留舊入口相依資源，確認入口快取規則；僅健康端點、版本檔、下載雜湊不算可玩。收據標 `surface:browser`，附四份同版原件；格式及機械檢查見 [交付](references/delivery-policy.md)。
+
 ## 每輪三問（使用者 2026-10-09 定）
 
 1. 更接近目標了嗎：對照整體驗收列本輪新證據；改檔數、工具呼叫數、局部測試數不算進度。
@@ -27,6 +35,8 @@ Protocol version: `1.2.0`. 使用者當前指示與專案規則優先；本協�
 3. 走偏了嗎：在做無關功能、過度補文件、重複驗證，立刻停下拉回。
 
 連續兩輪沒有新證據就換方法、縮小問題或提出決策，不重跑原命令。
+
+原始交付決定範圍；每個旁支必須能指出不做就無法交付的原始要求，否則不阻擋主線。使用者糾正方向時先更新當前步驟，不得回答後又恢復被否定的做法。只剩背景工作時等待該工作的完成事件；重讀未變日誌、寫進度或重複回報不算進展，不觸發新一輪。
 
 ## 證據
 
@@ -48,6 +58,8 @@ Protocol version: `1.2.0`. 使用者當前指示與專案規則優先；本協�
 ## 本機 Essence（使用者 2026-09-28 定）
 
 工作派本機 AI 執行、監督者驗收；開工先讀 lessons；可重用程式做成 SKILL＋MCP 進 mortal-mcp；CPU／記憶體留餘裕。Rust 一個 repo 只有一份 `target/`（使用者 2026-10-03／04 定），由 `~/.local/bin/cargo` 包裝程式與 guard 執行，細則見 cargo-cache 技能。
+
+Shell 指令中的 `*`、`?` 必須加引號，或改用 `find`、`rg --glob`；不能用 `GLOB_OK=1` 掩蓋可改正的指令。這項檢查只適用真正的 shell 指令，不得掃描補丁內容；Python 的 keyword-only `*,` 等程式語法必須放行。`write_guard.py` 依工具名稱分流，`test_shell_glob.py` 同時驗證補丁放行與 shell 攔截。
 
 ## 按需載入
 

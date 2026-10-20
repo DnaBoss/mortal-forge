@@ -208,6 +208,13 @@ def main() -> int:
             candidate.unlink(missing_ok=True)
             print("rejected; nothing written:\n" + check.stdout + check.stderr, file=sys.stderr)
             return 1
+        from cash_rule_delivery import gate as delivery_gate
+        problem = delivery_gate(args.file, args.task, args.step, args.task_state,
+                                args.step_state, args.check)
+        if problem:
+            candidate.unlink(missing_ok=True)
+            print("rejected; nothing written:\n" + problem, file=sys.stderr)
+            return 1
         os.replace(candidate, args.file)
     print(f"appended iteration {record['iteration']} ({record['task_state']}/{record['step_state']})")
     return 0

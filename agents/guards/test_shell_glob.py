@@ -93,6 +93,23 @@ class ShellGlobTest(unittest.TestCase):
             else:
                 os.environ["SHELL"] = old
 
+    def test_apply_patch_python_keyword_only_marker_is_not_shell_glob(self):
+        old = os.environ.get("SHELL")
+        os.environ["SHELL"] = "/usr/bin/zsh"
+        try:
+            patch = "*** Begin Patch\n+def f(value, *, flag=False):\n*** End Patch"
+            payload = {
+                "tool_name": "apply_patch",
+                "tool_input": {"command": patch},
+                "cwd": self.base,
+            }
+            self.assertIsNone(write_guard.verdict(payload)[0])
+        finally:
+            if old is None:
+                os.environ.pop("SHELL", None)
+            else:
+                os.environ["SHELL"] = old
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlparse
 
 LIMIT = 1024 * 1024
 MARKER = re.compile(r'^交付收據[：:]\s*`?([^`\r\n]+?)`?\s*$', re.M)
@@ -85,6 +86,18 @@ def check_receipt(receipt, cwd, session):
                     raise ValueError('入口指紋不是交付入口')
             elif evidence.get('kind') != 'deployment_readback':
                 raise ValueError('部署須有實際部署讀回，不能只用建置成功')
+            if status == 'deployed' and (delivery.get('surface') == 'browser' or
+                    urlparse(delivery['entrypoint']).hostname == 'fluke.exactlyone.dev'):
+                upgrade = evidence.get('browser_upgrade', {})
+                required = {'current_entry', 'previous_entry', 'missing_asset_negative', 'cache_revalidation'}
+                if not isinstance(upgrade, dict) or set(upgrade) != required:
+                    raise ValueError('瀏覽器交付缺新版、舊入口、缺包反例或快取重新驗證')
+                for name in required:
+                    proof = json.loads(artifact(upgrade[name], cwd)[0])
+                    if (proof.get('check') != name or proof.get('result') != 'pass'
+                            or proof.get('version_sha256') != version['sha256']):
+                        raise ValueError('瀏覽器跨版驗證不是同版成功原件')
+
         elif status in ('unauthorized', 'paused', 'read_only', 'failed'):
             if not nonempty(delivery.get('reason')) or not nonempty(delivery.get('next_action')):
                 raise ValueError('未交付須有具體理由與下一步')
