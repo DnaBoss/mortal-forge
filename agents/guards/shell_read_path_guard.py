@@ -83,8 +83,24 @@ def missing_shell_read(text, base):
                 return False
             target = value if os.path.isabs(value) else os.path.join(base, value)
             if not os.path.exists(target):
-                return True
+                return target
     return False
+
+
+def other_worktree_hits(target, base):
+    import subprocess
+    try:
+        out = subprocess.run(['git', '-C', base, 'worktree', 'list', '--porcelain'],
+                             capture_output=True, text=True, timeout=5).stdout
+        top = subprocess.run(['git', '-C', base, 'rev-parse', '--show-toplevel'],
+                             capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return []
+    rel = os.path.relpath(target, top) if top and target.startswith(top + os.sep) else None
+    if not rel:
+        return []
+    roots = [l[9:] for l in out.splitlines() if l.startswith('worktree ')]
+    return [os.path.join(r, rel) for r in roots if r != top and os.path.exists(os.path.join(r, rel))]
 
 
 if __name__ == '__main__':

@@ -1025,9 +1025,12 @@ def verdict(payload):
             return "git-source-revision", "目前Git專案沒有這個固定版本，請先核對工作目錄與版本來源，再讀來源檔案。"
         if missing_git_source_path(text, schema_base):
             return "git-source-path", "該Git版本沒有這個路徑，請先列出版本內檔案並核對工作目錄，勿猜路徑。"
-        from shell_read_path_guard import missing_shell_read
-        if missing_shell_read(text, schema_base):
-            return "shell-read-path", "固定讀取路徑不存在；請先列出實際檔案，核對後再讀取。"
+        from shell_read_path_guard import missing_shell_read, other_worktree_hits
+        missing = missing_shell_read(text, schema_base)
+        if missing:
+            hits = other_worktree_hits(missing, schema_base)
+            hint = "；其他worktree有同名檔，請改用絕對路徑：" + "、".join(hits) if hits else ""
+            return "shell-read-path", "固定讀取路徑不存在；請先列出實際檔案，核對後再讀取。" + hint
         if missing_literal_docs_read(text, schema_base):
             return "docs-read-path", "目前工作目錄找不到這個相對文件路徑；請核對專案，跨專案文件改用已確認的絕對路徑。"
         if missing_fluke_evidence_read(text, schema_base):
