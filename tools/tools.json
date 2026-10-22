@@ -745,5 +745,16 @@
     "dependencies": "Python3、GNU du、systemd user、現有程序引用掃描；Docker 可選",
     "risk": "不刪除檔案；可清候選不是刪除授權。報告路徑只供私人網路閱覽。總覽與細項不可相加。",
     "verification": "2026-10-15：24項Python掃描與既有快取保護測試、30項Rust本機維護測試通過；格式、靜態檢查與建置通過。Aletheia真瀏覽器啟動／進度／結果、同來源正反例及防重驗證；證據 ~/.local/state/aletheia-disk-scan-20261015。MCP adapter 僅源碼直接測試，未重啟共用MCP。"
+  },
+  {
+    "name": "ai-tool-index",
+    "purpose": "統一盤點及搜尋本機 AI 工具、Skill、MCP、Plugin、模型與版本異動",
+    "location": "/home/cash/.local/bin/ai-tool-index",
+    "usage": "ai-tool-index scan; ai-tool-index search 關鍵字; ai-tool-index history; MCP ai_tool_index",
+    "input": "已知使用者設定；可明列最多 50 個專案；搜尋最多 200 字及 100 筆",
+    "output": "本機 SQLite 最近 100 次快照、JSON 查詢；未知狀態不當成功",
+    "dependencies": "Python 3.11+ 標準庫；Rust MCP；Ollama 清單唯讀且可略過",
+    "risk": "scan 寫本機索引；不執行登記命令、不讀 .env、不呼叫模型；不含 MCP args/env/headers/URL；未掃來源保留 stale",
+    "verification": "2026-10-20：9 項掃描測試、2 項 Rust 測試、5 項 Node 測試通過；真實 stdio 查詢及缺索引／非法上限陰性對照通過"
   }
 ]

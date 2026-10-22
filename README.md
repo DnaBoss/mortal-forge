@@ -108,3 +108,7 @@ install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，標準 Ski
 - `agents/`：跨 AI 共用規則（cash-rule、白話輸出、本機模型管理、錯誤知識庫 `lessons.md`）。本機 `~/.agents` 是指向這裡的連結。
 - `tools/`：可重用小工具與工具清單 `tools.json`。本機 `~/tools` 是指向這裡的連結。
 - 不進 Git：公司專案衍生的研究資料（`tools/cash_rule_study`、`tools/cash_rule_pilot`）、同步來的技能、備份、執行紀錄。規則見 `.gitignore`。
+
+## 本機 AI 工具盤點
+
+需要查 Skill、MCP、Plugin、模型來源與異動時，讀 [AI 工具總表](docs/ai-tool-index.md)。

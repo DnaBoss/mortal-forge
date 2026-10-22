@@ -69,7 +69,9 @@ impl MortalService {
         })))
     }
 
-    #[tool(description = "Search the configured tool catalog. This does not execute shell, MCP tools, DB, or remote actions.")]
+    #[tool(
+        description = "Search the configured tool catalog. This does not execute shell, MCP tools, DB, or remote actions."
+    )]
     fn mortal_catalog(
         &self,
         Parameters(request): Parameters<CatalogRequest>,
@@ -80,10 +82,10 @@ impl MortalService {
         let mut tools = Vec::new();
 
         for company in &self.config.companies {
-            if let Some(company_id) = company_filter {
-                if company.id != company_id {
-                    continue;
-                }
+            if let Some(company_id) = company_filter
+                && company.id != company_id
+            {
+                continue;
             }
             for tool in &company.tools {
                 let haystack = format!(

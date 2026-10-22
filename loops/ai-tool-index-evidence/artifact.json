@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "/home/cash/work_space/private/mortal-mcp-ai-index/tools/ai_tool_index.py",
+      "sha256": "fc8adc587cbf63d383f4dcaac322b07a941efc6b05738cccbb994e1446b81833",
+      "installed": "/home/cash/.local/lib/ai-tool-index/ai_tool_index.py"
+    },
+    {
+      "path": "/home/cash/work_space/private/mortal-mcp/target/debug/ai-tool-index-mcp",
+      "sha256": "0f23bbbf3c0f4a9962020cc338c8f282701d8f51c9c93ab66b74d185d20704cf",
+      "installed": "/home/cash/.local/bin/ai-tool-index-mcp"
+    },
+    {
+      "path": "/home/cash/work_space/private/mortal-mcp-ai-index/skills/ai-tool-index/SKILL.md",
+      "sha256": "1146a106eee14435c0a9cda69558e6d30b655093db9599edb21a01b9609df788",
+      "installed": "/home/cash/.local/lib/ai-tool-index/skill/SKILL.md"
+    },
+    {
+      "path": "/home/cash/work_space/private/mortal-mcp-ai-index/scripts/install-ai-tool-index.py",
+      "sha256": "4756b64dedbe23f239482d7c9078a02ce4f97af7beab6f997116d116ff8b8667",
+      "installed": null
+    },
+    {
+      "path": "/home/cash/work_space/private/mortal-mcp-ai-index/scripts/smoke-ai-tool-index.py",
+      "sha256": "05d8529e1402c8cb57a8a0afdff154c6591eee72d4f83bec0d3d9036e478810c",
+      "installed": null
+    }
+  ],
+  "installer": "/home/cash/work_space/private/mortal-mcp-ai-index/scripts/install-ai-tool-index.py",
+  "smoke": "/home/cash/work_space/private/mortal-mcp-ai-index/scripts/smoke-ai-tool-index.py"
+}
