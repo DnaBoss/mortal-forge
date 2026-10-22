@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task": "TASK_ID",
+  "project": "/absolute/project",
+  "steps": {
+    "S01": {"kind": "internal", "reason": "盤點與準備，不是可用功能的交付點"},
+    "S02": {
+      "kind": "milestone",
+      "environment": "qa",
+      "artifact": {"path": "release.tar", "sha256": "REPLACE_WITH_SHA256"},
+      "validation": {"path": "validation.json", "sha256": "REPLACE_WITH_SHA256"},
+      "authorization": {"path": "authorization.json", "sha256": "REPLACE_WITH_SHA256"},
+      "deploy": {"path": "deploy.sh", "sha256": "REPLACE_WITH_SHA256"},
+      "readback": {"path": "readback.sh", "sha256": "REPLACE_WITH_SHA256"},
+      "timeout_seconds": 300
+    }
+  }
+}

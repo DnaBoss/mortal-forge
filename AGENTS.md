@@ -44,3 +44,7 @@
 - For MCP behavior changes, run the real HTTP smoke test only when it will not restart or mutate game processes.
 - For CodeGraph changes, verify `codegraph status`; if telemetry is available, turn it off for this repo.
 - Final reports must list what changed, what was verified, and what remains unverified.
+
+## 共通 Gitflow 規範
+
+新工作遵守 [DEVELOPMENT.md](DEVELOPMENT.md)，使用 `develop` 與 `feature/`、`bug/`、`release/`、`hotfix/`。既有架構、安全、資料與驗收約束繼續有效。執行 `.repo-policy/install.py` 安裝可復原的 hooks；不得繞過失敗 gate。

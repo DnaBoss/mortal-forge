@@ -1,5 +1,10 @@
 # MORTAL MCP
 
+Rust 多工作樹共用編譯快取：見 [cargo-cache 技能](skills/cargo-cache/SKILL.md)。
+先用 `python3 tools/cargo_cache.py audit --repo <工作樹>` 盤點；`adopt` 預設預覽，加 `--apply` 才刪除已核對的閒置編譯快取。
+`install-hooks` 追加 Claude／Codex 的開工、編譯前、收工與關閉檢查，保留原有 hook 並備份。
+`--allow-session-cleanup` 明確啟用關閉後的有界背景清理；MCP 的 `mortal_cargo_cache_status` 只讀最近盤點紀錄。
+
 MORTAL 是可安裝的標準 Skill／Plugin 套件與本機 MCP 服務。Skill 負責工作流，底層呼叫本 repo 提供的 Rust MCP 服務、固定 CLI、Shell adapter 或其他 MCP tool。
 
 主要目標：
@@ -44,6 +49,13 @@ MORTAL_CONFIG=config/mortal.example.json cargo run --bin mortal-mcp
 - GitHub Copilot：`.github/copilot-instructions.md`
 
 這些入口只指向同一套規則，不複製內容；更新工程標準時改 `AGENTS.md` 即可。`mortal-tools init /path/to/repo` 也會寫入同樣入口。
+
+| 共用模組 | 何時讀 |
+| --- | --- |
+| [專案盤點與推送](skills/repo-publish/SKILL.md) | 手動盤點 Git 異動、依專案檢查提交推送並核對遠端版本時 |
+| [ECC 專項接入](tools/ecc/integration.md) | Rust、PostgreSQL、API 技能的版本、限制、更新與驗收 |
+| [每輪工作技能](agents/skills/cash-workflow/SKILL.md) | 維護 Codex／Claude Code 的每輪規則載入與任務分類時 |
+| [線上 3D 素材技能](skills/online-3d-assets/SKILL.md) | 使用 Tripo／Meshy 製作遊戲素材、規劃成本、保存與 UE 驗收時 |
 
 ## 工具
 
@@ -108,3 +120,7 @@ install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，標準 Ski
 - `agents/`：跨 AI 共用規則（cash-rule、白話輸出、本機模型管理、錯誤知識庫 `lessons.md`）。本機 `~/.agents` 是指向這裡的連結。
 - `tools/`：可重用小工具與工具清單 `tools.json`。本機 `~/tools` 是指向這裡的連結。
 - 不進 Git：公司專案衍生的研究資料（`tools/cash_rule_study`、`tools/cash_rule_pilot`）、同步來的技能、備份、執行紀錄。規則見 `.gitignore`。
+
+## 本機 AI 工具盤點
+
+需要查 Skill、MCP、Plugin、模型來源與異動時，讀 [AI 工具總表](docs/ai-tool-index.md)。

@@ -16,6 +16,20 @@
           "read_only": true
         }
       ]
+    },
+    {
+      "id": "newretail",
+      "name": "新零售",
+      "tools": [
+        {
+          "name": "mall-standard-intake",
+          "purpose": "驗證商城API經共用收集器與Aletheia隔離保存，不包含正式部署或查詢畫面",
+          "adapter": {
+            "kind": "not_implemented"
+          },
+          "read_only": false
+        }
+      ]
     }
   ]
 }

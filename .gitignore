@@ -19,3 +19,5 @@ tools/cash_rule_study/
 tools/cash_rule_pilot/
 # Runtime audit log of reply checks (may contain conversation text).
 agents/plain-output/audit/
+agents/evidence/loop-cost-20261005/schema/
+tools/tools.json.lock

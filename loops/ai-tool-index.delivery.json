@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task": "ai-tool-index",
+  "project": "/home/cash/work_space/private/mortal-mcp-ai-index",
+  "steps": {
+    "inventory": {
+      "kind": "milestone",
+      "environment": "local",
+      "artifact": {
+        "path": "/home/cash/work_space/private/mortal-mcp-ai-index/loops/ai-tool-index-evidence/artifact.json",
+        "sha256": "e8cf97bf736ac6b2784e48f6564f461fb28acb6801d0dadeae0d3b94edea252b"
+      },
+      "validation": {
+        "path": "/home/cash/work_space/private/mortal-mcp-ai-index/loops/ai-tool-index-evidence/validation.json",
+        "sha256": "9ba517075c3a68a8bbf20d9bb7cd761f6988b1bbe27dc27b1fe133fb6a8d2083"
+      },
+      "authorization": {
+        "path": "/home/cash/work_space/private/mortal-mcp-ai-index/loops/ai-tool-index-evidence/authorization.json",
+        "sha256": "8519edd85942df85580bad056087236df40aadb6ccf44f4462d9f6608132aad0"
+      },
+      "deploy": {
+        "path": "/home/cash/work_space/private/mortal-mcp-ai-index/loops/ai-tool-index-evidence/deploy.py",
+        "sha256": "45c4bf6c36554e6823aaa6673c1622a200429188ca7d2aff2e61e092ed4b0536"
+      },
+      "readback": {
+        "path": "/home/cash/work_space/private/mortal-mcp-ai-index/loops/ai-tool-index-evidence/readback.py",
+        "sha256": "a14b19f9c4cc649588880dc1607f95e45ebfc413ce3926f876a371c4d173288d"
+      },
+      "timeout_seconds": 60
+    }
+  }
+}

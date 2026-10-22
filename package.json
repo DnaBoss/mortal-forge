@@ -4,8 +4,42 @@
   "private": true,
   "description": "Installable MORTAL skills, CLI, and Rust MCP service",
   "type": "module",
-  "bin": {"mortal-tools": "bin/mortal-tools.mjs"},
-  "engines": {"node": ">=22"},
-  "files": ["bin/", "skills/", ".agents/skills/", "src/", "Cargo.toml", "Cargo.lock", "config/", "plugin.json", "mcp.json", "server.py", "call.py", "pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursor/rules/", ".windsurf/rules/", ".github/copilot-instructions.md", "docs/package-plan.md"],
-  "scripts": {"test": "node --test test/*.test.mjs && cargo test"}
+  "bin": {
+    "mortal-tools": "bin/mortal-tools.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    ".agents/skills/",
+    "src/",
+    "Cargo.toml",
+    "Cargo.lock",
+    "config/",
+    "plugin.json",
+    "mcp.json",
+    "server.py",
+    "call.py",
+    "pyproject.toml",
+    "uv.lock",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".cursor/rules/",
+    ".windsurf/rules/",
+    ".github/copilot-instructions.md",
+    "docs/package-plan.md",
+    ".repo-policy/",
+    "DEVELOPMENT.md",
+    "tools/gitflow-policy/",
+    "tools/cargo_cache.py",
+    "agents/guards/cargo_cache_guard.py",
+    "agents/skills/cash-rule/"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs && cargo test"
+  }
 }

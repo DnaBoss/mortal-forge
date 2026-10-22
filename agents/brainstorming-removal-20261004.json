@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-04T08:36:37.199011+08:00",
+  "removed_skill": "superpowers:brainstorming",
+  "removed_directories": [
+    "/home/cash/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/brainstorming",
+    "/home/cash/.codex/plugins/.remote-plugin-install-staging/remote-plugin-bundle-nvufk7/skills/brainstorming"
+  ],
+  "deleted": true,
+  "disabled_skill_paths": [
+    "/home/cash/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/brainstorming",
+    "/home/cash/.codex/plugins/.remote-plugin-install-staging/remote-plugin-bundle-nvufk7/skills/brainstorming"
+  ],
+  "configuration_parse_valid": true,
+  "other_configuration_preserved": true,
+  "other_superpowers_skills_preserved": true,
+  "shared_exclusion": "agents/context-evaluation-workflow.md",
+  "config_reference": "https://learn.chatgpt.com/docs/config-file/config-reference"
+}

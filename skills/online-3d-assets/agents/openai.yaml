@@ -1,0 +1,4 @@
+interface:
+  display_name: "線上 3D 素材製作"
+  short_description: "規劃 Tripo／Meshy 遊戲素材成本、保存成果與 UE 驗收"
+  default_prompt: "使用 $online-3d-assets 規劃本批 UE5 素材，先估費、設定停止條件與保存方式，不先付費生成。"

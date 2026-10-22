@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "planning_only",
+  "batch_id": "lantern-bay-pilot",
+  "spending_authorization": {
+    "reference": null,
+    "currency": "USD",
+    "max_cash": null,
+    "provider_credit_caps": {},
+    "approved_upload_inputs": []
+  },
+  "limits": {
+    "concurrency": 1,
+    "max_geometry_candidates_per_asset_per_provider": 2,
+    "automatic_paid_retries": 0,
+    "cleanup_review_minutes": 30
+  },
+  "pricing_checked_at": null,
+  "providers": [],
+  "assets": [],
+  "costs": {
+    "confirmed_cash": 0,
+    "reserved_cash": 0,
+    "unknown_cash_reserve": 0,
+    "subscription_allocation": null,
+    "cleanup_minutes": 0
+  },
+  "owner": null,
+  "stop_conditions": [
+    "authorization_or_price_unknown",
+    "projected_cost_exceeds_remaining_budget",
+    "submission_unknown",
+    "repeated_visual_defect",
+    "archive_incomplete"
+  ]
+}

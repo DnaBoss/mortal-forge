@@ -1,0 +1,21 @@
+{
+  "scope": "literal Fluke evidence Python reads only; manual hook entry, not host integration",
+  "guard_rule": "fluke-evidence-read-path",
+  "red_tests": 10,
+  "red_failed_subtests": 7,
+  "green_new_tests": 10,
+  "green_prior_docs_tests": 14,
+  "green_existing_write_guard_tests": 8,
+  "manual_json_cases": 7,
+  "host_hookup_verified": false,
+  "reused_helper": "docker_scope_guard.python_heredocs",
+  "prior_path_resolver_not_reused": "missing_literal_docs_read resolver handles only relative direct Path; monitoring resolver is nested and broader than required (add/with_name/joinpath). New resolver supports only known Path bindings and literal slash joins.",
+  "files": {
+    "/home/cash/.agents/guards/write_guard.py": "fa2e2213e2631c6f6f08b2f17425dd35f98ef18fe55f2a49d81955c6e883f5b1",
+    "/home/cash/.agents/guards/test_fluke_evidence_path.py": "98c37283efcff7eb90339850a6da6627c8565c659defded9cbbefc176ebe7529"
+  },
+  "original_fluke_evidence_not_modified": true,
+  "fluke_product_not_modified": true,
+  "operational_lesson_appended": true,
+  "memory_not_changed": true
+}

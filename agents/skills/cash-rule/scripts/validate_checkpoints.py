@@ -26,7 +26,7 @@ def validate_records(records, schema_path=SCHEMA):
             continue
         invalid = list(validator.iter_errors(record))
         if invalid:
-            errors.extend(f'第 {count} 筆：格式不符（{e.validator}）' for e in invalid)
+            errors.extend(f'第 {count} 筆：格式不符（{e.validator}）欄位 {"/".join(map(str, e.absolute_path)) or "(整筆)"} 值 {e.instance!r:.80}，規則 {e.validator_value!r:.160}' for e in invalid)
             continue
         task = record['task_id']
         previous = tasks.get(task)

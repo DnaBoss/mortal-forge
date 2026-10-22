@@ -1,0 +1,25 @@
+{
+  "version_sha256": "a6152480f2be7755dda370c791c39d13c6cd22278214dc56b230359250881e02",
+  "result": "pass",
+  "checks": [
+    {
+      "name": "installed_files_match",
+      "result": "pass"
+    },
+    {
+      "name": "missing_delivery_rejected",
+      "result": "pass"
+    },
+    {
+      "name": "independent_work_allowed",
+      "result": "pass"
+    }
+  ],
+  "unit": "cash-rule-delivery",
+  "kind": "deployment_readback",
+  "entrypoint": "/home/cash/tools/cash_rule_checkpoint.py",
+  "source": {
+    "path": "/home/cash/.local/state/cash-rule-delivery/jobs/70cb05cc0250a6e3c773994a62fc52105ad2bb83c516ca898370a784812f6243/readback.stdout",
+    "sha256": "1fc2a9b557e93c5a530fa608bf9563c860e12aaad570337c7309cb5469205630"
+  }
+}

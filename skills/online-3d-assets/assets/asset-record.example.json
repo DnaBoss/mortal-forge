@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "asset_id": "bell",
+  "revision": "candidate-001",
+  "status": "planned",
+  "provider": null,
+  "billing_channel": null,
+  "model_version": null,
+  "client_version": null,
+  "task_id": null,
+  "parent_task_id": null,
+  "request_sha256": null,
+  "seed": null,
+  "inputs": [],
+  "parameters": {},
+  "submitted_at": null,
+  "completed_at": null,
+  "expires_at": null,
+  "cost": {
+    "estimated_credits": null,
+    "consumed_credits": null,
+    "confirmed_cash": null,
+    "currency": null,
+    "cleanup_minutes": null
+  },
+  "license": {
+    "input_rights": "unverified",
+    "plan_at_generation": null,
+    "terms_url": null,
+    "checked_at": null,
+    "attribution_required": null,
+    "publication_allowed": null
+  },
+  "files": [],
+  "archive": {
+    "download_verified": false,
+    "backup_location": null,
+    "restore_verified": false
+  },
+  "acceptance": {
+    "geometry": "not_run",
+    "materials": "not_run",
+    "scale_pivot": "not_run",
+    "collision": "not_run",
+    "ue_import": "not_run",
+    "animation": "not_run",
+    "performance": "not_run",
+    "reload": "not_run",
+    "evidence": []
+  },
+  "rejection_reason": null
+}

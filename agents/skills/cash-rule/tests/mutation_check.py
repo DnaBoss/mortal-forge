@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded semantic mutations of six requested gates; never edit live sources.
+"""Bounded semantic mutations of seven requested gates; never edit live sources.
 This score covers these named mutations, not all possible code mutations.
 """
 import copy
@@ -42,6 +42,9 @@ def run():
         if r.get('if', {}).get('properties', {}).get('previous_task_state') == {'const': None}:
             r['then']['properties']['task_state'] = {'const': 'DISCOVERING'}
     mutations.append(('reject-first-planned', s, 'valid-lifecycle'))
+    s = copy.deepcopy(base)
+    del s['properties']['stop_proof']['allOf'][1]
+    mutations.append(('allow-two-attempt-stop', s, 'invalid-stop-two-attempts'))
     killed = 0
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / 'schema.json'

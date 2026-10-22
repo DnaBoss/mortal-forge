@@ -1,0 +1,48 @@
+{
+  "guard_sha256": "561bf2b08ad3c671d983b35eb3f2b385070ba786e45718d9deb2794c6f0ccc12",
+  "focused_tests_passed": 14,
+  "root_manual_cases": [
+    {
+      "case": "unmodified_original_wrong_name",
+      "actual": "deny"
+    },
+    {
+      "case": "original_correct_existing_name",
+      "actual": "allow"
+    },
+    {
+      "case": "module_reassigned",
+      "actual": "allow"
+    },
+    {
+      "case": "module_reimported_other",
+      "actual": "allow"
+    },
+    {
+      "case": "imported_alias_wrong",
+      "actual": "deny"
+    },
+    {
+      "case": "arbitrary_object_path",
+      "actual": "allow"
+    },
+    {
+      "case": "dynamic_filename",
+      "actual": "allow"
+    },
+    {
+      "case": "outside_evidence",
+      "actual": "allow"
+    },
+    {
+      "case": "ordinary_write",
+      "actual": "allow"
+    },
+    {
+      "case": "create_then_read",
+      "actual": "allow"
+    }
+  ],
+  "initial_readback_error": "focused14 passed; subsequent cases KeyError because v2 schema actually manual_cases; schema inspected then corrected without repeating tests",
+  "scope": "manual guard verification; real valid-relative rejection remains unresolved, absolute known path works"
+}

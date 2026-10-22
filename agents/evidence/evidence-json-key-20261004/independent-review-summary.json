@@ -1,0 +1,19 @@
+{
+  "reviewed_guard_sha256": "79d0448cf7cde6575ddce041f26c4ed7108cb7cf72627ebc5985b241100d3610",
+  "focused_tests": 75,
+  "failures": 0,
+  "new_semantic_cases": 10,
+  "confirmed_false_rejections": 3,
+  "standalone_counterexamples_exit_zero": true,
+  "manual_hook_original_missing_denied_valid_allowed": true,
+  "boundary_cases": 7,
+  "original_simplified_prose_unchanged_independently_proven": false,
+  "automatic_host_integration_verified": false,
+  "decision": "request narrow invalidation fixes",
+  "evidence_sha256": {
+    "independent-review.md": "fa5e364c8553be54924de0d232c82c6972aa3103e05144adbd3b8cc16fd24e35",
+    "independent-review-cases.py": "27181f8f50b6fef93b2a66ec9ed502a0bb3a05dd9d3b807985520bdfe87e607e",
+    "independent-review-cases.json": "1c8b087dd44054011f4eb82eba08d6a42929c3f36f43bdc3ff907dd4dad3b9ad",
+    "independent-tests.log": "9e5e10e0f70667f9b1821afe19f650f5f1b86bf381f92ac74d23072cdadce2bb"
+  }
+}

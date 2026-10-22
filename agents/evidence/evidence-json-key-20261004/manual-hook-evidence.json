@@ -1,0 +1,151 @@
+{
+  "scope": "Manual actual hook invocation only; payloads constructed for stated cases, not captured host metadata",
+  "manual_cases": [
+    {
+      "name": "missing",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": true,
+      "response": {
+        "hookSpecificOutput": {
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "\u5df2\u77e5\u8b49\u64daJSON\u6c92\u6709\u9019\u500b\u6700\u4e0a\u5c64\u6b04\u4f4d\uff1b\u8acb\u5148\u6838\u5c0d\u5be6\u969b\u9375\u540d\uff0c\u518d\u7528\u5df2\u78ba\u8a8d\u7684\u6b04\u4f4d\u8b80\u53d6\uff0c\u4e0d\u8981\u731c\u683c\u5f0f\u3002"
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "correct",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "dynamic",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d[key])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "nested",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['manual_cases'][0]['missing'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "reassigned",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());d=other;print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "mutation",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/'v2-manual-hook-evidence.json').read_text());d.update(other);print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "write",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');(p/'new.json').write_text('{}');d=json.loads((p/'new.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "outside",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads(pathlib.Path('/tmp/outside.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "dynamicpath",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');d=json.loads((p/name).read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    },
+    {
+      "name": "module_rebound",
+      "payload": {
+        "tool_name": "exec_command",
+        "tool_input": {
+          "cmd": "python3 - <<'PY'\nimport pathlib,json\np=pathlib.Path('/home/cash/.agents/evidence/fluke-evidence-read-20261004');json=other;d=json.loads((p/'v2-manual-hook-evidence.json').read_text());print(d['cases'])\nPY",
+          "workdir": "/home/cash/orca/workspaces/Fluke/riichi-finetune"
+        }
+      },
+      "exit_code": 0,
+      "expected_deny": false,
+      "response": null,
+      "matched": true
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "cwd": "/home/cash/work_space/private/aletheia",
+  "session_id": "01a14a6b-d6b2-77b1-92ed-726d241dd16e",
+  "units": [
+    {
+      "id": "cash-rule-delivery",
+      "version": {
+        "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/release.json",
+        "sha256": "a6152480f2be7755dda370c791c39d13c6cd22278214dc56b230359250881e02"
+      },
+      "validation": {
+        "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/receipt-validation.json",
+        "sha256": "8b2e685fc55c3ea908bfdcbbbc33acb08717cf083141d288e37db0c4e0afee70"
+      },
+      "delivery": {
+        "status": "deployed",
+        "entrypoint": "/home/cash/tools/cash_rule_checkpoint.py",
+        "readback": {
+          "path": "/home/cash/work_space/private/mortal-mcp/loops/delivery-enforcement/delivery-readback.json",
+          "sha256": "1c9513d953df7d2b1c45f132aa173686087669a1e58c75ea4860baa7a24cee16"
+        }
+      }
+    }
+  ]
+}
