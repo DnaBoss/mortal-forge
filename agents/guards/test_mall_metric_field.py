@@ -1,4 +1,7 @@
 import unittest
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 import write_guard
 
 class MallMetricFieldTest(unittest.TestCase):
@@ -17,4 +20,7 @@ class MallMetricFieldTest(unittest.TestCase):
         command="python3 - <<'PY'\np=Path('queue-runtime-isolated.py')\np.write_text(\"assert 'EventLoopLagMillis' in row\")\nPY"
         self.assertEqual(write_guard.verdict({'tool_input': {'cmd':command}})[0],'mall-metric-field')
     def test_shell_read_allowed(self):
+        directory = self.enterContext(tempfile.TemporaryDirectory())
+        Path(directory, 'queue-runtime-isolated.py').touch()
+        self.enterContext(patch('write_guard.os.getcwd', return_value=directory))
         self.assertIsNone(write_guard.verdict({'tool_input': {'cmd':"rg \"'EventLoopLagMillis' in row\" queue-runtime-isolated.py"}})[0])

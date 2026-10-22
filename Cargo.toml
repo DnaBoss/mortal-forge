@@ -25,3 +25,6 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 [[bin]]
 name = "ai-tool-index-mcp"
 path = "src/ai_tool_index_mcp.rs"
+
+[dev-dependencies]
+tempfile = "3"
