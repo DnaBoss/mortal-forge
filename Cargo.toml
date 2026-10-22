@@ -13,7 +13,7 @@ path = "src/main.rs"
 [dependencies]
 actix-web = "4.12.1"
 anyhow = "1.0.100"
-rmcp = { version = "3.4.1", features = ["server", "macros"] }
+rmcp = { version = "3.4.1", features = ["server", "macros", "transport-io"] }
 rmcp-actix-web = "0.13.0"
 schemars = "1.2.2"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -21,3 +21,7 @@ serde_json = "1.0.145"
 tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "sync"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+
+[[bin]]
+name = "ai-tool-index-mcp"
+path = "src/ai_tool_index_mcp.rs"

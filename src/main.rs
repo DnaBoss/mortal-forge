@@ -22,8 +22,7 @@ async fn health() -> HttpResponse {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -37,7 +36,9 @@ async fn main() -> anyhow::Result<()> {
 
     let service_config = config.clone();
     let mcp_service = StreamableHttpService::builder()
-        .service_factory(Arc::new(move || Ok(MortalService::new(service_config.clone()))))
+        .service_factory(Arc::new(move || {
+            Ok(MortalService::new(service_config.clone()))
+        }))
         .session_manager(Arc::new(LocalSessionManager::default()))
         .stateful_mode(false)
         .sse_keep_alive(Duration::from_secs(30))

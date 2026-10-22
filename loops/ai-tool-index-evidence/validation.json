@@ -1,0 +1,37 @@
+{
+  "version_sha256": "e8cf97bf736ac6b2784e48f6564f461fb28acb6801d0dadeae0d3b94edea252b",
+  "checks": [
+    {
+      "name": "python_9",
+      "result": "pass"
+    },
+    {
+      "name": "rust_2",
+      "result": "pass"
+    },
+    {
+      "name": "node_5",
+      "result": "pass"
+    },
+    {
+      "name": "ruff",
+      "result": "pass"
+    },
+    {
+      "name": "clippy",
+      "result": "pass"
+    },
+    {
+      "name": "mcp_live",
+      "result": "pass"
+    },
+    {
+      "name": "installer_positive_negative",
+      "result": "pass"
+    },
+    {
+      "name": "settings_preserved",
+      "result": "pass"
+    }
+  ]
+}
