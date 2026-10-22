@@ -4204,3 +4204,37 @@
 - 原因：把舊介面契約當成研究前置工程，未優先沿用已知 Parquet 與使用者最新糾正。
 - 防：使用者確認既有資料時，先以已定位來源執行指定測試；不重開下載、全庫完整性或儲存遷移。必要取用方式有衝突時先就已知來源最小解決，不先部署新資料路徑。
 - 證據：Helios output/kalman-wavelet/20261020-tick-expiry/replay-progress.json；錯誤舊庫讀取已停止，額外 API 改動還原。
+
+## 2026-10-21 Gateway 在長工作途中部署並以單一空位承接 Claude Code
+- 錯：Claude Code 的 15 分鐘文件工作仍在進行時部署 Gateway；同時正式設定只准一個同憑證、模型與供應來源的請求執行。工作最後沒有產物，卻一度被當成 Claude 單純太慢或 hooks 卡住。
+- 原因：部署驗收只確認新版本健康，沒有保護使用者進行中的長工作；也沒有用 Claude Code 的實際並行請求量驗證正式環境的同時執行上限。
+- 防：部署前確認沒有進行中的長請求，永久改成忙碌時自動延後部署；以多請求壓力測試決定安全上限，並對排隊逾時、60 秒中止和部署中斷自動告警。故意把上限降回 1 時測試必須失敗。
+- 證據：2026-10-21 13:05–13:20 服務日誌有 10 次排隊 30 秒後逾時、11 次約 60 秒時由呼叫端中止；13:12:46 部署時仍有 1 個請求，13:13:16 被強制關閉。完整紀錄見 agent-pool-gateway `docs/incidents/2026-10-21-claude-code-timeout.md`。
+- 修正：正式環境改成 Gateway 不做同時請求限制，交由供應商或模型能力決定是否拒絕；自動測試在舊限制為 1 時仍放行 100 個請求，4 個真實 Claude 請求並行實測皆完成且無錯誤。忙碌時延後部署尚未完成。
+
+## 2026-10-21 Gateway 把慢首筆回應誤判成 Connection lost，並把 429 放大成 503
+- 錯：Claude 供應商約 59 秒才開始回應，Claude Code 在整筆請求滿 60 秒時離線；另一次供應商 429 讓 Gateway 暫停唯一供應商，後續請求由 Gateway 回 503。
+- 原因：Gateway 模型發現沒有宣告較長的靜默等待；路由又把供應商自己的 429 當成供應商故障。
+- 防：模型清單宣告 600 秒靜默等待且不自動重送，本機 Claude Code 設同值；429 原樣回該次呼叫，但不開啟 Gateway 暫停機制。自動測試固定驗證兩項契約。
+- 證據：Caddy 同筆連線僅 1.544 秒且無讀取逾時；Gateway request `2f1489d5-2e13-4601-8e5d-2c7e331ebbd1` 在 60.000 秒被 Client 取消。PR #76，部署版本 `90cb105a84a9`。
+
+## 2026-10-21 增量研究快取不等於完整日期快取
+- 錯：三年區間已含舊資料，補算特徵時只讀三年資料夾 days，漏掉原年度 days，遇到缺 zone_id 停止。
+- 原因：增量結果合併了區間，但每日快取仍分放新舊目錄。
+- 防：按日期合併既有來源快取，模型訓練前機械比對特徵 zone_id 集合與區間全集完全相同。
+- 證據：Helios output/liquid-windows/20261021-lightgbm-actions-01/failure.json；scripts/research_window_actions.py coverage check。
+## 2026-10-21 多平台背景工作切站空窗誤判為整批完成
+- 錯：只看 `platform_runs=[]` 就重啟求職工作台，未先核對整批 task；終端稍後吐出舊日誌時又一度誤判正在中斷 LinkedIn。
+- 原因：平台鎖只涵蓋單站，三站切換間會短暫為空；PTY 輸出可能延後，不代表事件剛發生。
+- 防：重啟前同時查 web task 與各站最新 `runs` 完成時間；日誌用資料庫時間線核對後再判斷，不以單次空鎖或延遲輸出決定。
+- 證據：JobResearch `runs` 顯示 104、LinkedIn、Cake 分別於 13:51:48、13:52:33、13:52:53 UTC 完成。
+## 2026-10-22 zsh 的 `path` 是特殊變數，迴圈覆寫後所有命令消失
+- 錯：用 `for path in ...` 做網址驗證，zsh 把 `path` 視為 `$PATH` 陣列，後續 `curl` 與 Chrome 都找不到。
+- 原因：沿用一般 shell 變數名稱，未避開 zsh 特殊參數。
+- 防：zsh 迴圈與腳本使用 `url_path`、`target_path` 等具體名稱，禁止把 `path` 當一般變數。
+- 證據：同一命令第一輪回報 `command not found: curl`；改名即可保留 PATH。
+## 2026-10-22 Node 標準輸入同時用 require 與頂層 await 會拒絕判定模組格式
+- 錯：臨時 CDP 擷取腳本同時使用 `require()` 與頂層 `await`，Node 22 回報 `ERR_AMBIGUOUS_MODULE_SYNTAX`。
+- 原因：標準輸入沒有檔案副檔名，CommonJS 與 ES module 語法混用，Node 無法選格式。
+- 防：需要頂層 `await` 的標準輸入腳本固定加 `node --input-type=module` 並使用 `import`。
+- 證據：正式手機 Chrome 首次擷取失敗；改為明確 ES module 後同一擷取成功。
