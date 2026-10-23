@@ -38,6 +38,9 @@ cash 2026-10-15 精簡版；原文封存於 mortal-mcp `agents/archive/burden-cu
 - 格式化、靜態檢查、測試三關過才提交；迭代只跑快的，push／PR 前跑全套。feature branch 提交、Conventional Commits；主幹提交與強推由 git_guard 擋。
 - 分層：路由層只驗參數、呼叫服務、對應錯誤；資料存取收在資料層；UI 只渲染與發動作；設定值集中。
 - 錯誤全記錄不吞、統一出口、結構化日誌；不記 PII、token、完整 body；生產路徑不用 unwrap／expect／bare assert。
+- Gateway 事故以使用者體感判定：連不上、常出錯、變慢、容易中斷，或任何明顯降低使用品質的情況都要記錄；健康頁亮綠燈也不能排除事故。
+- 事故紀錄先用白話交代「原本怎麼運作、哪一步接錯、使用者看到什麼、怎麼處理、如何防止」，讓初階工程師能照著理解與處理；技術名稱與數字只放在後面作查證資料。
+- Gateway 搬家或發版後，必須用原本的 Client 真的送出一次請求；只看服務有啟動、健康頁正常或程式編譯成功，不得宣稱完成。
 - SQL 參數化；不 commit 憑證；Docker port 綁 127.0.0.1。
 - `/home/cash/work_space/private` 下所有常駐服務一律在 Docker 或 Podman 容器內執行；主機 systemd 只能管理容器編排。互動式開發、測試與一次性 CLI 可在主機執行，禁止用 host systemd、PM2、nohup 或 systemd-run 直接常駐專案程式。
 - 長時工作要可觀測、可續跑、可停用、有重複執行防護；單一請求撐不完就改背景工作。不自動改寫使用者原始資料。
