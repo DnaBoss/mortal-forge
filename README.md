@@ -71,15 +71,17 @@ MCP 層的 lock 不涵蓋人手直接執行原腳本；不要同時繞過入口�
 
 ## 本機服務
 
-`systemctl --user status mortal-mcp.service`
+常駐服務只在容器內執行：
 
-`journalctl --user -u mortal-mcp.service -n 30 --no-pager`
+`docker compose -f deploy/compose.yml ps`
 
-服務由使用者 systemd 管理，不建立 cron。停止服務不代表遊戲停止。
+`docker compose -f deploy/compose.yml logs --tail 30`
+
+服務由 Docker Compose 管理，不建立 cron。停止服務不代表遊戲停止。
 SDK 使用官方 Python MCP SDK，固定版本於 `uv.lock`。
 Rust MCP 使用 `rmcp` 與 `rmcp-actix-web`。
 
-安裝本機服務：`bash scripts/install-service.sh /absolute/Fluke/checkout`。已在執行的服務不會被安裝腳本重啟。
+安裝本機服務：`bash scripts/install-service.sh /absolute/Fluke/checkout`。
 
 已驗證：`smoke_test.py` 透過真 HTTP MCP 呼叫查狀態、探索五工具、拒絕錯誤參數及拒絕同時重複操作；詳 `smoke-result.json`。開啟與隔離測試工具本輪未經 MCP 執行，底層腳本既有驗證不算此介面的驗證。
 
