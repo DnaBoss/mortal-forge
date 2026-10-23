@@ -17,7 +17,13 @@ from mcp.server.fastmcp import FastMCP
 
 ROOT = Path(os.environ["MORTAL_FLUKE_ROOT"]).resolve() if os.environ.get("MORTAL_FLUKE_ROOT") else None
 EVIDENCE = (ROOT / "docs/superpowers/evidence/table-visual-upgrade/mcp-operations") if ROOT else Path.home() / ".local/state/mortal-mcp/evidence"
-SERVER = FastMCP("mortal-mcp", host="127.0.0.1", port=18765, stateless_http=True, json_response=True)
+SERVER = FastMCP(
+    "mortal-mcp",
+    host=os.environ.get("MORTAL_BIND_HOST", "127.0.0.1"),
+    port=18765,
+    stateless_http=True,
+    json_response=True,
+)
 
 
 def execute(argv: list[str], *, mutation: bool, timeout: int = 180) -> dict:
