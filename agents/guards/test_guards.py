@@ -154,6 +154,31 @@ class WriteGuardTest(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 self.assertEqual(self.shell(cmd), "allow")
 
+    def test_private_host_services_denied(self):
+        private_cwd = "/home/cash/work_space/private/example"
+        for cmd in [
+            "systemctl --user restart example.service",
+            "nohup ./server >server.log 2>&1 &",
+            "systemd-run --user ./server",
+        ]:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.shell(cmd, cwd=private_cwd), "deny")
+        unit = "[Service]\nWorkingDirectory=/home/cash/work_space/private/example\nExecStart=/opt/example/server\n"
+        self.assertEqual(self.tool("Write", {"file_path": "/tmp/example.service", "content": unit}), "deny")
+
+    def test_private_container_services_and_interactive_commands_allowed(self):
+        private_cwd = "/home/cash/work_space/private/example"
+        for cmd in [
+            "docker compose up -d",
+            "cargo test",
+            "python3 smoke_test.py",
+            "gh pr create --body 'Do not use nohup for this service'",
+        ]:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.shell(cmd, cwd=private_cwd), "allow")
+        unit = "[Service]\nExecStart=/usr/bin/docker compose -f /opt/example/compose.yml up\n"
+        self.assertEqual(self.tool("Write", {"file_path": "/tmp/example.service", "content": unit}), "allow")
+
     def test_zsh_unsplit_command_denied(self):
         for cmd in ['CK="uv run python3 tool.py f --task t"; $CK --x 1',
                     'F=a; CK="uv run x"\n$CK --task-state A && $CK --task-state B',
