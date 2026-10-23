@@ -1004,6 +1004,10 @@ def verdict(payload):
         return "kratos-schema-default", "專案沒有註冊default身分格式，請從Kratos設定讀取實際schema_id，再建立測試帳號。"
     if is_shell:
         text = command_text(payload)
+        from private_container_guard import problem as private_container_problem
+        container_error = private_container_problem(text, schema_base)
+        if container_error:
+            return "private-container-service", container_error
         from pos_provider_mock_guard import problem as provider_mock_problem
         mock_error = provider_mock_problem(text, schema_base)
         if mock_error:
@@ -1085,6 +1089,11 @@ def verdict(payload):
             if word:
                 return "unmatched-shell-glob", GLOB_MSG.format(word=word)
         return None, None
+    if any(k in tool_input for k in EDIT_KEYS):
+        from private_container_guard import problem as private_container_problem
+        container_error = private_container_problem(schema_text, schema_base)
+        if container_error:
+            return "private-container-service", container_error
     if any(k in tool_input for k in EDIT_KEYS) and any(CHECKPOINT.search(p) for p in edit_targets(tool_input)):
         return "checkpoint-write", CHECKPOINT_MSG
     if any(k in tool_input for k in EDIT_KEYS):

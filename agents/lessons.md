@@ -4238,3 +4238,9 @@
 - 原因：標準輸入沒有檔案副檔名，CommonJS 與 ES module 語法混用，Node 無法選格式。
 - 防：需要頂層 `await` 的標準輸入腳本固定加 `node --input-type=module` 並使用 `import`。
 - 證據：正式手機 Chrome 首次擷取失敗；改為明確 ES module 後同一擷取成功。
+## 2026-10-23 Gateway 主機服務引用已刪除的臨時工作樹
+- 錯：Gateway 由主機 systemd 啟動，且啟動前命令指向已刪除的臨時工作樹，重開機後持續啟動失敗，公開入口回 502。
+- 原因：正式服務依賴可拋棄的工作目錄，也沒有容器重啟政策承接服務生命週期。
+- 防：`/home/cash/work_space/private` 的常駐服務一律由容器執行；主機 systemd 只能呼叫固定位置的容器編排。互動式測試不受影響。
+- guard: `guards/private_container_guard.py` 的 `private-container-service` 規則，拒絕 private 專案直接建立或啟動主機常駐服務。
+- 證據：2026-10-23 Caddy 對 `127.0.0.1:18080` 連線被拒；`agent-pool-gateway-local.service` 的 `ExecStartPre` 指向已不存在的 StartWork 工作樹。
