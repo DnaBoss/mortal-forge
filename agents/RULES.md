@@ -39,6 +39,7 @@ cash 2026-10-15 精簡版；原文封存於 mortal-mcp `agents/archive/burden-cu
 - 分層：路由層只驗參數、呼叫服務、對應錯誤；資料存取收在資料層；UI 只渲染與發動作；設定值集中。
 - 錯誤全記錄不吞、統一出口、結構化日誌；不記 PII、token、完整 body；生產路徑不用 unwrap／expect／bare assert。
 - SQL 參數化；不 commit 憑證；Docker port 綁 127.0.0.1。
+- `/home/cash/work_space/private` 下所有常駐服務一律在 Docker 或 Podman 容器內執行；主機 systemd 只能管理容器編排。互動式開發、測試與一次性 CLI 可在主機執行，禁止用 host systemd、PM2、nohup 或 systemd-run 直接常駐專案程式。
 - 長時工作要可觀測、可續跑、可停用、有重複執行防護；單一請求撐不完就改背景工作。不自動改寫使用者原始資料。
 - 部署先過測試環境；跨 repo 連動講清楚合併順序；上線後要能確認版本。能寫預設值就寫在程式碼裡。
 - DB／遠端：禁止無界逐筆呼叫與模型驅動重試；有界批次、交易、冪等、續跑位置；失敗先查狀態不盲重送。
