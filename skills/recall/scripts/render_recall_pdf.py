@@ -51,6 +51,9 @@ def fit_text(ctx, value, x, y, max_width, size=12, tone="ink", weight=cairo.FONT
 
 
 def render(data, output):
+    if "sections" in data:
+        render_handoff(data, output)
+        return
     Path(output).parent.mkdir(parents=True, exist_ok=True)
     surface = cairo.PDFSurface(str(output), W, H)
     ctx = cairo.Context(surface)
@@ -113,6 +116,61 @@ def render(data, output):
                 y += 46
             y += 8
         text(ctx, data.get("evidence_note", ""), 42, 612, 9, tone="muted")
+    surface.finish()
+
+
+def render_handoff(data, output):
+    for key in ("title", "timestamp", "summary"):
+        if not isinstance(data.get(key), str) or not data[key].strip():
+            raise ValueError(f"交接報告缺少文字：{key}")
+    if not isinstance(data["sections"], list) or not data["sections"]:
+        raise ValueError("交接報告必須包含成果、遺留與接手內容")
+    blocks = [(data["title"], 24, "ink"), (data["timestamp"], 11, "muted"),
+              (data["summary"], 17, "blue")]
+    for section in data["sections"]:
+        if not section.get("heading") or not section.get("entries"):
+            raise ValueError("每個交接段落都要有標題與內容")
+        blocks.append((section["heading"], 17, "blue"))
+        for entry in section["entries"]:
+            for key in ("title", "detail"):
+                if not isinstance(entry.get(key), str) or not entry[key].strip():
+                    raise ValueError(f"交接項目缺少文字：{key}")
+            blocks.extend([(entry["title"], 14, "ink"), (entry["detail"], 13, "ink")])
+    if data.get("scope"):
+        blocks.extend([("範圍與交接原件", 17, "blue"), (data["scope"], 11, "muted")])
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
+    surface = cairo.PDFSurface(str(output), W, H)
+    ctx = cairo.Context(surface)
+    page = 1
+    y = 46
+    color(ctx, "paper")
+    ctx.paint()
+    for value, size, tone in blocks:
+        weight = cairo.FONT_WEIGHT_BOLD if size >= 14 else cairo.FONT_WEIGHT_NORMAL
+        ctx.select_font_face("Noto Sans CJK TC", cairo.FONT_SLANT_NORMAL, weight)
+        ctx.set_font_size(size)
+        lines = []
+        for paragraph in value.split("\n"):
+            line = ""
+            for character in paragraph:
+                if line and ctx.text_extents(line + character).width > W - 84:
+                    lines.append(line)
+                    line = ""
+                line += character
+            lines.append(line)
+        for index, line in enumerate(lines):
+            reserve = size * 3 if size >= 14 and index == 0 else size
+            if y + reserve > H - 52:
+                text(ctx, str(page), W - 60, H - 20, 10, tone="muted")
+                surface.show_page()
+                color(ctx, "paper")
+                ctx.paint()
+                page += 1
+                y = 46
+            text(ctx, line, 42, y, size, weight, tone)
+            y += size * 1.4
+        y += 7
+    text(ctx, str(page), W - 60, H - 20, 10, tone="muted")
     surface.finish()
 
 

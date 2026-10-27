@@ -1,6 +1,6 @@
 interface:
   display_name: "recall"
-  short_description: "只讀盤點目前進度，用 PDF 回報完成與未完成項目"
-  default_prompt: "使用 $recall 盤點目前任務進度，交付清楚的繁中 PDF；只讀取與回報，不提交、合併、推送、部署、整理分支或開始下一項功能。"
+  short_description: "查證成果與遺留、整理工作現場，交付人類可直接照做的接手文件與 PDF"
+  default_prompt: "使用 $recall 查證目前成果與遺留，整理交接入口及現場狀態，交付繁中接手文件與 PDF，寫清第一步操作及成功判準；保留未完成工作，不自動上版。多步任務先列總工作範圍、各項工作量權重、已完成與剩餘各占總量多少及估算依據；原有交接內容與 PDF 全部保留。"
 policy:
   allow_implicit_invocation: false
