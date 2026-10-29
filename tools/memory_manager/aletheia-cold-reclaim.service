@@ -1,0 +1,20 @@
+[Unit]
+Description=系統資源：持續回收冷記憶體
+PartOf=aletheia-main.service
+After=aletheia-main.service
+
+[Service]
+ExecStart=/usr/bin/python3 %h/tools/memory_manager/manager.py
+Nice=10
+CPUQuota=10%
+MemoryMax=96M
+TasksMax=8
+UMask=0077
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=20
+KillMode=control-group
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target aletheia-main.service
