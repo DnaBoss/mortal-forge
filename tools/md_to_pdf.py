@@ -10,6 +10,7 @@ Writes only OUT.pdf; refuses to overwrite unless --force.
 
 import argparse
 import html
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,7 +21,8 @@ from playwright.sync_api import sync_playwright
 DEFAULT_CHROME = Path.home() / ".cache/ms-playwright/chromium-1234/chrome-linux64/chrome"
 
 CSS = """
-@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; background: white; }
+html, body { background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 body { font-family: 'Noto Sans CJK TC', 'Noto Sans TC', sans-serif; font-size: 10.5pt;
        line-height: 1.6; color: #1d1d1f; }
 h1 { font-size: 20pt; border-bottom: 2px solid #2f6f5e; padding-bottom: 6px; }
@@ -85,6 +87,7 @@ def main() -> int:
                  footer_template=footer,
                  margin={"top": "18mm", "bottom": "20mm", "left": "16mm", "right": "16mm"})
         browser.close()
+    subprocess.run(["/usr/bin/python3", str(Path(__file__).resolve().with_name("pdf_background_check.py")), str(args.dst)], check=True)
     print(f"wrote {args.dst} ({args.dst.stat().st_size} bytes)")
     return 0
 

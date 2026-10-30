@@ -670,7 +670,7 @@
   },
   {
     "name": "codex-goal-budget-guard",
-    "purpose": "拒絕沒有明確正整數 TOKEN 預算的直接 create_goal 工具請求",
+    "purpose": "允許省略 create_goal 的 TOKEN 預算；提供時檢查為正整數",
     "location": "/home/cash/.agents/guards/goal_budget_guard.py",
     "usage": "由 ~/.codex/hooks.json 的 PreToolUse 呼叫；離線測試 python3 ~/.agents/changes/2026-10-05-loop-cost/test_goal_budget_guard.py",
     "input": "標準工具執行前事件 JSON，含 tool_name、tool_input",
@@ -846,5 +846,49 @@
     "dependencies": "Linux、Python3與google.protobuf、Node22、Docker、pnpm及已裝商城依賴、既有Aletheia執行檔／描述檔、固定快取映像；不新增Rust編譯、拉映像或安裝；歷史保存分支只需Linux/Python標準庫；AWS讀取另需既有AWS CLI與mall唯讀身分",
     "risk": "在商城工作樹建立API bundle，並只在自有DB建立schema；建立自有隔離API、DB、Redis、Collector與收件程序／容器，沒有正式來源或真付款；不可跟隨連結且非阻塞主機鎖，240秒後清理，逾時查同句柄與精確名稱／網路，不盲重送；歷史保存只寫自有暫存SQLite，中斷只停精確兩個自有子程序，DB上限非交易日誌總額；AWS最多10頁／1000筆、每頁100、單命令18秒，要求預算120秒不含清理／交易硬期限；只讀來源、不重送、不刪原文，不當正式安裝",
     "verification": "先前固定隔離187日誌／7追蹤與指標完整保存及期限清理證據已保留；登記本身不重跑此樣本，不代表MCP掛載、正式兩站、查詢API或原首頁已驗；保存核心28案例零略過、Python變異原94/95、反方核等價後94/94，真交易中斷與先提交位置反例；限定當輪，完整重掃／送件與MCP尚未接上；新版有界AWS真兩站各60筆且仍部分、關閉重開續跑與錯帳號拒絕另保留；案例與變異依當輪收據，不保證全歷史或MCP載入；Web純文字分支見同一SKILL：cloudwatch_web_otlp.py及cloudwatch_web_isolated.py，未知等級保留、原五欄及停止後全批核；不是自動送件確認或正式安裝；Web送件紀錄分支見同一SKILL，尚未HTTP或下游確認"
+  },
+  {
+    "name": "worktree-prune",
+    "purpose": "依 worktree-idle-audit 判定，移除閒置且乾淨的 git worktree；有改動、使用中或新建的保留",
+    "location": "/home/cash/tools/worktree_prune.py",
+    "usage": "python3 ~/tools/worktree_prune.py --repo <repo> [--days 5] [--apply]（預設只預覽）",
+    "input": "repo 路徑、閒置天數",
+    "output": "每個 worktree 一行 would remove／removed／keep",
+    "dependencies": "Python3、git、worktree-idle-audit",
+    "risk": "只用不帶 --force 的 git worktree remove；分支不刪。已掛在 orca-housekeeping 每日 00:00、12:00。",
+    "verification": "2026-10-25：臨時 worktree 乾淨者被移除、有未追蹤檔者回 KEEP:dirty 保留"
+  },
+  {
+    "name": "pdf-background-check",
+    "purpose": "逐頁檢查 PDF 實際不透明底色，不依賴預覽器補白",
+    "location": "/home/cash/work_space/private/mortal-mcp/tools/pdf_background_check.py",
+    "usage": "python3 /home/cash/work_space/private/mortal-mcp/tools/pdf_background_check.py FILE.pdf",
+    "input": "單份本機 PDF",
+    "output": "檢查頁數與未通過頁碼；透明時退出 1",
+    "dependencies": "Python3、Pillow、pdftocairo",
+    "risk": "唯讀原檔；暫存圖片；單檔最多180秒",
+    "verification": "2026-10-26：原檔12頁拒絕、補底12頁通過；md-to-pdf新產物通過"
+  },
+  {
+    "name": "memory-manager",
+    "purpose": "常駐主動回收冷記憶體，不關程式；狀態寫在 RAM，不把資料換到 SSD",
+    "location": "/home/cash/tools/memory_manager/manager.py",
+    "usage": "python3 ~/tools/memory_manager/manager.py --status；--dry-run 唯讀盤點；systemctl --user stop aletheia-cold-reclaim.service 停止",
+    "input": "固定 cash 使用者程式群組；每30秒每輪最多要求256MiB",
+    "output": "/run/user/1000/memory-manager/status.json；含回收量、各組失敗及暫停原因",
+    "dependencies": "Python 3 標準函式庫、systemd、cgroup v2、無磁碟寫回的zram",
+    "risk": "會移動程式記憶體至zram；不關程式、不清檔案快取；GPU與系統服務僅監看或不處理；無MCP寫入adapter",
+    "verification": "2026-10-29 17項測試通過；無壓力不回收的錯誤版本測試失敗；實際16MiB換出且測試程式存活；重開機與長期效能未驗"
+  },
+  {
+    "name": "docker-expire-reaper",
+    "purpose": "每天回收帶 expire 標籤且已到期的 Docker 容器與磁碟區",
+    "location": "/home/cash/tools/docker-expire-reaper.py",
+    "usage": "python3 docker-expire-reaper.py（只列）；加 --apply 才刪；systemd 使用者排程 docker-expire.timer 每天 04:00 執行",
+    "input": "Docker 容器與磁碟區的 expire 標籤（never 或 YYYY-MM-DD[THH:MM]）",
+    "output": "到期清單與刪除結果；紀錄在 ~/.local/state/docker-expire/reaper.log",
+    "dependencies": "Python 3、docker CLI",
+    "risk": "會刪除到期容器（含匿名磁碟區）與磁碟區；沒有標籤或 never 的不碰；單次最多 50 個；配套 guard 為 ~/.agents/guards/docker_expire_guard.py",
+    "verification": "2026-10-30 假資料實測：到期的容器與磁碟區被刪，never 與未到期保留；guard 4 組測試通過"
   }
 ]

@@ -9,7 +9,7 @@ Use before work that changes a repository, system, or service. The user's instru
 
 ## Start
 
-1. Read applicable project instructions and the shared [engineering policy](../cash-rule/references/engineering-policy.md). For sustained or multi-step work, use the canonical [cash-rule lifecycle](../cash-rule/SKILL.md); do not copy its state machine or checkpoint rules here.
+1. Read applicable project instructions and the shared rules in `~/.agents/RULES.md`. For sustained or multi-step work, use the canonical [cash-rule lifecycle](../cash-rule/SKILL.md); do not copy its state machine or checkpoint rules here.
 2. Record the first available timestamp and check usage availability. Use `minimal` telemetry by default; see cash-rule [reporting](../cash-rule/references/reporting.md).
 3. Inspect the current directory, branch, uncommitted changes, running owner/process, current artifacts and duplicate work. Preserve unrelated changes and continue existing ownership when appropriate.
 4. Choose the smallest safe work area. Use the current worktree for small work tied to its state; isolate independent or conflicting changes. Do not create a parallel implementation when an owner already exists.

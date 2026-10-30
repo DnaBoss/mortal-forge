@@ -4251,3 +4251,161 @@
 - 怎麼處理：把容器從空資料切回原本已登記使用者的資料，並補回原本的登入設定；不要求使用者重新登入。切換後原 Claude Client 連續兩次實送成功，請求都回 200。
 - 以後怎麼防：任何連不上、常出錯、變慢或中斷都算事故。事故紀錄先用上述白話五段說清楚，再附技術證據；發版最後一關固定是真實 Client 請求，不是健康頁。
 - 查證資料：空資料的 Client 數為 0，原資料為 1；錯誤容器少了兩項 OAuth 設定；修正後正式容器載入原設定，原 Client 的兩次 `/v1/messages` 分別於 4.86 秒及 2.87 秒回 200。現在先恢復可用，#99 新版仍待正確發版。
+
+## 2026-10-23 Fluke 推送檢查現在需要隔離資料庫
+- 錯：完整隔離資料庫檢查已通過，直接 git push 卻未帶入資料庫設定；新增的連線清理回歸測試明確禁止略過，因此推送被擋。
+- 原因：沿用舊版不帶資料庫推送的做法，未核對目前測試契約。舊筆記的 unset 建議不再適用這項測試。
+- 防：用專案 scripts/dev/with_test_db.sh 包住 git push，提供本次新建、只綁本機的資料庫；不省略或放寬回歸測試。若多層推送檢查遇到重複資料，再按現況定位，不能照舊筆記直接移除必要設定。
+- 證據：/home/cash/.local/state/fluke-save-deploy-20261023/push.log；tournament_fixture_close_removes_only_its_own_held_child_connection 回報 real isolated database URL required。
+
+## 2026-10-24 Fluke 觸控拖曳驗收必須共用同一個瀏覽器控制連線
+- 錯：每個 touchStart、touchMove 事件各開關一次 CDP 連線，移動時被拒絕「Must send a TouchStart first」。
+- 原因：關閉控制連線會結束該連線持有的觸控狀態。
+- 防：同一頁整段觸控手勢共用一條連線，驗收結束再隨瀏覽器關閉。
+- 證據：/home/cash/.local/state/fluke-raise-smooth-20261024/preview.log；web_probe.mjs 改成頁面共用 touchSession。
+
+## 2026-10-24 多層級回測漏用官方到期日與決策成本偷看下一秒
+- 錯：初版用每月第三個星期三算到期日，漏掉2026春節順延；第二版用下一成交秒價格估計進場門檻的稅額。
+- 原因：先做簡化日曆，未先復用已存在的官方結算表；未來資訊檢查只驗特徵，漏掉進場門檻。
+- 防：使用保存的官方日期表，未知合約不參與；訊號成本只讀決策當時價格，實際成交價只供成交與損益。
+- 證據：Helios scripts/test_research_multiscale.py 的春節到期與成本時序對照；output/multiscale/20261024-confirmation-03。01與02保留，03重新訓練與回測，未調參。
+
+## 2026-10-24 逐筆價差研究被小數儲存誤差製造假微利
+- 錯：股票期貨原始價格用 float32 儲存，19.8 讀回成 19.799999237；直接算價差，讓原本零損益變成約 0.00076 元獲利。直接對二進位小數向上取整，也會把本應 100 元的稅算成 102 元。
+- 原因：只用原始數字重算公式，沒有先依交易所報價精度還原價格；獨立算式仍會重現同一來源誤差。
+- 防：保留原檔與全部成交筆數，只在研究副本按官方報價精度對齊價格；損益按貨幣精度計算，整數稅額進位前排除二進位誤差。測試加入實際零損益案例及整數稅額，舊算法須失敗。
+- 證據：Helios output/spread-opportunities/20261024/test_scan.py；兩個 negative-control 目錄分別證明稅額與價格精度舊算法失敗，修正版 12 項測試通過。
+
+## 2026-10-24 Unity 動畫取樣把角色比例計算兩次
+- 錯：BakeMesh 使用 false，再套用渲染物件的 TransformPoint，父物件放大比例被重複計算；自動取景讓錯誤不容易從截圖發現。
+- 原因：僅依參數說明推斷行為，未以骨頭矩陣和原始綁定逐點獨立核對。
+- 防：角色放大兩倍後，比對所有頂點的骨架加權計算；本專案 Unity 6000.3.26f1 必須使用 true，誤差小於 0.0001。保留 false 作失敗對照，不能只驗圖片是否產生。
+- 證據：/tmp/lantern-skin-scale.log；75,234 點，false 最大誤差 1.947192，true 最大誤差 0.0000008376852；HumanoidCharacterCheck.VerifyScale 固定此對照。
+
+## 2026-10-26 PDF 預覽補白掩蓋透明底色
+- 錯：縮圖與一般轉圖看起來白底，就誤判原 PDF 有白底。
+- 原因：預覽器與一般轉圖會自行補白；產生程式沒有填整頁背景。
+- 防：共用產生工具填白底，交付前逐頁保留透明度轉圖檢查；原底色保留在上層。
+- 證據：本地AI雙記憶體原檔12頁拒絕，補底後12頁通過。
+- guard: tools/pdf_background_check.py；md_to_pdf.py 輸出後強制呼叫，透明時失敗。
+
+## 2026-10-26 Gateway 新舊並行必須先驗同資料庫雙程序
+- 錯：部署腳本已保留舊容器，但新版在正式資料副本啟動時，被原有單實例鎖拒絕。
+- 原因：只有腳本順序和健康測試，尚不足以證明應用本身允許兩個程序共用同一資料庫。
+- 防：先在同資料庫副本保留舊程序並啟動新版、用原 Client 實送。此次僅原本直接轉送模式允許重疊；正常排隊仍保留鎖，部署入口拒絕，不自動改模式；新舊記帳暫存分開。
+- 證據：/home/cash/.local/state/gateway-safe-deploy-20261026/negative-overlap-before-fix.json、overlap-stage.json；startup 雙程序鎖測試、quota 雙引擎原子額度測試。
+
+## 2026-10-26 Gateway 串流重送不能算不中斷驗收
+- 錯：只看原 Client 最終成功與結尾標記，漏掉第一個請求在 60 秒取消後自動續傳，曾誤判切換驗收通過。
+- 原因：HTTP 200 和多輪最終成功不能證明同一條串流完整；未檢查正常結束事件與使用輪數。
+- 防：必須單次 message_start、正常 terminal message_delta、message_stop，num_turns=1，禁止續傳或重寫的 user 訊息，且切換後仍收到文字。失敗保留舊版並切回；實際故障紀錄作陰性對照。
+- 證據：gateway-safe-deploy-20261026/strict-negative-real-trace.json；scripts/test_deploy_gateway.py 續傳、缺結束、重送拒絕測試。
+
+## 2026-10-26 研究審查原件誤用舊檔名
+- 錯：企業計畫複審沿用 agent-followup 檔名，覆寫另一輪審查原件。
+- 原因：把現行計畫覆寫要求誤套到歷史驗證原件，未先檢查審查用途。
+- 防：主計畫原位更新；審查原件按明確工作用途命名，寫入前檢查是否存在，既有不同工作原件不可覆寫。
+- 證據：agent-platform docs/research/cli-first-20261025/review/DELIVERY-REVIEW.md 已記錄原件缺失及本次原件範圍。
+
+## 2026-10-26 Caddy 2.11.6 的 POST 串流會固定 60 秒中斷
+- 錯：長請求恰好 60 秒中斷時，先懷疑 Client 或心跳，未先核對反向代理版本的官方已知缺陷。
+- 原因：Caddy 2.11.6 讀完請求內容後未解除讀取逾時計時；回應心跳無法重設這個錯誤計時，2.11.7 已修正。
+- 防：固定時間中斷先查各層版本與官方修正；用同上游、同 POST、超過門檻的固定串流，比較直連及新舊代理，不能只驗短請求或 GET。
+- 證據：gateway-60s-diagnosis-20261026/caddy-version-comparison.json；舊版 1 秒與 30 秒心跳皆在 60.002 秒中斷，新版及直連 75 秒完整完成。
+
+## 2026-10-27 Fluke 長推送須固定 SSH 保活
+- 錯：完整推送檢查通過後 Git 以 141 結束，遠端仍是舊提交。
+- 原因：沿用未固定保活的 SSH 長連線；遠端網址顯示 HTTPS 仍可能被全域 insteadOf 改走 SSH，不能只看原始設定判斷協定。
+- 防：本 repo core.sshCommand 固定 ServerAliveInterval=30、ServerAliveCountMax=6，持續保留隔離資料庫與完整守門。
+- guard: /home/cash/work_space/private/Fluke/.git/config 的 core.sshCommand 固定連線保活；不靠每輪臨時記得加參數。
+- 證據：/home/cash/.local/state/fluke-consolidate-20261027/push.log 與 push-keepalive.log；後者完整檢查通過並將 af7154b 推進至 bb0593e，遠端 PR 已讀回。
+
+
+## 2026-10-27 Fluke 合併發布工作後漏帶 AWS 命令工具
+- 錯：檢查、匯出、打包皆通過，發布才遇到 aws: command not found。
+- 原因：合併工作後環境不同，設定憑證不等於安裝命令工具。
+- 防：工作開始時先確認工具可執行；缺少時依官方方式安裝，不能假設 apt 套件存在。
+- guard: Fluke .github/workflows/deploy-essence.yml 的 Tools 步驟，缺少命令就安裝並強制讀回版本。
+- 證據：fluke-consolidate-20261027/deploy-failed.log、runner-aws-install-official.log。
+
+## 2026-10-27 搬移 Rust 快取後移除原工作樹使原生工具路徑失效
+- 錯：target 搬回主 repo 後移除原工作樹，protobuf-src 仍引用舊絕對路徑；安裝系統 protoc 無法取代程式指定的工具。只清理預設除錯快取後，發布快取仍然失敗。
+- 原因：原生快取內嵌絕對路徑，外層連結有效不足以證明可以搬移；必須分別檢查除錯與發布版本。
+- 防：保留舊快取路徑到新位置的相容連結，或分別清理並重建兩種快取。
+- guard: /home/cash/.cache/fluke-holdem-raise-controls/target 指向主 repo target，只有快取連結，沒有 Git 工作樹。
+- 證據：fluke-consolidate-20261027/aws-fix-push.log、release-cache-check.log；發布編譯通過，Git 工作樹只有一個。
+
+## 2026-10-27 Python.NET 的 Convert.ToInt32 探針必須固定 Double 多載
+- 錯：以 Python float 呼叫 Convert.ToInt32，午夜前 23:59:59.9994999 被探針轉成 86400000，製造 Rust 時間算法錯誤的假象。
+- 原因：探針沒有固定被測 SDK 實際使用的 Double 型別；顯式使用 Double 後，邊界結果才與該方法相符。
+- 防：跨語言基準必須按實際方法簽名顯式包成 System.Double；保留半毫秒與午夜前後案例，不因基準失敗直接改受測程式。
+- 證據：helios-yuanta-envelope-20261027/official-vectors.json 與 official-vectors-02.json；指定 Double 後午夜前案例為 86399999，Rust 原算法通過，未修改期望的數學規則。
+
+## 2026-10-27 元大訂閱格式須比對完整送出路徑
+- 錯：Rust 訂閱筆數先用小端序；官方完整封包比對失敗。早期服務資訊功能字串 00000015 亦曾被誤讀為十進位 15。
+- 原因：訂閱控制器會在基礎資料組裝後再改格式；功能字串使用 X8 十六進位，不能只看外觀或單一方法。
+- 防：同一人工輸入須走完整官方訂閱控制器與封包組裝後逐位元組比較；先查格式字串再解功能號。已固定測試 27 位元組訂閱內容、大端序筆數與服務功能 21。
+- 證據：helios-yuanta-feasibility-20261027-native/login-07 的 subscription-controlled.bin、Probe 原件；Rust requests_match_official_including_subscription_header_and_update_byte。
+
+
+## 2026-10-27 Rust 加密依賴合併會使單套件通過而全工作區失敗
+- 錯：元大四項加密登入測試單套件通過，全工作區執行卻在 TLS 初始化 panic。
+- 原因：依賴特性合併同時啟用 rustls 的 ring 與 aws-lc-rs，無法自動選定程序預設加密實作。
+- 防：在建立 TLS 連線設定前明確選定預設實作，保留程序既有選擇；以全工作區測試驗證，不能只驗單套件。
+- 證據：helios-yuanta-grpc-20261027/check-all-02.log 保留失敗；check-all-03.log 的全工作區測試 339 成功、6 略過。
+
+
+## 2026-10-27 元大期貨帳號包含英文字母
+- 錯：訂單準備只允許 F 後接數字，官方格式 FF021000P001234567 被拒絕。
+- 原因：只用純數字人工帳號驗組裝，漏掉完整登入到送單所用的英數帳號。
+- 防：帳號規則與登入介面一致，保留官方英數格式正向及非法字元負向；整條 TLS 送單使用同一英數帳號。
+- 證據：helios-yuanta-order-transport-20261027/digits-only-negative.log，舊版在 PreparedOrder::new 正向斷言失敗；回歸測試 letter_account_prepares_and_invalid_characters_are_rejected。
+
+## 2026-10-29 Playwright 錄影不可用總長減操作時間推算起點
+- 錯：用錄影總長減操作耗時作裁切起點，讓貼上履歷片段被提前裁掉。
+- 原因：錄影關閉時有額外末格延長，總長不等於操作起點加操作耗時。
+- 防：以實際操作畫面和時間對照校正起點，輸出後必查對應旁白時刻，不只看原始截圖與解碼成功。
+- 證據：Videos/jobsearch-demo-20261028/resume-v6，原估8.714秒；填入文字畫面首見5.8秒，對應操作3.01秒，校正起點2.79秒。
+
+## 2026-10-29 推送掛勾的 GIT_DIR 讓測試裡的臨時倉庫指令跑錯倉庫
+- 錯：pre-push 掛勾跑全套測試時，使用 git 建臨時倉庫的 4 項測試失敗；手動跑同樣測試卻全過，推送被擋。
+- 原因：掛勾環境帶有 GIT_DIR 等變數，測試裡的 git init／commit 沒指向臨時目錄，而是作用到真倉庫。
+- 防：測試開頭清掉所有 GIT_* 環境變數（JobResearch tests/conftest.py 的 autouse fixture）；推送失敗先用 GIT_DIR 設定重現，不要只看手動跑的結果。有他人未提交修改擋掛勾時，用乾淨工作樹推送，並以 UV_PROJECT_ENVIRONMENT 指向主目錄環境避免離線缺套件。
+- 未查證：建立工作樹後 core.bare 被改成 true，導致 git 說不在工作樹；原因未查，發現時用 git config core.bare false 復原。
+- 證據：JobResearch PR #2；修正前 4 failed／168 passed，修正後推送通過。
+
+## 2026-10-29 隔離容器測試重用名稱變數導致清理失敗
+- 錯：測試用容器名稱變數又拿來跑使用者名稱迴圈，結束時停止錯誤名稱，隔離容器仍在執行。
+- 原因：迴圈變數覆蓋清理目標；停止失敗未使測試失敗。
+- 防：清理目標用獨立且不重用的變數，驗證實際容器已停止；測試結束不得只依賴程式正常退出。
+- 證據：Gateway 隔離測試，已手動停止 `gateway-personal-stage-20261029` 並更正測試程式。
+
+## 2026-10-29 沿用舊的「工具被擋」結論，沒重試就停工等人
+- 錯：摘要寫 cargo 被快取掛勾擋，我直接停 LOOP 請使用者跑；實際重試後 cargo 可正常執行，gate 通過。
+- 原因：把前一段的阻擋當成現在的事實，沒先實測。
+- 防：宣稱被擋或要等人前，先用同一指令實測一次；擋住時再查其他可做的子任務，不整輪停工。
+- 證據：agent-platform loops/agent-platform.checkpoints.jsonl 第 2 筆；/tmp/gate.log 結束碼 0。
+
+## 2026-10-29 重複程式碼以過短上下文套補丁會改錯測試
+- 錯：替 Gateway 保存拒絕測試加模擬上游時，補丁先改到另一個同樣建立上游的測試。
+- 原因：片段缺少函式名稱等唯一定位資訊。
+- 防：每段補丁使用唯一函式或測試名稱定位，套用後立即搜尋新識別字位置並核對差異。
+- 證據：agent-pool-gateway-completion 的 routes.rs，已於執行測試前復原錯位片段。
+
+## 2026-10-29 變異測試後的舊編譯產物含被改過的程式
+- 錯：複製模式變異測試跑完後直接跑快檢，CLI 與 xtask 測試無故失敗（缺臨時路徑、行為被改）。
+- 原因：編譯快取依修改時間判斷，殘留被變異的產物。
+- 防：變異測試後先 touch 全部 crates 的 src/*.rs 再跑快檢；觸碰單一 crate 不夠。
+- 證據：agent-platform 快檢只碰 main.rs 與 repo_root.rs 失敗 3 項，碰全部後結束碼 0。
+
+## 2026-10-30 常駐服務直接執行 target 目錄裡的程式
+- 錯：aletheia-main.service 直接執行 repo 內 target/release/aletheia，清建置檔必須先停服務；服務與開發建置互相綁死。
+- 原因：沒有把服務用的程式安裝到固定位置，就直接指向編譯輸出目錄。
+- 防：systemd 服務、排程、常駐程序的 ExecStart 不得指向任何 target/、build/、tmp/ 路徑；先把發行版程式複製到 ~/.local/lib/<名稱>/ 再啟動。清 target 前先 ps 與 lsof 檢查。
+- 證據：使用者 2026-10-30 指示「target 放 server 是錯誤的操作」；已停用並取消開機自啟 aletheia-main.service。
+
+## 2026-10-30 測試用 Docker 容器與磁碟區沒有回收機制
+- 錯：gateway、offora 等測試留下 69 個已停止容器與 596 個匿名磁碟區（約 37G），建置快取 48G，全靠人工發現清理。
+- 原因：測試容器沒加 --rm；docker rm 沒加 -v 使 PostgreSQL 匿名磁碟區殘留；沒有到期機制。
+- 防：docker run／create／volume create 必須有 --rm 或 --label expire=（日期或 never）；長期使用的服務標 never 並重用，不反覆刪建（耗損 SSD）。guard: docker_expire_guard.py 擋未標記建立；docker-expire.timer 每天 04:00 回收到期項目。
+- 證據：docker system df 清理前後；~/tools/docker-expire-reaper.py 假資料實測。

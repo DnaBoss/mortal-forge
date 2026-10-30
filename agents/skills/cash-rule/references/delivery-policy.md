@@ -1,6 +1,6 @@
 # 到交付點就部署，後續工作不停（2026-10-17）
 
-階段、大功能、里程碑皆須交付，不等整個任務。Skill 定義何時交付；進度工具強制執行；背景作業負責部署及線上驗收；Stop Hook 補查整體結案。這些規則不新增任何專案的部署授權。
+階段、大功能、里程碑皆須交付，不等整個任務。Skill 定義何時交付；進度工具強制執行；背景作業負責部署及線上驗收；Stop Hook 補查整體結案。使用者已持續授權部署，完成必要測試後可直接部署，不必再次詢問；保留測試、驗收及其他花費、刪除限制。
 
 ```mermaid
 flowchart LR
@@ -22,7 +22,7 @@ flowchart LR
 - `project` 是工作區絕對路徑；`task` 與進度紀錄一致。每個 step 分類為 `stage`、`feature`、`milestone` 或 `internal`；最後一類只供分析／準備，必填理由。已登記的交付點不能刪除、改為內部步驟或換版本來躲過結案檢查。新增版本要新增交付點。
 - 交付項的 `artifact`、`validation`、`authorization`、`deploy`、`readback` 都是 `{path,sha256}`。相對路徑以計畫所在目錄為準。產物是固定發布包，不是繼續變動的工作樹；工具保存快照。
 - 驗證原件是 JSON：`version_sha256` 對應產物；非空 `checks` 各有 `name`、`result:pass`。
-- 授權原件是 JSON：`authorized:true`、`project`、`environment`、`artifact_sha256`、`deploy`、`readback`、`source:{path,sha256}`。`source` 必須保存真正的使用者授權；已有涵蓋該環境的授權就沿用，不每次重問。監督者負責判讀授權範圍；工具只核資料一致，不能辨識偽造指令。
+- 授權原件是 JSON：`authorized:true`、`project`、`environment`、`artifact_sha256`、`deploy`、`readback`、`source:{path,sha256}`。`source` 必須保存真正的使用者授權；部署使用者已持續授權，沿用該授權來源，不每次重問；仍須保存實際專案、環境與產物證據。監督者負責判讀授權範圍；工具只核資料一致，不能辨識偽造指令。
 - 兩支腳本是可直接執行、無外部相對路徑依賴的固定腳本。部署腳本只發布 `CASH_DELIVERY_ARTIFACT`，不得重建其他版本；環境由 `CASH_DELIVERY_ENVIRONMENT` 提供。讀回腳本自行查服務及主要功能，stdout 僅輸出 JSON：`version_sha256`、`result:pass`、非空且全通過的 `checks`。不得直接回印 `CASH_DELIVERY_SHA256` 冒充線上讀回；測試假服務只能用於隔離測試。
 
 ## 強制行為
@@ -38,7 +38,7 @@ flowchart LR
 
 寫進度前後中斷、尚未派送或前序未知時，用 `submit <進度檔> --task T --step S` 續接。工具先查原作業；同次開機、確認服務不存在才首次派送。已啟動／成功／失敗者不自動重送。跨開機的未知狀態保留，先核實遠端狀態，不猜。
 
-已失敗且服務已停止，只有另外保存精確重試授權才可執行 `retry <作業目錄> --authorization <JSON> --sha256 <指紋>`。授權含 `authorized:true`、`job:<作業目錄名>`、`source:{path,sha256}`；最多三次，各次保留舊證據。這不是自動重試；缺授權只影響部署，不停止其他已授權工作。取消整個任務用原 CANCELLED，不能假報 COMPLETE。
+已失敗且服務已停止，先查明失敗原因並完成必要修復與測試，再將持續部署授權對應到本次作業並保存後執行 `retry <作業目錄> --authorization <JSON> --sha256 <指紋>`。授權含 `authorized:true`、`job:<作業目錄名>`、`source:{path,sha256}`；最多三次，各次保留舊證據。不得盲目重試；部署沿用持續授權，不必再次詢問。缺少發布資料或測試證據時補齊，不停止其他獨立工作。取消整個任務用原 CANCELLED，不能假報 COMPLETE。
 
 ## 邊界與舊相容檢查
 

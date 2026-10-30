@@ -1,0 +1,81 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>Agent Pool Gateway 目標架構與進度</title>
+<style>
+@page{size:420mm 297mm;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:"Noto Sans CJK TC","Noto Sans TC",sans-serif;color:#1c2b30}
+.page{width:420mm;height:297mm;padding:44px 64px;background:#fff;page-break-after:always;position:relative;overflow:hidden}
+.page:last-child{page-break-after:auto}
+h1{font-size:30px;margin:0 0 6px;color:#12404a}
+.sub{font-size:13px;color:#5a6b70;margin:0 0 26px}
+h2{font-size:18px;margin:30px 0 14px;color:#12404a}
+.box{border:2px solid #6b8a8f;border-radius:12px;background:#ebf4f2;padding:14px 18px;text-align:center}
+.box b{display:block;font-size:20px;margin-bottom:6px}
+.box span{display:block;font-size:14px;color:#44575c;line-height:1.55}
+.blue{background:#e6f0fb}.purple{background:#efe7fb}
+.grid{display:grid;grid-template-columns:230px 1fr 290px 1fr 290px 1fr 290px;grid-template-rows:175px 175px;align-items:center}
+.tall{grid-row:1/3;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:12px;border:2px dashed #6b8a8f;border-radius:14px;padding:10px 12px}.ar i{white-space:nowrap}
+.tall .box{padding:12px}
+.ar{position:relative;height:2px;background:#1f7a70;margin:0 4px}
+.ar::after,.ar.both::before{content:"";position:absolute;top:-7px;border:8px solid transparent}
+.ar::after{right:-2px;border-left:14px solid #1f7a70;border-right:0}
+.ar.both::before{left:-2px;border-right:14px solid #1f7a70;border-left:0}
+.ar i{position:absolute;left:0;right:0;top:-24px;text-align:center;font-style:normal;font-size:13px;color:#1f7a70}
+.lane{display:grid;grid-template-columns:repeat(4,1fr);gap:48px}
+.col{display:flex;flex-direction:column;align-items:center}
+.v{width:2px;height:70px;background:#1f7a70;position:relative;margin:0}
+.v::after{content:"";position:absolute;bottom:-2px;left:-7px;border:8px solid transparent;border-top:14px solid #1f7a70;border-bottom:0}
+.v i{position:absolute;left:14px;top:26px;font-style:normal;font-size:13px;color:#1f7a70;white-space:nowrap}
+.col .box{width:100%}
+.note{font-size:14px;margin-top:26px;color:#2d3f44}
+.hd{font-size:15px;font-weight:700;color:#6b8a8f;text-align:center;margin-bottom:10px}
+.phases{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px 20px;margin-top:8px}
+.ph{border:2px solid #6b8a8f;border-radius:12px;background:#ebf4f2;padding:18px 22px;font-size:15px;line-height:1.7}
+.ph h3{margin:0;font-size:19px;color:#12404a}.ph p{margin:2px 0 8px}
+.ph ul{margin:0 0 10px;padding-left:20px}
+.gate{font-weight:700;color:#12404a}
+</style></head><body>
+<div class="page">
+<h1>目標架構｜自家 Agent 管任務，Gateway 管資源與選路</h1>
+<p class="sub">依 2026-10-23 原文件保留文字重畫，2026-10-26 改成直線版；不是原 PDF 的逐位元復原，也未重新驗證今日部署。</p>
+<h2>一、請求怎麼走：左進、右出，每條線只連相鄰兩塊</h2>
+<div class="grid">
+ <div class="box" style="grid-row:1;grid-column:1"><b>現有 Clients</b><span>Claude Code／Codex</span></div>
+ <div class="ar both" style="grid-row:1;grid-column:2/5"><i>既有工具原協定直通（不經自家平台）</i></div>
+ <div class="box" style="grid-row:2;grid-column:1"><b>自家 Client</b><span>文字介面、桌面、IDE<br>任務、核准、進度、回放</span></div>
+ <div class="ar both" style="grid-row:2;grid-column:2"><i>任務／顯示</i></div>
+ <div class="box blue" style="grid-row:2;grid-column:3"><b>自家 Agent Platform</b><span>任務執行器<br>規劃 → 呼叫工具 → 驗證 → 繼續／停止</span></div>
+ <div class="ar both" style="grid-row:2;grid-column:4"><i>請求／回應</i></div>
+ <div class="tall" style="grid-row:1/3;grid-column:5"><div class="hd">Gateway：政策與資源</div>
+  <div class="box"><b>能力與成本入口</b><span>認證、配額、排程<br>隱私、延遲、品質、價格</span></div>
+  <div class="box"><b>任務選路</b><span>本機／API／雲端 GPU</span></div>
+  <div class="box"><b>帳務與證據</b><span>用量、成本、品質</span></div></div>
+ <div class="ar both" style="grid-row:1/3;grid-column:6"></div>
+ <div class="tall" style="grid-row:1/3;grid-column:7"><div class="hd">模型執行資源</div>
+  <div class="box"><b>遠端強模型</b><span>Anthropic／OpenAI</span></div>
+  <div class="box blue"><b>本機快速模型</b><span>Qwen 視覺／程式模型<br>辨字、分類、畫面定位</span></div>
+  <div class="box purple"><b>按需雲端 GPU</b><span>大型模型、向量、批次</span></div></div>
+</div>
+<h2>二、任務執行器內部四塊，各自把資料存到哪裡</h2>
+<div class="lane">
+ <div class="col"><div class="box blue"><b>上下文管理</b><span>對話、用量預算<br>摘要、引用</span></div><div class="v"><i>存</i></div><div class="box blue"><b>對話狀態保存</b><span>對話、摘要、任務狀態、引用</span></div></div>
+ <div class="col"><div class="box blue"><b>知識處理</b><span>解析、去重、分塊<br>搜尋與結果重排</span></div><div class="v"><i>存</i></div><div class="box blue"><b>知識保存</b><span>原始文件、分塊、向量、版本</span></div></div>
+ <div class="col"><div class="box blue"><b>工具執行</b><span>Shell、檔案、MCP<br>隔離與核准</span></div><div class="v"><i>快取</i></div><div class="box"><b>可快取資料</b><span>工具／搜尋結果、向量、提示前綴</span></div></div>
+ <div class="col"><div class="box blue"><b>電腦操作</b><span>介面樹、畫面辨識<br>操作後驗證</span></div><div class="v"><i>留證</i></div><div class="box"><b>評測與證據</b><span>成功率、延遲、成本、人工接手</span></div></div>
+</div>
+<p class="note">雙向箭頭：請求往右、回應往左。紫色：按需付費。對話內容須明確同意才保存，按租戶加密；第一版不做語意回應快取。</p>
+</div>
+
+<div class="page">
+<h1>原規劃進度｜依風險與依賴分六階段</h1>
+<p class="sub">依 2026-10-23 原文件保留文字重畫，2026-10-26 恢復；不是原 PDF 的逐位元復原，也未重新驗證今日部署。</p>
+<p style="font-size:15px;font-weight:700">保留原文件 9–12 週估算，非今天的交付承諾。每階段須先達驗收條件，再進入下一階段。</p>
+<div class="phases">
+<div class="ph"><h3>階段 0｜第 1 週　基準與邊界</h3><p>先量出問題，避免先造大型平台。</p><ul><li>固定 20 個真實任務</li><li>記錄遠端每步延遲、成功率與成本</li><li>固定敏感資料、核准與停止規則</li></ul><div class="gate">完成門檻：可重跑的基準報告；每個失敗可定位在模型、工具或畫面辨識。</div></div>
+<div class="ph"><h3>階段 1｜第 2–3 週　自家 Client 最小版</h3><p>先把 Agent Loop 跑通，不做記憶與本地模型。</p><ul><li>任務輸入、串流、Tool Call</li><li>Shell／檔案／MCP、核准與取消</li><li>經現有 Gateway 呼叫遠端 LLM</li></ul><div class="gate">完成門檻：5 個程式任務可連續執行、可中止、工具結果可追溯。</div></div>
+<div class="ph"><h3>階段 2｜第 4–5 週　上下文與資料品質</h3><p>讓長任務不靠無限堆疊對話。</p><ul><li>Session Store、Token 預算</li><li>摘要壓縮與來源引用</li><li>文件解析、去重、搜尋、Reranker</li></ul><div class="gate">完成門檻：壓縮前後任務成功率不下降；引用能回到原始資料。</div></div>
+<div class="ph"><h3>階段 3｜第 6–7 週　本地模型派工</h3><p>只接能證明比遠端快或便宜的工作。</p><ul><li>vLLM／Ollama Provider</li><li>Qwen 視覺與程式模型</li><li>OCR、分類、GUI 定位、短摘要</li></ul><div class="gate">完成門檻：指定任務 P95 延遲與成功率達標；不達標就維持遠端。</div></div>
+<div class="ph"><h3>階段 4｜第 8–9 週　Computer Use</h3><p>先介面樹與 API，再用畫面座標補洞。</p><ul><li>截圖、介面樹、Playwright</li><li>點擊／輸入／捲動／結果驗證</li><li>高風險操作強制核准</li></ul><div class="gate">完成門檻：10 個桌面流程成功率達 80%，錯誤不造成不可逆動作。</div></div>
+<div class="ph"><h3>階段 5｜第 10–12 週　按需雲端 GPU 與收斂</h3><p>有數據後才接租用資源與自動關機。</p><ul><li>GPU 啟停、暖機、佇列、閒置關機</li><li>成本上限、失敗回退、資料區域</li><li>全流程評測與操作手冊</li></ul><div class="gate">完成門檻：租用成本可預測、閒置自動歸零；真實流程優於純遠端基準。</div></div>
+</div>
+<p class="note">估算邊界：一位主工程師；不含模型訓練、正式多租戶內容保存與大規模 GPU 採購。</p>
+</div></body></html>

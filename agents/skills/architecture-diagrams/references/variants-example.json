@@ -1,0 +1,26 @@
+{
+  "name": "gateway-target",
+  "title": "Gateway 目標架構",
+  "subtitle": "公司內部的 AI 入口：機密留在本機，其餘自動選便宜的模型",
+  "nodes": [
+    {"id": "tools", "text": "現有工具", "sub": "Claude Code／Codex", "col": 0, "row": 0},
+    {"id": "own", "text": "自家 Client", "sub": "公司內部介面", "col": 0, "row": 1},
+    {"id": "platform", "text": "Agent Platform", "sub": "自家工作流程與工具", "col": 1, "row": 1},
+    {"id": "policy", "text": "政策與身分", "sub": "誰能用哪個模型", "col": 2, "row": 0, "focus": true},
+    {"id": "route", "text": "路由與排隊", "sub": "每次只呼叫一次", "col": 2, "row": 1},
+    {"id": "local", "text": "本機模型", "sub": "機密資料只走這裡", "col": 3, "row": 0},
+    {"id": "cloud", "text": "雲端模型", "sub": "一般工作", "col": 3, "row": 1}
+  ],
+  "groups": [
+    {"id": "gw", "text": "Gateway", "col": 2, "row": 0, "h": 2},
+    {"id": "models", "text": "模型執行資源", "col": 3, "row": 0, "h": 2}
+  ],
+  "edges": [
+    {"from": "tools", "to": "gw", "label": "既有工具直通", "both": true},
+    {"from": "own", "to": "platform", "label": "請求／回應", "both": true},
+    {"from": "platform", "to": "gw", "label": "請求／回應", "both": true},
+    {"from": "gw", "to": "models", "label": "單次呼叫", "both": true},
+    {"from": "policy", "to": "route", "label": "判斷結果"},
+    {"from": "local", "to": "cloud", "label": "不互退", "dashed": true}
+  ]
+}

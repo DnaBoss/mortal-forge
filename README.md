@@ -1,5 +1,9 @@
 # MORTAL MCP
 
+| 何時讀 | 入口 |
+| --- | --- |
+| 收尾工作、整理成果與遺留，讓人類能直接接手 | [recall 工作交接](skills/recall/SKILL.md) |
+
 Rust 多工作樹共用編譯快取：見 [cargo-cache 技能](skills/cargo-cache/SKILL.md)。
 先用 `python3 tools/cargo_cache.py audit --repo <工作樹>` 盤點；`adopt` 預設預覽，加 `--apply` 才刪除已核對的閒置編譯快取。
 `install-hooks` 追加 Claude／Codex 的開工、編譯前、收工與關閉檢查，保留原有 hook 並備份。
