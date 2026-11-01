@@ -8,7 +8,7 @@ description: 新增或修改 HTTP API 契約、分頁、錯誤回應、版本相
 先讀專案規則、既有路由、回應型別及呼叫端；一般內部重構沒有契約變化時不必載入。
 
 ```sh
-python3 /home/cash/work_space/private/mortal-mcp/tools/ecc/load.py api
+python3 /home/cash/work_space/private/mortal-forge/tools/ecc/load.py api
 ```
 
 讀取器將本機限制與校驗過的 api-design 原文一起輸出。範例不是遷移命令；沿用既有狀態碼、欄位命名、回應封裝、驗證和權限規則，不為符合 ECC 範例改壞客戶端。

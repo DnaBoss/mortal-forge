@@ -8,7 +8,7 @@ description: PostgreSQL 查詢、索引、鎖或資料結構變更需要設計�
 先讀專案規則與資料模型，確認任務是設計、審查還是已授權修復；審查不自動連線或執行結構變更。
 
 ```sh
-python3 /home/cash/work_space/private/mortal-mcp/tools/ecc/load.py database-review
+python3 /home/cash/work_space/private/mortal-forge/tools/ecc/load.py database-review
 ```
 
 - `database-review`：查詢、索引、鎖與安全審查；載入 database-reviewer、postgres-patterns、database-migrations。

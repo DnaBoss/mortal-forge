@@ -50,7 +50,7 @@ cash 2026-10-15 精簡版；原文封存於 mortal-mcp `agents/archive/burden-cu
 
 ## 工具與本機 Essence
 
-- 先查 `~/tools/tools.json` 與 `~/.agents/skills/mortal-tools/SKILL.md`，重用既有工具；可重用程式做成 SKILL＋MCP 放 `~/work_space/private/mortal-mcp` 並登記。
+- 先查 `~/tools/tools.json` 與 `~/.agents/skills/mortal-tools/SKILL.md`，重用既有工具；可重用程式做成 SKILL＋MCP 放 `~/work_space/private/mortal-forge` 並登記。
 - 工作派本機 AI 執行、監督者驗收；CPU／記憶體不可到 100%。細則見 `~/.agents/skills/cash-rule/references/model-dispatch.md`。
 - 開工先讀 hook 注入的 lessons（近 30 天、沒有 guard 的條目）；新錯誤追加 `~/.agents/lessons.md`；同一個錯第二次出現必須做成 guard。
 - repo 有 `.codegraph/` 時先用 `codegraph explore` 再 grep。

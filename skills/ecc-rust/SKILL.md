@@ -10,7 +10,7 @@ description: Rust 程式審查、編譯錯誤修復或測試設計時，使用�
 執行以下讀取器，將本機限制與校驗過的參考一起載入；只選當前需要的一組，不直接呼叫上游代理：
 
 ```sh
-python3 /home/cash/work_space/private/mortal-mcp/tools/ecc/load.py rust-review
+python3 /home/cash/work_space/private/mortal-forge/tools/ecc/load.py rust-review
 ```
 
 - `rust-review`：審查指定差異；含 rust-reviewer 與 rust-patterns。
