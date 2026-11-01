@@ -1,0 +1,10 @@
+[Desktop Entry]
+DefaultProfile=iTerm-Gruvbox.profile
+
+[MainWindow]
+MenuBar=Enabled
+State[$d]
+
+[Notification Messages]
+CloseAllTabs=true
+ShowPasteHugeTextWarning=false

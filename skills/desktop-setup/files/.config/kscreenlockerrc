@@ -1,0 +1,16 @@
+[Daemon]
+Autolock=true
+Lock=true
+LockGrace=300
+LockOnResume=false
+RequirePassword=true
+Timeout=5
+
+[Greeter]
+WallpaperPlugin=org.kde.image
+
+[Greeter][Wallpaper][org.kde.image][General]
+DarkLightScheduleState=AAAAAQAAAAgAAAGgYEAqSAAAAAAAAAGgXtBGmAAAAaBe5YAwAAAAAQAAAaBhmtB4AAABoGGwDfgAAAGgZWY4KAAAAAAAAAGgY/cAWAAAAaBkDDYIAAAAAQAAAaBmwDpIAAABoGbVb/gAAAGgaoxJ8AAAAAAAAAGgaR2+AAAAAaBpMuvgAAAAAQAAAaBr5agAAAABoGv61eAAAAGgb7JX0AAAAAAAAAGgbkR3wAAAAaBuWZ3QAAAAAQAAAaBxCw3oAAABoHEgN+AAAAGgdNhlsAAAAAAAAAGgc2sxgAAAAaBzgFOoAAAAAQAAAaB2MHe4AAABoHZFmeAAAAGgef5vqAAAAAAAAAGgeJHnWAAAAaB4pwWYAAAAAQAAAaB7Vd2gAAABoHtq9/gAAAGgfyR9iAAAAAAAAAGgfbihGAAAAaB9zbeIAAAAAQAAAaCAe0OIAAABoICQWfgAAAGghEqHgAAAAAAAAAGggt9a2AAAAaCC9Gl4AAAAAQAAAaCFoKWIAAABoIW1uBA=
+DynamicMode=0
+Image=file:///home/cash/Downloads/wallpaper/cabin.png
+PreviewImage=/home/cash/Downloads/wallpaper/matteo-catanese-PI8Hk-3ZcCU-unsplash.jpg

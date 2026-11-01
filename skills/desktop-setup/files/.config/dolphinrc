@@ -1,0 +1,39 @@
+[General]
+BrowseThroughArchives=true
+EditableUrl=false
+EnlargeSmallPreviews=true
+GlobalViewProps=true
+OpenExternallyCalledFolderInNewTab=true
+RememberOpenedTabs=true
+RenameInline=true
+ShowFullPath=false
+ShowFullPathInTitlebar=false
+ShowSelectionToggle=false
+ShowStatusBar=0
+ShowToolTips=true
+ShowZoomSlider=true
+Version=202
+ViewPropsTimestamp=2026,9,3,13,39,20.819
+
+[DetailsMode]
+ExpandableFolders=true
+HighlightEntireRow=true
+IconSize=24
+LeftPadding=12
+PreviewSize=32
+RightPadding=12
+UseSystemFont=true
+
+[IconsMode]
+IconSize=48
+MaximumTextLines=2
+PreviewSize=64
+TextWidthIndex=2
+UseSystemFont=true
+
+[KFileDialog Settings]
+Places Icons Auto-resize=false
+Places Icons Static Size=22
+
+[MainWindow]
+MenuBar=Disabled

@@ -1,0 +1,36 @@
+[Desktop Entry]
+Name=WhiteSur Liquid Dark
+Name[zh_CN]=白色液体暗色
+Comment=Brings a macOS Liquid Glass like theme to the desktop
+
+X-KDE-PluginInfo-Author=Tanaka Chinengundu
+X-KDE-PluginInfo-Category=
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-Email=vinceliuice@hotmail.com
+X-KDE-PluginInfo-EnabledByDefault=true
+X-KDE-PluginInfo-License=GPL3.0
+X-KDE-PluginInfo-Name=WhiteSurLiquid-dark
+X-KDE-PluginInfo-Version=0.2
+X-KDE-PluginInfo-Website=https://github.com/TaqsBlaze/WhiteSur-kde
+X-Plasma-API=5.0
+
+[Wallpaper]
+defaultWallpaperTheme=WhiteSur-dark
+defaultFileSuffix=.png
+defaultHeight=2160
+defaultWidth=3840
+
+[ContrastEffect]
+enabled=false
+contrast=0.2
+intensity=1.4
+saturation=10
+
+[AdaptiveTransparency]
+enabled = true
+
+[Settings]
+FallbackTheme=oxygen
+
+[BlurBehindEffect]
+enabled=true

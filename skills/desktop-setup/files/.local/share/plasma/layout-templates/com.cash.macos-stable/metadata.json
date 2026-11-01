@@ -1,0 +1,18 @@
+{
+  "KPackageStructure": "Plasma/LayoutTemplate",
+  "KPlugin": {
+    "Id": "com.cash.macos-stable",
+    "Name": "macOS Stable",
+    "Description": "A lightweight macOS-style top menu bar and bottom dock",
+    "License": "MIT",
+    "Authors": [
+      {
+        "Name": "cash"
+      }
+    ]
+  },
+  "X-Plasma-ContainmentCategories": [
+    "panel"
+  ],
+  "X-Plasma-Shell": "plasmashell"
+}
