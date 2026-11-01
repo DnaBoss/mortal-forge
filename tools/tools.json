@@ -206,7 +206,7 @@
   {
     "name": "mortal-mcp",
     "purpose": "CASH 共用本機 MCP，固定入口重用專案腳本，減少重複指令與輸出",
-    "location": "/home/cash/work_space/private/mortal-mcp/server.py",
+    "location": "/home/cash/work_space/private/mortal-forge/server.py",
     "usage": "http://127.0.0.1:18765/mcp; systemctl --user status mortal-mcp",
     "input": "固定Fluke狀態、開啟、授權重啟、隔離驗收及2分鐘唯讀續局稽核",
     "output": "精簡JSON及證據檔路徑",
@@ -239,7 +239,7 @@
   {
     "name": "mortal-dev-tools",
     "purpose": "跨repo安裝共用SKILL與規則、查詢MCP工具、檢查依賴；保留原設定",
-    "location": "/home/cash/work_space/private/mortal-mcp/bin/mortal-tools.mjs",
+    "location": "/home/cash/work_space/private/mortal-forge/bin/mortal-tools.mjs",
     "usage": "mortal-tools install|update|doctor|connect|init [repo]|uninit [repo]|uninstall；call <tool> --arguments JSON",
     "input": "固定子命令；repo init須明確目錄；MORTAL_HOME僅隔離安裝測試",
     "output": "JSON檢查、受管SKILL／規則區塊、MCP結果",
@@ -504,7 +504,7 @@
   {
     "name": "cargo-cache",
     "purpose": "Rust 多工作樹共用編譯產物、盤點與已授權的安全清理",
-    "location": "/home/cash/work_space/private/mortal-mcp/tools/cargo_cache.py",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/cargo_cache.py",
     "usage": "python3 ~/tools/cargo_cache.py audit --repo <worktree>; adopt --repo <worktree> --keeper <target> [--apply] [--allow-session-cleanup]; install-hooks",
     "input": "Git 登記工作樹、同 repo 保留 target；刪除需 --apply，收工背景清理另需明確 opt-in",
     "output": "JSON：共用位置、獨立副本、已刪除與使用中略過項目；MCP mortal_cargo_cache_status 唯讀最近紀錄",
@@ -515,7 +515,7 @@
   {
     "name": "cargo-shared-target",
     "purpose": "cargo 包裝程式：同一 Git repo 的所有工作樹固定編進同一份 target，涵蓋終端機、IDE、rust-analyzer 與所有 AI",
-    "location": "/home/cash/work_space/private/mortal-mcp/tools/cargo_shared_target.py",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/cargo_shared_target.py",
     "usage": "已安裝為 ~/.local/bin/cargo（PATH 在 ~/.cargo/bin 前）；照常執行 cargo build/test/check",
     "input": "目前目錄或 --manifest-path 所在 Git 工作樹；根目錄 workspace 讀 <git-common-dir>/cargo-cache.json 的 keeper，否則用主工作樹同路徑 target",
     "output": "設 CARGO_TARGET_DIR 後 exec 真 cargo；獨立 --target-dir／CARGO_TARGET_DIR 結束碼 2 拒絕，本工作樹 target 子目錄改導共用位置",
@@ -773,7 +773,7 @@
   {
     "name": "cash-workflow-context",
     "purpose": "每輪輸出共用工作技能，由模型按上下文選擇問答、單次操作、評估或工程步驟",
-    "location": "/home/cash/work_space/private/mortal-mcp/agents/skills/cash-workflow/scripts/turn_context.py",
+    "location": "/home/cash/work_space/private/mortal-forge/agents/skills/cash-workflow/scripts/turn_context.py",
     "usage": "/usr/bin/python3 /home/cash/.agents/skills/cash-workflow/scripts/turn_context.py",
     "input": "宿主 hook JSON；只使用 hook_event_name",
     "output": "SessionStart／UserPromptSubmit 的 additionalContext；其他事件空物件；讀取失敗退出 1",
@@ -784,8 +784,8 @@
   {
     "name": "ecc-reference",
     "purpose": "校驗並讀取固定版本 ECC Rust、PostgreSQL、API 專項參考",
-    "location": "/home/cash/work_space/private/mortal-mcp/tools/ecc/load.py",
-    "usage": "python3 /home/cash/work_space/private/mortal-mcp/tools/ecc/load.py --verify；群組 rust-review/rust-build/rust-test/database-review/database-migration/api",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/ecc/load.py",
+    "usage": "python3 /home/cash/work_space/private/mortal-forge/tools/ecc/load.py --verify；群組 rust-review/rust-build/rust-test/database-review/database-migration/api",
     "input": "固定群組名；本機 manifest 與完整來源",
     "output": "本機限制、版本及校驗過的原文；不執行上游命令",
     "dependencies": "Python 3.10+、Git；固定版本來源",
@@ -817,7 +817,7 @@
   {
     "name": "answer-me-with-html",
     "purpose": "短 Markdown 轉單頁 HTML，比較與複雜解說按需使用",
-    "location": "/home/cash/work_space/private/mortal-mcp/skills/answer-me-with-html/scripts/am.mjs",
+    "location": "/home/cash/work_space/private/mortal-forge/skills/answer-me-with-html/scripts/am.mjs",
     "usage": "node ~/.agents/skills/answer-me-with-html/scripts/am.mjs render draft.md --no-open",
     "input": "短 Markdown 草稿；詳見共用同名技能",
     "output": "本機 HTML 頁面；CLI only，無 MCP adapter",
@@ -861,8 +861,8 @@
   {
     "name": "pdf-background-check",
     "purpose": "逐頁檢查 PDF 實際不透明底色，不依賴預覽器補白",
-    "location": "/home/cash/work_space/private/mortal-mcp/tools/pdf_background_check.py",
-    "usage": "python3 /home/cash/work_space/private/mortal-mcp/tools/pdf_background_check.py FILE.pdf",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/pdf_background_check.py",
+    "usage": "python3 /home/cash/work_space/private/mortal-forge/tools/pdf_background_check.py FILE.pdf",
     "input": "單份本機 PDF",
     "output": "檢查頁數與未通過頁碼；透明時退出 1",
     "dependencies": "Python3、Pillow、pdftocairo",
@@ -894,7 +894,7 @@
   {
     "name": "desktop-setup",
     "purpose": "把 KDE 桌面外觀、主題、Konsole、Kate、shell 設定打包，在新電腦還原",
-    "location": "/home/cash/work_space/private/mortal-mcp/skills/desktop-setup",
+    "location": "/home/cash/work_space/private/mortal-forge/skills/desktop-setup",
     "usage": "./apply.sh（預覽）、./apply.sh --apply、./capture.sh",
     "input": "manifest.txt 的路徑清單",
     "output": "files/ 設定快照、packages-apt-manual.txt",
