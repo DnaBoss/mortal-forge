@@ -39,3 +39,4 @@
 .local/share/plasma/look-and-feel
 .local/share/plasma/desktoptheme
 .local/share/plasma/layout-templates
+.themes
