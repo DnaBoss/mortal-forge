@@ -890,5 +890,16 @@
     "dependencies": "Python 3、docker CLI",
     "risk": "會刪除到期容器（含匿名磁碟區）與磁碟區；沒有標籤或 never 的不碰；單次最多 50 個；配套 guard 為 ~/.agents/guards/docker_expire_guard.py",
     "verification": "2026-10-30 假資料實測：到期的容器與磁碟區被刪，never 與未到期保留；guard 4 組測試通過"
+  },
+  {
+    "name": "desktop-setup",
+    "purpose": "把 KDE 桌面外觀、主題、Konsole、Kate、shell 設定打包，在新電腦還原",
+    "location": "/home/cash/work_space/private/mortal-mcp/skills/desktop-setup",
+    "usage": "./apply.sh（預覽）、./apply.sh --apply、./capture.sh",
+    "input": "manifest.txt 的路徑清單",
+    "output": "files/ 設定快照、packages-apt-manual.txt",
+    "dependencies": "bash、rsync",
+    "risk": "套用會覆蓋同名設定，舊檔先備份到 ~/.desktop-setup-backup-時間；不含金鑰與圖示主題",
+    "verification": "2026-11-01：暫存家目錄預覽 0 檔、套用 1114 檔，.config 比對一致；未在真實新電腦測試"
   }
 ]
