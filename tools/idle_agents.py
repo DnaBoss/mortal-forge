@@ -3,6 +3,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -71,7 +72,7 @@ def claude_sessions():
         if info.get("status") != "idle":
             continue
         cwd = info.get("cwd", "")
-        slug = cwd.replace("/", "-").replace(".", "-")
+        slug = re.sub(r"[^A-Za-z0-9]", "-", cwd)
         transcript = HOME / ".claude/projects" / slug / f"{info['sessionId']}.jsonl"
         found.append({
             "tool": "claude", "pid": pid, "cwd": cwd, "session": info["sessionId"],
@@ -199,11 +200,48 @@ def stop(pid):
     return False
 
 
+def meminfo_gb():
+    out = {}
+    for line in read("/proc/meminfo").splitlines():
+        key, value = line.split(":", 1)
+        out[key] = int(value.split()[0]) / 1048576
+    return out
+
+
+def memory_report():
+    m = meminfo_gb()
+    used = m["MemTotal"] - m["MemFree"] - m["Buffers"] - m["Cached"] - m["SReclaimable"]
+    parts = {
+        "程式實際佔用": m["AnonPages"],
+        "核心不可回收": m["SUnreclaim"] + m["PageTables"] + m["KernelStack"],
+    }
+    mm = read("/sys/block/zram0/mm_stat").split()
+    if mm:
+        parts["zram 壓縮區"] = int(mm[2]) / 2**30
+    for gtt in glob.glob("/sys/class/drm/card*/device/mem_info_gtt_used"):
+        parts["GPU 共用記憶體"] = parts.get("GPU 共用記憶體", 0) + int(read(gtt)) / 2**30
+    print(f"已用 {used:.1f}G／總量 {m['MemTotal']:.0f}G；快取 {m['Buffers'] + m['Cached'] + m['SReclaimable']:.0f}G（可回收，不算佔用）")
+    for name, value in parts.items():
+        print(f"  {name} {value:.1f}G")
+    print(f"  其他未對帳 {used - sum(parts.values()):.1f}G")
+    totals = {}
+    for entry in os.listdir("/proc"):
+        if entry.isdigit():
+            totals[comm(entry)] = totals.get(comm(entry), 0) + rss_mb(entry)
+    print("程式別合計（前 8）：")
+    for name, mb in sorted(totals.items(), key=lambda kv: -kv[1])[:8]:
+        print(f"  {mb}MB {name}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="找出閒置的 claude／codex，寫收尾記錄後關閉；預設只預覽")
     ap.add_argument("--min-idle-hours", type=float, default=6)
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--report", action="store_true", help="只印記憶體用量拆解")
     args = ap.parse_args()
+    if args.report:
+        memory_report()
+        return 0
 
     now = time.time()
     skip = ancestors()
