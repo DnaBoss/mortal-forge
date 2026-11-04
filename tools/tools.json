@@ -857,5 +857,16 @@
     "dependencies": "Linux /proc、Python 標準庫、git",
     "risk": "--apply 對閒置程序送 SIGTERM；收尾記錄寫失敗就不關；不關自己的上層程序與 codex app-server；不刪檔，未提交修改只列在記錄裡",
     "verification": "2026-11-04：預覽模式實測 17 個工作階段（10 個超過 6 小時、7 個保留）；--apply 尚未實跑"
+  },
+  {
+    "name": "memory-tidy",
+    "purpose": "一次檢查並釋放記憶體：閒置 claude／codex（先寫收尾記錄）、孤兒開發伺服器、/tmp 舊檔；預設只預覽",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/mem_tidy.py",
+    "usage": "python3 ~/tools/mem_tidy.py [--min-idle-hours 6]（預覽）；加 --apply 才動作；單看拆解：python3 ~/tools/idle_agents.py --report",
+    "input": "本機程序、~/.claude/sessions、codex rollout 對話檔、/tmp",
+    "output": "每步結果與前後「已用」記憶體；任一步失敗結束碼 1",
+    "dependencies": "Python 標準庫；呼叫 idle_agents.py、orphan_servers.py、tmp_cleanup.py",
+    "risk": "--apply 會對閒置 claude／codex 送 SIGTERM（收尾記錄寫成功才關）、停孤兒開發伺服器、刪 /tmp 舊檔；不動桌面程式與 Docker",
+    "verification": "2026-11-04：預覽三步結束碼 0；壞參數結束碼 1；idle_agents --apply 實跑關閉 7 個；整合入口的 --apply 尚未實跑"
   }
 ]
