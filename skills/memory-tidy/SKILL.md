@@ -20,7 +20,7 @@ description: 本機記憶體被吃滿、已用超過 20G 時使用。一次檢�
    「快取」不算佔用，系統需要時會自動讓出。只看「已用」。
    這台是 AMD Strix Halo，GPU 直接用系統記憶體，所以有「GPU 共用記憶體」一項，程序清單看不到它。
 2. 預覽哪些閒置：`python3 ~/tools/idle_agents.py`
-   預設門檻 6 小時，可用 `--min-idle-hours` 調整。這一步不會動任何程序。
+   預設門檻 4 小時，可用 `--min-idle-hours` 調整。這一步不會動任何程序。
 3. 使用者同意後才關：`python3 ~/tools/idle_agents.py --apply`
    每個要關的程序先寫收尾記錄，寫成功才送 SIGTERM；寫失敗就保留。
 

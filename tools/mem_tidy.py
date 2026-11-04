@@ -24,7 +24,7 @@ def used_line():
 def main():
     ap = argparse.ArgumentParser(description="一次檢查所有能釋放記憶體的項目；預設只預覽")
     ap.add_argument("--apply", action="store_true")
-    ap.add_argument("--min-idle-hours", default="6")
+    ap.add_argument("--min-idle-hours", default="4")
     args = ap.parse_args()
 
     print("開始前：" + used_line())
