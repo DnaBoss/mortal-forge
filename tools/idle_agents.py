@@ -235,7 +235,7 @@ def memory_report():
 
 def main():
     ap = argparse.ArgumentParser(description="找出閒置的 claude／codex，寫收尾記錄後關閉；預設只預覽")
-    ap.add_argument("--min-idle-hours", type=float, default=6)
+    ap.add_argument("--min-idle-hours", type=float, default=4)
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--report", action="store_true", help="只印記憶體用量拆解")
     args = ap.parse_args()
