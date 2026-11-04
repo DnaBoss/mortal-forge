@@ -846,5 +846,16 @@
     "dependencies": "Linux、Python3與google.protobuf、Node22、Docker、pnpm及已裝商城依賴、既有Aletheia執行檔／描述檔、固定快取映像；不新增Rust編譯、拉映像或安裝；歷史保存分支只需Linux/Python標準庫；AWS讀取另需既有AWS CLI與mall唯讀身分",
     "risk": "在商城工作樹建立API bundle，並只在自有DB建立schema；建立自有隔離API、DB、Redis、Collector與收件程序／容器，沒有正式來源或真付款；不可跟隨連結且非阻塞主機鎖，240秒後清理，逾時查同句柄與精確名稱／網路，不盲重送；歷史保存只寫自有暫存SQLite，中斷只停精確兩個自有子程序，DB上限非交易日誌總額；AWS最多10頁／1000筆、每頁100、單命令18秒，要求預算120秒不含清理／交易硬期限；只讀來源、不重送、不刪原文，不當正式安裝",
     "verification": "先前固定隔離187日誌／7追蹤與指標完整保存及期限清理證據已保留；登記本身不重跑此樣本，不代表MCP掛載、正式兩站、查詢API或原首頁已驗；保存核心28案例零略過、Python變異原94/95、反方核等價後94/94，真交易中斷與先提交位置反例；限定當輪，完整重掃／送件與MCP尚未接上；新版有界AWS真兩站各60筆且仍部分、關閉重開續跑與錯帳號拒絕另保留；案例與變異依當輪收據，不保證全歷史或MCP載入；Web純文字分支見同一SKILL：cloudwatch_web_otlp.py及cloudwatch_web_isolated.py，未知等級保留、原五欄及停止後全批核；不是自動送件確認或正式安裝；Web送件紀錄分支見同一SKILL，尚未HTTP或下游確認"
+  },
+  {
+    "name": "idle-agents",
+    "purpose": "找出閒置的 claude／codex 互動工作階段，先寫收尾記錄再關閉，釋放記憶體",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/idle_agents.py",
+    "usage": "python3 ~/tools/idle_agents.py [--min-idle-hours 6]（只預覽）；加 --apply 才寫記錄並關閉",
+    "input": "~/.claude/sessions/*.json 的 idle 狀態、codex 程序開啟的 rollout 對話檔；預設閒置門檻 6 小時",
+    "output": "每個工作階段一行（keep／would_close／closed）；收尾記錄寫到 ~/.local/state/idle-agents/handoffs/，紀錄行附加到 log.jsonl",
+    "dependencies": "Linux /proc、Python 標準庫、git",
+    "risk": "--apply 對閒置程序送 SIGTERM；收尾記錄寫失敗就不關；不關自己的上層程序與 codex app-server；不刪檔，未提交修改只列在記錄裡",
+    "verification": "2026-11-04：預覽模式實測 17 個工作階段（10 個超過 6 小時、7 個保留）；--apply 尚未實跑"
   }
 ]
