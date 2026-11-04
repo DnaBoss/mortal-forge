@@ -1,16 +1,20 @@
 ---
-name: idle-agents
-description: 本機記憶體被吃滿、或同時開了太多 claude／codex 終端機時使用。先拆解記憶體用量，再把閒置的 claude／codex 先寫收尾記錄後關閉。
+name: memory-tidy
+description: 本機記憶體被吃滿、已用超過 20G 時使用。一次檢查並釋放：閒置 claude／codex（先寫收尾記錄）、孤兒開發伺服器、/tmp 舊檔。
 ---
 
-# 閒置 claude／codex 清理
+# 記憶體整理
 
 ## 什麼時候用
 
 - 使用者說記憶體一直被吃、已用超過 20G。
 - 想知道記憶體被誰用掉，或想關掉沒在用的 AI 終端機。
 
-## 步驟
+## 一次跑完
+
+`python3 ~/tools/mem_tidy.py` 預覽；使用者同意後 `python3 ~/tools/mem_tidy.py --apply`。依序跑 idle_agents、orphan_servers、tmp_cleanup，前後各印一次「已用」。任一步失敗，整體結束碼為 1。
+
+## 單獨使用閒置 claude／codex
 
 1. 看記憶體拆解：`python3 ~/tools/idle_agents.py --report`
    「快取」不算佔用，系統需要時會自動讓出。只看「已用」。
@@ -30,6 +34,10 @@ description: 本機記憶體被吃滿、或同時開了太多 claude／codex 終
 
 寫在 `~/.local/state/idle-agents/handoffs/`，內容有任務、最近的使用者指示、最後一則 AI 回覆、git 分支與未提交修改、還原指令。
 記錄是從對話檔整理的，不呼叫模型。關閉不會刪檔，未提交修改仍在原目錄。
+
+## 2026-11-04 盤點結論
+
+除了上面三項，其餘佔用都是使用中的桌面程式（plasmashell、orca-ide、dolphin 等，各約 100–700MB）、Docker 服務和仍在用的 MCP 小程序（每個約 10MB），不建議自動關。要再省，只能關更多 claude／codex 或分頁。
 
 ## 限制
 
