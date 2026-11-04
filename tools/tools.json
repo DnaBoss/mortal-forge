@@ -868,5 +868,16 @@
     "dependencies": "Python 標準庫；呼叫 idle_agents.py、orphan_servers.py、tmp_cleanup.py",
     "risk": "--apply 會對閒置 claude／codex 送 SIGTERM（收尾記錄寫成功才關）、停孤兒開發伺服器、刪 /tmp 舊檔；不動桌面程式與 Docker",
     "verification": "2026-11-04：預覽三步結束碼 0；壞參數結束碼 1；idle_agents --apply 實跑關閉 7 個；整合入口的 --apply 尚未實跑"
+  },
+  {
+    "name": "mcp-idle-proxy",
+    "purpose": "包住 stdio MCP，閒置超時就關掉真正的程式（含子程序），下次請求再自動重開，釋放記憶體",
+    "location": "/home/cash/work_space/private/mortal-forge/tools/mcp_idle_proxy.py",
+    "usage": "python3 mcp_idle_proxy.py [--idle-seconds 900] -- <原本的 MCP 指令與參數>；放在 MCP 設定的 command／args 裡",
+    "input": "原本 MCP 的標準輸入輸出（每行一則 JSON-RPC）；預設閒置 900 秒",
+    "output": "原樣轉送 MCP 回應；重開後自動補送初始化，回應不外洩給用戶端",
+    "dependencies": "Python 標準庫",
+    "risk": "關閉時該 MCP 的記憶內狀態（如瀏覽器分頁）會消失；有未完成請求時不關；重開時進行中的請求若遇程式自己崩潰不會重送",
+    "verification": "2026-11-04：假 MCP 實測，閒置 1.5 秒後舊程序被關、下一請求自動重開並得到回應；閒置上限 600 秒時不關（負向對照）。真實 playwright 尚未實測"
   }
 ]
