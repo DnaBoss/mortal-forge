@@ -171,7 +171,7 @@ def remove(path):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--apply", action="store_true", help="delete (default: dry run)")
-    ap.add_argument("--min-age-hours", type=float, default=2.0)
+    ap.add_argument("--min-age-hours", type=float, default=0.5)
     ap.add_argument("--max-deletes", type=int, default=2000)
     ap.add_argument("--verbose", action="store_true", help="also print kept entries")
     args = ap.parse_args(argv)
