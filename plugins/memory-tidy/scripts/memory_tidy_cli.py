@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import idle_agents
 import install
+import session_hint
 import tidy_any
 
 
@@ -20,12 +21,12 @@ def run_all():
     return code or tidy_any.main()
 
 
-COMMANDS = {"tidy": tidy_any.main, "idle": idle_agents.main, "all": run_all, "install": install.main}
+COMMANDS = {"tidy": tidy_any.main, "idle": idle_agents.main, "all": run_all, "install": install.main, "hint": session_hint.main}
 
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:
-        print("usage: memory-tidy {all|idle|tidy|install} [options]   (add --help after the command)", file=sys.stderr)
+        print("usage: memory-tidy {all|idle|tidy|install|hint} [options]   (add --help after the command)", file=sys.stderr)
         return 2
     command = sys.argv[1]
     sys.argv = [f"memory-tidy {command}", *sys.argv[2:]]
