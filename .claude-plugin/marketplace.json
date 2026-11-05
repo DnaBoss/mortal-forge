@@ -1,0 +1,14 @@
+{
+  "name": "mortal-forge",
+  "description": "MORTAL 的可安裝外掛。目前有 memory-tidy：清理閒置與孤兒的 claude／codex 及其附屬程序，釋放記憶體。",
+  "owner": {
+    "name": "DnaBoss"
+  },
+  "plugins": [
+    {
+      "name": "memory-tidy",
+      "source": "./plugins/memory-tidy",
+      "description": "Free memory: close idle claude/codex sessions with handoff notes, stop orphan MCP servers, dev servers and claude/codex processes, clean stale temp files. Linux, macOS, Windows."
+    }
+  ]
+}
