@@ -9,6 +9,7 @@ STEPS = [
     ("閒置 claude／codex", "idle_agents.py", ["--min-idle-hours"]),
     ("孤兒開發伺服器", "orphan_servers.py", []),
     ("/tmp 舊檔", "tmp_cleanup.py", []),
+    ("孤兒 MCP 伺服器", "tidy_any.py", []),
 ]
 
 

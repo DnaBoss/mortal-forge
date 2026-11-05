@@ -1,8 +1,19 @@
 {
   "name": "memory-tidy",
   "displayName": "Memory Tidy",
-  "version": "0.1.0",
-  "description": "Close idle claude/codex sessions (with handoff notes), stop orphan dev servers, and clean stale /tmp files on Linux. Optional systemd timer.",
+  "version": "0.2.0",
+  "description": "Free memory: close idle claude/codex sessions (Linux), stop orphan MCP and dev servers, clean stale temp files. Optional schedule on Linux, macOS and Windows (macOS/Windows untested).",
   "license": "MIT",
-  "keywords": ["memory", "cleanup", "idle", "linux"]
+  "keywords": [
+    "memory",
+    "cleanup",
+    "idle",
+    "mcp",
+    "linux",
+    "macos",
+    "windows"
+  ],
+  "author": {
+    "name": "DnaBoss"
+  }
 }
