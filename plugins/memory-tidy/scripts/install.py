@@ -14,13 +14,15 @@ LIB = Path(os.environ.get("LOCALAPPDATA", HOME)) / "memory-tidy" if WINDOWS else
 UNITS = HOME / ".config/systemd/user"
 PLIST = HOME / "Library/LaunchAgents/com.memory-tidy.plist"
 TASK = "memory-tidy"
+FROZEN = getattr(sys, "frozen", False)
+EXE = LIB / ("memory-tidy.exe" if WINDOWS else "memory-tidy")
 SCRIPTS = ("mem_tidy.py", "idle_agents.py", "orphan_servers.py", "tmp_cleanup.py", "tidy_any.py")
 
 PLIST_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>Label</key><string>com.memory-tidy</string>
-<key>ProgramArguments</key><array><string>{python}</string><string>-I</string><string>{script}</string><string>--apply</string><string>--tmp</string></array>
+<key>ProgramArguments</key><array>{args}</array>
 <key>StartInterval</key><integer>{seconds}</integer>
 <key>Nice</key><integer>10</integer>
 <key>RunAtLoad</key><false/>
@@ -32,7 +34,7 @@ Description=Free memory: close idle claude/codex, stop orphan dev servers, clean
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/python3 -I %h/.local/lib/memory-tidy/mem_tidy.py --min-idle-hours {hours} --apply
+ExecStart={exec_line}
 Nice=10
 """
 
@@ -59,8 +61,17 @@ def run(cmd):
 
 def copy_scripts():
     LIB.mkdir(parents=True, exist_ok=True)
+    if FROZEN:
+        shutil.copy2(sys.executable, EXE)
+        return
     for name in SCRIPTS:
         shutil.copy2(HERE / name, LIB / name)
+
+
+def job_args():
+    if FROZEN:
+        return [str(EXE), "tidy", "--apply", "--tmp"]
+    return [sys.executable, "-I", str(LIB / "tidy_any.py"), "--apply", "--tmp"]
 
 
 def install(hours, minutes, apply):
@@ -76,14 +87,15 @@ def install(hours, minutes, apply):
         return 0
     if WINDOWS:
         copy_scripts()
-        cmd = f'"{sys.executable}" -I "{LIB / "tidy_any.py"}" --apply --tmp'
+        cmd = " ".join(f'"{a}"' for a in job_args())
         out = run(["schtasks", "/Create", "/F", "/TN", TASK, "/SC", "MINUTE", "/MO", str(minutes), "/TR", cmd])
         print(out.stdout.strip() or out.stderr.strip())
         return out.returncode
     if MAC:
         copy_scripts()
         PLIST.parent.mkdir(parents=True, exist_ok=True)
-        PLIST.write_text(PLIST_TEMPLATE.format(python=sys.executable, script=LIB / "tidy_any.py", seconds=minutes * 60))
+        args = "".join(f"<string>{a}</string>" for a in job_args())
+        PLIST.write_text(PLIST_TEMPLATE.format(args=args, seconds=minutes * 60))
         run(["launchctl", "unload", str(PLIST)])
         out = run(["launchctl", "load", str(PLIST)])
         print(out.stderr.strip() or "installed; check with: launchctl list | grep memory-tidy")
@@ -93,7 +105,8 @@ def install(hours, minutes, apply):
         return 1
     copy_scripts()
     UNITS.mkdir(parents=True, exist_ok=True)
-    (UNITS / "memory-tidy.service").write_text(SERVICE.format(hours=hours))
+    exec_line = " ".join(job_args()) if FROZEN else f"/usr/bin/python3 -I %h/.local/lib/memory-tidy/mem_tidy.py --min-idle-hours {hours} --apply"
+    (UNITS / "memory-tidy.service").write_text(SERVICE.format(exec_line=exec_line))
     (UNITS / "memory-tidy.timer").write_text(TIMER.format(minutes=minutes))
     for cmd in (("daemon-reload",), ("enable", "--now", "memory-tidy.timer")):
         out = systemctl(*cmd)

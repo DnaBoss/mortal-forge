@@ -38,6 +38,14 @@ This creates a schedule (systemd user timer on Linux, launchd agent on macOS, Ta
 
 The installer copies the scripts to `~/.local/lib/memory-tidy/`, so the timer keeps working after the plugin updates.
 
+## No Python on the machine
+
+Build outputs `memory-tidy-<platform>` come from the `memory-tidy-binaries` workflow (Actions artifacts). The single file needs no Python. Use it like this:
+
+- `memory-tidy tidy` previews orphan MCP/dev-server cleanup; add `--apply` to act, `--tmp` for temp files.
+- `memory-tidy install` previews the schedule; add `--apply`. It copies itself to the install folder and schedules `memory-tidy tidy --apply --tmp`.
+- It only contains the cross-platform part (`tidy_any.py`); idle claude/codex closing still needs the Python scripts on Linux.
+
 ## How idle is decided
 
 - claude: `~/.claude/sessions/<pid>.json` has status idle and was last updated before the threshold.
