@@ -38,6 +38,9 @@ jobs:
       - name: End-to-end idle close test
         shell: bash
         run: python plugins/memory-tidy/tests/e2e_idle.py dist/memory-tidy
+      - name: Orphan agent test
+        shell: bash
+        run: python plugins/memory-tidy/tests/e2e_orphan.py dist/memory-tidy
       - name: Hook merge test
         shell: bash
         run: python -I plugins/memory-tidy/tests/hook_merge.py

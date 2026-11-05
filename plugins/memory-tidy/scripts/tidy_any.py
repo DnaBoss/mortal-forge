@@ -22,6 +22,8 @@ DEV_PATTERNS = (r"next dev", r"next-server", r"\bvite\b", r"tsx watch", r"--impo
 LAUNCHERS = (r"\bnpx\b", r"\buvx?\b", r"\bbunx?\b", r"\bnode(\.exe)?\b", r"\bpython[\d.]*(\.exe)?\b", r"\bdeno\b")
 NEVER_PATTERNS = (r"\bsshd?\b", r"\bpostgres", r"\bredis", r"\bdocker", r"\bcontainerd", r"claude(\.exe)?\s*$", r"\bcodex(\.exe)?\s*$")
 
+AGENT = re.compile(r"(^|[\\/\s\"'])(claude|codex)(\.exe)?(\s|[\"']|$)", re.I)
+
 ETIME = re.compile(r"^(?:(?:(\d+)-)?(\d+):)?(\d+):(\d+)$")
 
 
@@ -34,14 +36,14 @@ def etime_seconds(text):
 
 
 def list_unix():
-    out = subprocess.run(["ps", "-axo", "pid=,ppid=,etime=,args="], capture_output=True, text=True, check=True).stdout
+    out = subprocess.run(["ps", "-axo", "pid=,ppid=,etime=,tty=,args="], capture_output=True, text=True, check=True).stdout
     procs = {}
     for line in out.splitlines():
-        parts = line.split(None, 3)
-        if len(parts) < 3 or not parts[0].isdigit():
+        parts = line.split(None, 4)
+        if len(parts) < 4 or not parts[0].isdigit():
             continue
         procs[int(parts[0])] = {"pid": int(parts[0]), "ppid": int(parts[1]), "age": etime_seconds(parts[2]),
-                                "cmd": parts[3] if len(parts) > 3 else ""}
+                                "tty": parts[3] not in ("?", "??", "-"), "cmd": parts[4] if len(parts) > 4 else ""}
     return procs
 
 
@@ -61,7 +63,7 @@ def list_windows():
     procs = {}
     for r in rows:
         age = max(0, int(now - r["start"])) if r["start"] else 0
-        procs[r["pid"]] = {"pid": r["pid"], "ppid": r["ppid"], "age": age, "cmd": r["cmd"], "start": r["start"]}
+        procs[r["pid"]] = {"pid": r["pid"], "ppid": r["ppid"], "age": age, "cmd": r["cmd"], "start": r["start"], "tty": False}
     return procs
 
 
@@ -118,11 +120,26 @@ def read_keep():
         return set()
 
 
-def select(procs, mcp_hours, dev_hours, extra_keep, extra_patterns):
+def live_session(pid):
+    try:
+        return json.loads((Path.home() / f".claude/sessions/{pid}.json").read_text(encoding="utf-8")).get("kind") == "interactive"
+    except (OSError, ValueError):
+        return False
+
+
+def orphan_agent(p, procs, hours):
+    return (bool(AGENT.search(p["cmd"])) and "app-server" not in p["cmd"] and is_orphan(p, procs) and not p["tty"]
+            and p["age"] >= hours * 3600 and not live_session(p["pid"]))
+
+
+def select(procs, mcp_hours, dev_hours, extra_keep, extra_patterns, agent_hours=0.5):
     protected = ancestors(os.getpid(), procs) | read_keep()
     picks = []
     for p in procs.values():
         cmd = p["cmd"]
+        if p["pid"] not in protected and not matches(extra_keep, cmd) and not service_managed(p["pid"]) and orphan_agent(p, procs, agent_hours):
+            picks.append({**p, "kind": "agent"})
+            continue
         if p["pid"] in protected or matches(NEVER_PATTERNS, cmd) or matches(extra_keep, cmd) or service_managed(p["pid"]):
             continue
         if matches(MCP_PATTERNS + tuple(extra_patterns), cmd) and matches(LAUNCHERS, cmd):
@@ -241,15 +258,19 @@ def main():
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--mcp-idle-hours", type=float, default=1)
     ap.add_argument("--dev-idle-hours", type=float, default=2)
+    ap.add_argument("--agent-idle-hours", type=float, default=0.5, help="orphan claude/codex processes (no terminal, parent gone) older than this are stopped")
     ap.add_argument("--tmp-hours", type=float, default=6)
     ap.add_argument("--keep", action="append", default=[], help="regex; matching command lines are never stopped")
     ap.add_argument("--also", action="append", default=[], help="regex; extra command lines treated as MCP-like servers")
+    ap.add_argument("--only", help="regex; act only on processes whose command line matches")
     ap.add_argument("--tmp", action="store_true", help="also remove stale entries in the temp directory")
     args = ap.parse_args()
 
     procs = list_procs()
-    picks = select(procs, args.mcp_idle_hours, args.dev_idle_hours, args.keep, args.also)
-    print(f"orphan servers: {len(picks)}")
+    picks = select(procs, args.mcp_idle_hours, args.dev_idle_hours, args.keep, args.also, args.agent_idle_hours)
+    if args.only:
+        picks = [p for p in picks if re.search(args.only, p["cmd"], re.I)]
+    print(f"orphan processes: {len(picks)}")
     for p in picks:
         line = f"  [{p['kind']}] pid {p['pid']} age {p['age'] // 3600}h  {p['cmd'][:100]}"
         if args.apply:
