@@ -42,4 +42,10 @@ bad = claude / "settings.json"
 bad.write_text("{oops")
 assert "not valid JSON" in install.edit_hook_file(bad, True)
 assert bad.read_text() == "{oops"
+import re
+
+scripts_dir = Path(install.__file__).resolve().parent
+for name in install.SCRIPTS:
+    for dep in re.findall(r"^import (\w+)$", (scripts_dir / name).read_text(encoding="utf-8"), re.M):
+        assert not (scripts_dir / f"{dep}.py").exists() or f"{dep}.py" in install.SCRIPTS, f"{name} needs {dep}.py which is not copied"
 print("hook merge ok")
