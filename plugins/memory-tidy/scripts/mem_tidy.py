@@ -18,7 +18,7 @@ else:
 
 
 def run(script, args):
-    out = subprocess.run([sys.executable, "-I", str(TOOLS / script), *args], capture_output=True, text=True)
+    out = subprocess.run([sys.executable, "-I", str(TOOLS / script), *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     return out.returncode, (out.stdout + out.stderr).strip()
 
 
@@ -27,6 +27,8 @@ def used_line():
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="一次檢查所有能釋放記憶體的項目；預設只預覽")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--min-idle-hours", default="4")

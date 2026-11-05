@@ -24,7 +24,7 @@ SKIP_PREFIXES = ("<", "# AGENTS.md", "Caveat:")
 
 def read(path):
     try:
-        return Path(path).read_text()
+        return Path(path).read_text(encoding="utf-8", errors="replace")
     except OSError:
         return ""
 
@@ -93,7 +93,7 @@ def codex_rollout(pid):
 
 def rollout_cwd(rollout):
     try:
-        first = json.loads(rollout.read_text().splitlines()[0])
+        first = json.loads(rollout.read_text(encoding="utf-8", errors="replace").splitlines()[0])
     except (OSError, ValueError, IndexError):
         return ""
     return first.get("payload", {}).get("cwd", "")
@@ -195,7 +195,7 @@ def write_handoff(session, now):
             lines.append("- 沒有未提交的修改")
     HANDOFFS.mkdir(parents=True, exist_ok=True)
     out = HANDOFFS / f"{datetime.fromtimestamp(now):%Y%m%d-%H%M%S}-{session['tool']}-{session['pid']}.md"
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return out
 
 
@@ -248,6 +248,8 @@ def memory_report():
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="找出閒置的 claude／codex，寫收尾記錄後關閉；預設只預覽")
     ap.add_argument("--min-idle-hours", type=float, default=4)
     ap.add_argument("--apply", action="store_true")
@@ -280,7 +282,7 @@ def main():
         print(f"{row['action']:<20} {s['tool']:<6} pid={s['pid']:<8} idle={row['idle_hours']:>6}h rss={row['rss_mb']}MB {s['cwd']}")
     if args.apply:
         STATE.mkdir(parents=True, exist_ok=True)
-        with LOG.open("a") as f:
+        with LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"time": now, "rows": rows}, ensure_ascii=False) + "\n")
     print(f"共 {len(rows)} 個，閒置超過 {args.min_idle_hours} 小時：{sum(r['action'] != 'keep' for r in rows)} 個")
 

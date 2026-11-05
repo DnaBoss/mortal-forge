@@ -52,7 +52,7 @@ def pending_handoffs(cwd):
     for p in sorted(HANDOFFS.glob("*.md"), key=lambda x: x.stat().st_mtime, reverse=True):
         if p.name in shown or p.stat().st_mtime < cutoff:
             continue
-        text = p.read_text(errors="replace")
+        text = p.read_text(encoding="utf-8", errors="replace")
         rows.append((p.name, field(text, "目錄"), field(text, "分支"), field(text, "產生時間"),
                      field(text, "還原指令"), first_task(text)))
     rows.sort(key=lambda r: r[1] != cwd)
@@ -85,6 +85,7 @@ def schedule_nag():
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
     try:
         cwd = json.load(sys.stdin).get("cwd", "")
     except (ValueError, OSError):

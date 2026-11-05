@@ -26,7 +26,7 @@ handoffs = home / ".local/state/idle-agents/handoffs"
 
 
 def run(*args):
-    return subprocess.run([*exe, "idle", *args], capture_output=True, text=True, env=env).stdout
+    return subprocess.run([*exe, "idle", *args], capture_output=True, text=True, encoding="utf-8", env=env).stdout
 
 
 def fail(msg):
@@ -45,8 +45,8 @@ out = run("--min-idle-hours", "4", "--apply")
 files = list(handoffs.glob("*.md")) if handoffs.exists() else []
 if not files:
     fail("no handoff written\n" + out)
-if "fix the login bug" not in files[0].read_text() or "claude --resume sess1" not in files[0].read_text():
-    fail("handoff content wrong\n" + files[0].read_text())
+if "fix the login bug" not in files[0].read_text(encoding="utf-8") or "claude --resume sess1" not in files[0].read_text(encoding="utf-8"):
+    fail("handoff content wrong\n" + files[0].read_text(encoding="utf-8"))
 for _ in range(20):
     if child.poll() is not None:
         break
