@@ -40,14 +40,15 @@ The installer copies the scripts to `~/.local/lib/memory-tidy/`, so the timer ke
 
 ## Session start reminder
 
-The plugin's SessionStart hook (`hooks/hooks.json`, runs `session_hint.py`, needs Python 3) tells the AI at the start of each Claude Code session about sessions closed earlier that may be unfinished (up to 3 from the last 3 days, ones in the current folder first, each shown once) with the resume command. If no schedule is installed it also asks the user once a week to enable it. When you see this context, mention it to the user in one or two sentences and ask whether to resume. Codex does not load this hook.
+`install --apply` also adds a SessionStart hook to `~/.claude/settings.json` and `~/.codex/hooks.json` (only when those folders exist; a `.bak-memory-tidy` backup is kept; `--no-hook` skips it; `--uninstall --apply` removes it). The hook runs `memory-tidy hint` (the single binary, or `python -I memory_tidy_cli.py hint`), so Claude Code and Codex both get it on Linux, macOS and Windows. It tells the AI about sessions closed earlier that may be unfinished (up to 3 from the last 3 days, current folder first, each shown once) with the resume command, and asks once a week to enable the schedule if none exists. When you see this context, mention it to the user in one or two sentences and ask whether to resume. The plugin's own `hooks/hooks.json` does the same for Claude Code and needs Python 3.
 
 ## No Python on the machine
 
 Build outputs `memory-tidy-<platform>` come from the `memory-tidy-binaries` workflow (Actions artifacts). The single file needs no Python. Use it like this:
 
 - `memory-tidy tidy` previews orphan MCP/dev-server cleanup; add `--apply` to act, `--tmp` for temp files.
-- `memory-tidy install` previews the schedule; add `--apply`. It copies itself to the install folder and schedules `memory-tidy tidy --apply --tmp`.
+- `memory-tidy hint` prints the start reminder (used by the hook).
+- `memory-tidy install` previews the schedule and hook; add `--apply`. It copies itself to the install folder and schedules `memory-tidy tidy --apply --tmp`.
 - `memory-tidy idle` closes idle sessions with handoff notes; `memory-tidy all` runs idle plus tidy (this is what the schedule runs). Add `--apply` to act.
 
 ## How idle is decided
@@ -64,6 +65,7 @@ Written to `~/.local/state/idle-agents/handoffs/` before each close: first task,
 
 - Linux: all four steps (idle claude/codex sessions with handoff notes, orphan dev servers, /tmp, orphan MCP servers).
 - macOS and Windows: idle claude session closing with handoff notes, orphan MCP and dev servers, and temp cleanup. Idle codex closing works on macOS (uses lsof) but not on Windows (cannot find the open rollout file). No memory breakdown report outside Linux.
+- The hook registration is covered by add/remove unit tests on all three platforms; a real Codex or Claude Code loading it on macOS/Windows is NOT tested. On Windows the command runs under the tool's shell (Git Bash or PowerShell).
 - macOS and Windows code paths were written from the platform documentation and are NOT tested on real machines. Always run the preview first and report problems.
 - A claude session running a long background command but showing idle can be closed on Linux. Check the preview before applying.
 - Depends on the current claude and codex session file formats.
