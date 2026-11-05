@@ -259,7 +259,7 @@ def main():
     ap.add_argument("--mcp-idle-hours", type=float, default=1)
     ap.add_argument("--dev-idle-hours", type=float, default=2)
     ap.add_argument("--agent-idle-hours", type=float, default=0.5, help="orphan claude/codex processes (no terminal, parent gone) older than this are stopped")
-    ap.add_argument("--tmp-hours", type=float, default=6)
+    ap.add_argument("--tmp-hours", type=float, default=2)
     ap.add_argument("--keep", action="append", default=[], help="regex; matching command lines are never stopped")
     ap.add_argument("--also", action="append", default=[], help="regex; extra command lines treated as MCP-like servers")
     ap.add_argument("--only", help="regex; act only on processes whose command line matches")
