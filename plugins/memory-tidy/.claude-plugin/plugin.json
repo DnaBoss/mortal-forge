@@ -1,7 +1,7 @@
 {
   "name": "memory-tidy",
   "displayName": "Memory Tidy",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Free memory: close idle claude/codex sessions (Linux), stop orphan MCP and dev servers, clean stale temp files. Optional schedule on Linux, macOS and Windows (macOS/Windows untested).",
   "license": "MIT",
   "keywords": [

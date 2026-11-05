@@ -56,6 +56,7 @@ Build outputs `memory-tidy-<platform>` come from the `memory-tidy-binaries` work
 - claude: `~/.claude/sessions/<pid>.json` has status idle and was last updated before the threshold.
 - codex: the open rollout file was last modified before the threshold.
 - Never closed: the session running this tool, and codex app-server.
+- Skipped (shown in the preview with the reason): `kept_pid_changed` when the process start time does not match the session file (the PID was reused by something else), and `kept_busy_children` when the session has a running child that is not an MCP server (for example a build, test or dev server it started). MCP servers (command line containing `mcp`) never block closing. Docker containers are not children of the session and are not considered.
 
 ## Handoff notes
 
@@ -67,5 +68,5 @@ Written to `~/.local/state/idle-agents/handoffs/` before each close: first task,
 - macOS and Windows: idle claude session closing with handoff notes, orphan MCP and dev servers, and temp cleanup. Idle codex closing works on macOS (uses lsof) but not on Windows (cannot find the open rollout file). No memory breakdown report outside Linux.
 - The hook registration is covered by add/remove unit tests on all three platforms; a real Codex or Claude Code loading it on macOS/Windows is NOT tested. On Windows the command runs under the tool's shell (Git Bash or PowerShell).
 - macOS and Windows code paths were written from the platform documentation and are NOT tested on real machines. Always run the preview first and report problems.
-- A claude session running a long background command but showing idle can be closed on Linux. Check the preview before applying.
+- A session whose long background command runs as a child is kept. A command that detached from the session (its parent is gone) is not seen as a child.
 - Depends on the current claude and codex session file formats.

@@ -19,6 +19,8 @@ HOME = Path.home()
 STATE = HOME / ".local/state/idle-agents"
 LOG = STATE / "log.jsonl"
 HANDOFFS = STATE / "handoffs"
+START_TOLERANCE_SECONDS = 300
+IGNORED_CHILDREN = (r"conhost(\.exe)?",)
 SKIP_PREFIXES = ("<", "# AGENTS.md", "Caveat:")
 
 
@@ -72,6 +74,7 @@ def claude_sessions(procs):
         found.append({
             "tool": "claude", "pid": pid, "cwd": cwd, "session": info["sessionId"],
             "transcript": transcript, "last_active": info["updatedAt"] / 1000,
+            "proc_start": info.get("procStart"), "started_at": info.get("startedAt"),
         })
     return found
 
@@ -199,6 +202,31 @@ def write_handoff(session, now):
     return out
 
 
+def linux_start_ticks(pid):
+    fields = read(f"/proc/{pid}/stat").rsplit(")", 1)[-1].split()
+    return fields[19] if len(fields) > 19 else None
+
+
+def same_instance(session, procs, now):
+    proc = procs.get(session["pid"])
+    if proc is None:
+        return False
+    if LINUX and session.get("proc_start"):
+        return linux_start_ticks(session["pid"]) == str(session["proc_start"])
+    if session.get("started_at"):
+        return abs((now - proc["age"]) - session["started_at"] / 1000) <= START_TOLERANCE_SECONDS
+    return True
+
+
+def busy_children(pid, procs):
+    kids = [k for k in tidy_any.descendants(pid, procs) if k != pid]
+    covered = set()
+    for k in kids:
+        if tidy_any.matches(tidy_any.MCP_PATTERNS, cmdline(k, procs)):
+            covered.update(tidy_any.descendants(k, procs))
+    return [k for k in kids if k not in covered and not tidy_any.matches(IGNORED_CHILDREN, cmdline(k, procs))]
+
+
 def stop(pid, procs):
     if tidy_any.WINDOWS:
         return subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True).returncode == 0
@@ -269,6 +297,11 @@ def main():
         row = {"tool": s["tool"], "pid": s["pid"], "cwd": s["cwd"], "idle_hours": round(idle_h, 1), "rss_mb": rss_mb(s["pid"])}
         if idle_h < args.min_idle_hours:
             row["action"] = "keep"
+        elif not same_instance(s, tidy_any.list_procs(), now):
+            row["action"] = "kept_pid_changed"
+        elif busy := busy_children(s["pid"], procs):
+            row["action"] = "kept_busy_children"
+            row["children"] = [cmdline(k, procs)[:80] for k in busy[:3]]
         elif not args.apply:
             row["action"] = "would_close"
         else:
@@ -280,11 +313,13 @@ def main():
                 row["error"] = str(exc)
         rows.append(row)
         print(f"{row['action']:<20} {s['tool']:<6} pid={s['pid']:<8} idle={row['idle_hours']:>6}h rss={row['rss_mb']}MB {s['cwd']}")
+        for child in row.get("children", []):
+            print(f"{'':<20} running: {child}")
     if args.apply:
         STATE.mkdir(parents=True, exist_ok=True)
         with LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"time": now, "rows": rows}, ensure_ascii=False) + "\n")
-    print(f"共 {len(rows)} 個，閒置超過 {args.min_idle_hours} 小時：{sum(r['action'] != 'keep' for r in rows)} 個")
+    print(f"共 {len(rows)} 個，閒置超過 {args.min_idle_hours} 小時：{sum(r['action'] in ('would_close', 'closed', 'close_failed') for r in rows)} 個可關閉")
 
 
 if __name__ == "__main__":
