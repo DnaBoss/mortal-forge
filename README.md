@@ -124,3 +124,14 @@ install 安裝穩定副本到 `~/.local/share/mortal-tools/package`，標準 Ski
 ## 本機 AI 工具盤點
 
 需要查 Skill、MCP、Plugin、模型來源與異動時，讀 [AI 工具總表](docs/ai-tool-index.md)。
+
+## 安裝 memory-tidy 外掛
+
+這個 repo 是私有的，需要有存取權並已登入 GitHub。
+
+```
+/plugin marketplace add DnaBoss/mortal-forge
+/plugin install memory-tidy --marketplace DnaBoss/mortal-forge
+```
+
+不想裝 Python 時，從 GitHub Release（memory-tidy-v0.8.0）下載對應系統的單一執行檔。
