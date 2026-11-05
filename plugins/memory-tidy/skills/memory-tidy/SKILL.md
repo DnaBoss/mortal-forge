@@ -38,6 +38,10 @@ This creates a schedule (systemd user timer on Linux, launchd agent on macOS, Ta
 
 The installer copies the scripts to `~/.local/lib/memory-tidy/`, so the timer keeps working after the plugin updates.
 
+## Session start reminder
+
+The plugin's SessionStart hook (`hooks/hooks.json`, runs `session_hint.py`, needs Python 3) tells the AI at the start of each Claude Code session about sessions closed earlier that may be unfinished (up to 3 from the last 3 days, ones in the current folder first, each shown once) with the resume command. If no schedule is installed it also asks the user once a week to enable it. When you see this context, mention it to the user in one or two sentences and ask whether to resume. Codex does not load this hook.
+
 ## No Python on the machine
 
 Build outputs `memory-tidy-<platform>` come from the `memory-tidy-binaries` workflow (Actions artifacts). The single file needs no Python. Use it like this:
