@@ -2,7 +2,7 @@
 """Delete stale, unused entries under /tmp (tmpfs here, so stale files hold RAM).
 
 An entry is deleted only when all hold:
-  - owned by the current user and not on the skip list
+  - owned by the current user and not on the skip list or in ~/.memory-tidy/tmp-keep.txt
   - no running process has a file, cwd, exe or mapping inside it
   - not the scratch dir of a live Claude session (~/.claude/sessions/<pid>.json)
   - nothing inside it changed for --min-age-hours
@@ -23,6 +23,7 @@ TMP = Path("/tmp")
 CLAUDE_TMP_NAME = f"claude-{os.getuid()}"
 SKIP_PREFIXES = (".X", ".ICE", ".font-unix", ".XIM", "systemd-private", ".mount_", "tmux-", "ssh-")
 LOG = Path.home() / ".local/state/tmp-cleanup/log.jsonl"
+KEEP_FILE = Path.home() / ".memory-tidy" / "tmp-keep.txt"
 WALK_LIMIT = 200_000
 
 
@@ -132,8 +133,17 @@ def measure(path):
     return newest, size
 
 
+def keep_names():
+    try:
+        lines = KEEP_FILE.read_text().splitlines()
+    except OSError:
+        return ()
+    return tuple(x.strip() for x in lines if x.strip() and not x.startswith("#"))
+
+
 def candidates():
     uid = os.getuid()
+    keep = keep_names()
     out = []
 
     def add(p, session_id=""):
@@ -146,7 +156,7 @@ def candidates():
         out.append(Entry(p, newest, size, session_id))
 
     for ent in os.scandir(TMP):
-        if ent.name.startswith(SKIP_PREFIXES) or ent.name == CLAUDE_TMP_NAME:
+        if ent.name.startswith(SKIP_PREFIXES + keep) or ent.name == CLAUDE_TMP_NAME:
             continue
         add(ent.path)
     claude_tmp = TMP / CLAUDE_TMP_NAME

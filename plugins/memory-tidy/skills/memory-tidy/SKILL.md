@@ -9,7 +9,7 @@ Frees memory by doing these things, in order:
 
 1. Close claude/codex sessions that have been idle for 4 hours or more. A handoff note is written first, so the session can be resumed.
 2. Stop orphan dev servers (next dev, vite, tsx watch, ts-node) whose parent is gone, with no clients, idle 2 hours or more.
-3. Delete stale files under /tmp (owned by the user, unused by any process, untouched for 30 minutes or more).
+3. Delete stale files under /tmp (owned by the user, unused by any process, untouched for 30 minutes or more). /tmp is scratch space, not a cache: keep work folders elsewhere (for example `~/work_space`), or list a name prefix per line in `~/.memory-tidy/tmp-keep.txt` to protect entries directly under /tmp.
 
 4. Stop orphan MCP servers (npx/uvx/node/python commands with `mcp` in the name) whose parent is gone, idle 1 hour or more. Processes run by systemd services, ssh, databases, docker, and claude/codex themselves are never touched. Add `--keep REGEX` to protect more, or list PIDs in `~/.memory-tidy/never-kill.txt`.
 
