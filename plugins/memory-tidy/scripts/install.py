@@ -17,7 +17,7 @@ PLIST = HOME / "Library/LaunchAgents/com.memory-tidy.plist"
 TASK = "memory-tidy"
 FROZEN = getattr(sys, "frozen", False)
 EXE = LIB / ("memory-tidy.exe" if WINDOWS else "memory-tidy")
-SCRIPTS = ("mem_tidy.py", "idle_agents.py", "orphan_servers.py", "tmp_cleanup.py", "tidy_any.py", "session_hint.py", "memory_tidy_cli.py")
+SCRIPTS = ("mem_tidy.py", "idle_agents.py", "orphan_servers.py", "tmp_cleanup.py", "tidy_any.py", "session_hint.py", "memory_tidy_cli.py", "install.py")
 HOOK_FILES = (HOME / ".claude/settings.json", HOME / ".codex/hooks.json")
 
 PLIST_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
