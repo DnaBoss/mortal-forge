@@ -1,0 +1,8 @@
+{
+  "name": "memory-tidy",
+  "displayName": "Memory Tidy",
+  "version": "0.1.0",
+  "description": "Close idle claude/codex sessions (with handoff notes), stop orphan dev servers, and clean stale /tmp files on Linux. Optional systemd timer.",
+  "license": "MIT",
+  "keywords": ["memory", "cleanup", "idle", "linux"]
+}
