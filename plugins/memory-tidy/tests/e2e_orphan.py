@@ -40,6 +40,12 @@ if os.name != "nt":
         print(f"SKIP: this machine reparents orphans to '{comm[:60]}' (pid {ppid}), not to init")
         sys.exit(0)
 
+if sys.platform.startswith("linux") and Path(f"/proc/{orphan_pid}/cgroup").read_text().strip().endswith(".service"):
+    cleanup()
+    os.kill(int(orphan_pid), 9)
+    print("SKIP: the orphan runs inside a systemd service, which the tool leaves alone")
+    sys.exit(0)
+
 out = tidy("--agent-idle-hours", "99")
 if "orphan processes: 0" not in out:
     fail("age threshold must keep it\n" + out)
