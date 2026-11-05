@@ -13,6 +13,8 @@ Frees memory by doing these things, in order:
 
 4. Stop orphan MCP servers (npx/uvx/node/python commands with `mcp` in the name) whose parent is gone, idle 1 hour or more. Processes run by systemd services, ssh, databases, docker, and claude/codex themselves are never touched. Add `--keep REGEX` to protect more, or list PIDs in `~/.memory-tidy/never-kill.txt`.
 
+5. Stop orphan claude/codex processes: command line is claude or codex, parent gone, no terminal, running 30 minutes or more (`--agent-idle-hours`), not a live interactive session. Their child processes stop with them. codex app-server is never touched. Use `--only REGEX` to limit any tidy run to matching command lines.
+
 Docker is not touched.
 
 ## Preview first, then apply
