@@ -113,7 +113,7 @@ def matches(patterns, text):
 
 def read_keep():
     try:
-        return {int(x) for x in KEEP_FILE.read_text().split() if x.isdigit()}
+        return {int(x) for x in KEEP_FILE.read_text(encoding="utf-8").split() if x.isdigit()}
     except OSError:
         return set()
 
@@ -228,13 +228,15 @@ def remove(path):
 def log(entry):
     try:
         STATE.mkdir(parents=True, exist_ok=True)
-        with LOG.open("a") as f:
+        with LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"t": int(time.time()), **entry}) + "\n")
     except OSError:
         pass
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="Stop orphan MCP servers and dev servers, clean stale temp files (preview by default)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--mcp-idle-hours", type=float, default=1)

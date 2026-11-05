@@ -68,17 +68,17 @@ def copy_scripts():
         shutil.copy2(HERE / name, LIB / name)
 
 
-def job_args():
+def job_args(hours):
     if FROZEN:
-        return [str(EXE), "tidy", "--apply", "--tmp"]
-    return [sys.executable, "-I", str(LIB / "tidy_any.py"), "--apply", "--tmp"]
+        return [str(EXE), "all", "--min-idle-hours", str(hours), "--apply"]
+    return [sys.executable, "-I", str(LIB / "mem_tidy.py"), "--min-idle-hours", str(hours), "--apply"]
 
 
 def install(hours, minutes, apply):
     if WINDOWS:
-        what = f"copy scripts to {LIB}; schtasks /Create task '{TASK}' every {minutes} min running tidy_any.py --apply --tmp"
+        what = f"copy scripts to {LIB}; schtasks /Create task '{TASK}' every {minutes} min running mem_tidy.py --apply"
     elif MAC:
-        what = f"copy scripts to {LIB}; write {PLIST} (every {minutes} min, tidy_any.py --apply --tmp); launchctl load"
+        what = f"copy scripts to {LIB}; write {PLIST} (every {minutes} min, mem_tidy.py --apply); launchctl load"
     else:
         what = (f"copy scripts to {LIB}; write {UNITS / 'memory-tidy.service'} (idle threshold {hours}h, with --apply) and "
                 f"{UNITS / 'memory-tidy.timer'} (every {minutes} min); systemctl --user daemon-reload; enable --now memory-tidy.timer")
@@ -87,14 +87,14 @@ def install(hours, minutes, apply):
         return 0
     if WINDOWS:
         copy_scripts()
-        cmd = " ".join(f'"{a}"' for a in job_args())
+        cmd = " ".join(f'"{a}"' for a in job_args(hours))
         out = run(["schtasks", "/Create", "/F", "/TN", TASK, "/SC", "MINUTE", "/MO", str(minutes), "/TR", cmd])
         print(out.stdout.strip() or out.stderr.strip())
         return out.returncode
     if MAC:
         copy_scripts()
         PLIST.parent.mkdir(parents=True, exist_ok=True)
-        args = "".join(f"<string>{a}</string>" for a in job_args())
+        args = "".join(f"<string>{a}</string>" for a in job_args(hours))
         PLIST.write_text(PLIST_TEMPLATE.format(args=args, seconds=minutes * 60))
         run(["launchctl", "unload", str(PLIST)])
         out = run(["launchctl", "load", str(PLIST)])
@@ -105,7 +105,7 @@ def install(hours, minutes, apply):
         return 1
     copy_scripts()
     UNITS.mkdir(parents=True, exist_ok=True)
-    exec_line = " ".join(job_args()) if FROZEN else f"/usr/bin/python3 -I %h/.local/lib/memory-tidy/mem_tidy.py --min-idle-hours {hours} --apply"
+    exec_line = " ".join(job_args(hours)) if FROZEN else f"/usr/bin/python3 -I %h/.local/lib/memory-tidy/mem_tidy.py --min-idle-hours {hours} --apply"
     (UNITS / "memory-tidy.service").write_text(SERVICE.format(exec_line=exec_line))
     (UNITS / "memory-tidy.timer").write_text(TIMER.format(minutes=minutes))
     for cmd in (("daemon-reload",), ("enable", "--now", "memory-tidy.timer")):

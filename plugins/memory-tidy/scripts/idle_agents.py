@@ -11,6 +11,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tidy_any
+
+LINUX = sys.platform.startswith("linux")
 HOME = Path.home()
 STATE = HOME / ".local/state/idle-agents"
 LOG = STATE / "log.jsonl"
@@ -20,46 +24,37 @@ SKIP_PREFIXES = ("<", "# AGENTS.md", "Caveat:")
 
 def read(path):
     try:
-        return Path(path).read_text()
+        return Path(path).read_text(encoding="utf-8", errors="replace")
     except OSError:
         return ""
 
 
-def comm(pid):
-    return read(f"/proc/{pid}/comm").strip()
+def is_agent(pid, name, procs):
+    cmd = procs.get(pid, {}).get("cmd", "")
+    return re.search(rf"(?:^|[\\/\s\"']){name}(?:\.exe)?(?:[\"'\s]|$)", cmd, re.I) is not None
 
 
-def cmdline(pid):
-    return read(f"/proc/{pid}/cmdline").replace("\0", " ")
-
-
-def cwd_of(pid):
-    try:
-        return os.readlink(f"/proc/{pid}/cwd")
-    except OSError:
-        return ""
+def cmdline(pid, procs):
+    return procs.get(pid, {}).get("cmd", "")
 
 
 def rss_mb(pid):
-    for line in read(f"/proc/{pid}/status").splitlines():
-        if line.startswith("VmRSS:"):
-            return int(line.split()[1]) // 1024
-    return 0
+    if LINUX:
+        for line in read(f"/proc/{pid}/status").splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) // 1024
+        return 0
+    if tidy_any.WINDOWS:
+        return 0
+    out = subprocess.run(["ps", "-o", "rss=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+    return int(out) // 1024 if out.isdigit() else 0
 
 
-def ancestors():
-    seen = set()
-    pid = os.getpid()
-    while pid > 1 and pid not in seen:
-        seen.add(pid)
-        stat = read(f"/proc/{pid}/stat")
-        if not stat:
-            break
-        pid = int(stat.rsplit(")", 1)[1].split()[1])
-    return seen
+def ancestors(procs):
+    return tidy_any.ancestors(os.getpid(), procs)
 
 
-def claude_sessions():
+def claude_sessions(procs):
     found = []
     for meta in glob.glob(str(HOME / ".claude/sessions/*.json")):
         try:
@@ -67,7 +62,7 @@ def claude_sessions():
         except ValueError:
             continue
         pid = info.get("pid")
-        if not pid or comm(pid) != "claude" or info.get("kind") != "interactive":
+        if not pid or not is_agent(pid, "claude", procs) or info.get("kind") != "interactive":
             continue
         if info.get("status") != "idle":
             continue
@@ -81,26 +76,39 @@ def claude_sessions():
     return found
 
 
-def codex_sessions():
-    found = []
-    for entry in os.listdir("/proc"):
-        if not entry.isdigit() or comm(entry) != "codex":
-            continue
-        pid = int(entry)
-        if "app-server" in cmdline(pid):
-            continue
-        rollout = None
+def codex_rollout(pid):
+    if LINUX:
         try:
-            for fd in os.listdir(f"/proc/{pid}/fd"):
-                target = os.readlink(f"/proc/{pid}/fd/{fd}")
-                if "/sessions/" in target and os.path.basename(target).startswith("rollout-"):
-                    rollout = Path(target)
+            targets = [os.readlink(f"/proc/{pid}/fd/{fd}") for fd in os.listdir(f"/proc/{pid}/fd")]
         except OSError:
+            return None
+    elif tidy_any.WINDOWS:
+        return None
+    else:
+        out = subprocess.run(["lsof", "-p", str(pid), "-Fn"], capture_output=True, text=True).stdout
+        targets = [line[1:] for line in out.splitlines() if line.startswith("n/")]
+    found = [Path(t) for t in targets if "/sessions/" in t and os.path.basename(t).startswith("rollout-")]
+    return found[-1] if found else None
+
+
+def rollout_cwd(rollout):
+    try:
+        first = json.loads(rollout.read_text(encoding="utf-8", errors="replace").splitlines()[0])
+    except (OSError, ValueError, IndexError):
+        return ""
+    return first.get("payload", {}).get("cwd", "")
+
+
+def codex_sessions(procs):
+    found = []
+    for pid in procs:
+        if not is_agent(pid, "codex", procs) or "app-server" in cmdline(pid, procs):
             continue
+        rollout = codex_rollout(pid)
         if rollout is None or not rollout.exists():
             continue
         found.append({
-            "tool": "codex", "pid": pid, "cwd": cwd_of(pid), "session": rollout.stem,
+            "tool": "codex", "pid": pid, "cwd": rollout_cwd(rollout), "session": rollout.stem,
             "transcript": rollout, "last_active": rollout.stat().st_mtime,
         })
     return found
@@ -187,15 +195,17 @@ def write_handoff(session, now):
             lines.append("- 沒有未提交的修改")
     HANDOFFS.mkdir(parents=True, exist_ok=True)
     out = HANDOFFS / f"{datetime.fromtimestamp(now):%Y%m%d-%H%M%S}-{session['tool']}-{session['pid']}.md"
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return out
 
 
-def stop(pid):
+def stop(pid, procs):
+    if tidy_any.WINDOWS:
+        return subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True).returncode == 0
     os.kill(pid, signal.SIGTERM)
     for _ in range(20):
         time.sleep(0.5)
-        if not os.path.exists(f"/proc/{pid}") or comm(pid) not in ("claude", "codex"):
+        if not is_agent(pid, "claude", tidy_any.list_procs()) and not is_agent(pid, "codex", tidy_any.list_procs()):
             return True
     return False
 
@@ -209,6 +219,9 @@ def meminfo_gb():
 
 
 def memory_report():
+    if not LINUX:
+        print("記憶體拆解報告僅支援 Linux")
+        return
     m = meminfo_gb()
     used = m["MemTotal"] - m["MemFree"] - m["Buffers"] - m["Cached"] - m["SReclaimable"]
     parts = {
@@ -227,13 +240,16 @@ def memory_report():
     totals = {}
     for entry in os.listdir("/proc"):
         if entry.isdigit():
-            totals[comm(entry)] = totals.get(comm(entry), 0) + rss_mb(entry)
+            name = read(f"/proc/{entry}/comm").strip()
+            totals[name] = totals.get(name, 0) + rss_mb(entry)
     print("程式別合計（前 8）：")
     for name, mb in sorted(totals.items(), key=lambda kv: -kv[1])[:8]:
         print(f"  {mb}MB {name}")
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="找出閒置的 claude／codex，寫收尾記錄後關閉；預設只預覽")
     ap.add_argument("--min-idle-hours", type=float, default=4)
     ap.add_argument("--apply", action="store_true")
@@ -244,8 +260,9 @@ def main():
         return 0
 
     now = time.time()
-    skip = ancestors()
-    sessions = [s for s in claude_sessions() + codex_sessions() if s["pid"] not in skip]
+    procs = tidy_any.list_procs()
+    skip = ancestors(procs)
+    sessions = [s for s in claude_sessions(procs) + codex_sessions(procs) if s["pid"] not in skip]
     rows = []
     for s in sorted(sessions, key=lambda s: s["last_active"]):
         idle_h = (now - s["last_active"]) / 3600
@@ -257,7 +274,7 @@ def main():
         else:
             try:
                 row["handoff"] = str(write_handoff(s, now))
-                row["action"] = "closed" if stop(s["pid"]) else "close_failed"
+                row["action"] = "closed" if stop(s["pid"], procs) else "close_failed"
             except OSError as exc:
                 row["action"] = "kept_handoff_failed"
                 row["error"] = str(exc)
@@ -265,7 +282,7 @@ def main():
         print(f"{row['action']:<20} {s['tool']:<6} pid={s['pid']:<8} idle={row['idle_hours']:>6}h rss={row['rss_mb']}MB {s['cwd']}")
     if args.apply:
         STATE.mkdir(parents=True, exist_ok=True)
-        with LOG.open("a") as f:
+        with LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"time": now, "rows": rows}, ensure_ascii=False) + "\n")
     print(f"共 {len(rows)} 個，閒置超過 {args.min_idle_hours} 小時：{sum(r['action'] != 'keep' for r in rows)} 個")
 

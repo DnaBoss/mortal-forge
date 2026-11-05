@@ -48,7 +48,7 @@ Build outputs `memory-tidy-<platform>` come from the `memory-tidy-binaries` work
 
 - `memory-tidy tidy` previews orphan MCP/dev-server cleanup; add `--apply` to act, `--tmp` for temp files.
 - `memory-tidy install` previews the schedule; add `--apply`. It copies itself to the install folder and schedules `memory-tidy tidy --apply --tmp`.
-- It only contains the cross-platform part (`tidy_any.py`); idle claude/codex closing still needs the Python scripts on Linux.
+- `memory-tidy idle` closes idle sessions with handoff notes; `memory-tidy all` runs idle plus tidy (this is what the schedule runs). Add `--apply` to act.
 
 ## How idle is decided
 
@@ -63,7 +63,7 @@ Written to `~/.local/state/idle-agents/handoffs/` before each close: first task,
 ## Limits
 
 - Linux: all four steps (idle claude/codex sessions with handoff notes, orphan dev servers, /tmp, orphan MCP servers).
-- macOS and Windows: only `tidy_any.py` (orphan MCP and dev servers, optional `--tmp` temp cleanup). Idle claude/codex session closing needs /proc and is Linux only.
+- macOS and Windows: idle claude session closing with handoff notes, orphan MCP and dev servers, and temp cleanup. Idle codex closing works on macOS (uses lsof) but not on Windows (cannot find the open rollout file). No memory breakdown report outside Linux.
 - macOS and Windows code paths were written from the platform documentation and are NOT tested on real machines. Always run the preview first and report problems.
 - A claude session running a long background command but showing idle can be closed on Linux. Check the preview before applying.
 - Depends on the current claude and codex session file formats.
